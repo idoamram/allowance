@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { safeEqual } from '@/lib/ids'
 import { DecisionForm, type StepUpRequirement } from './decision-form'
 import { Countdown } from './countdown'
+import { DriftDiff } from './drift-diff'
 import { mintDecisionToken } from './token'
 import { usd } from '@/lib/format'
 import { humanVerifierOrError, DEFAULT_STEP_UP_USD } from '@/lib/verify'
@@ -36,6 +37,9 @@ type StepRow = {
   buys: string
   why: string
   rail: string
+  status: 'pending' | 'paid' | 'blocked' | 'skipped'
+  paid_usd: number | string | null
+  live_ask_usd: number | string | null
 }
 
 /** What the plan's status means for the human now that it is no longer theirs to answer. */
@@ -79,15 +83,38 @@ export default async function ApprovalPage({
   // so a 404 is the only thing this page ever admits to.
   if (!plan || !safeEqual(k, plan.approval_key)) notFound()
 
-  const [{ data: stepRows }, { data: agent }] = await Promise.all([
+  const [{ data: stepRows }, { data: agent }, { data: envelope }] = await Promise.all([
     supabase
       .from('steps')
-      .select('idx, service_name, quote_usd, source, buys, why, rail')
+      .select('idx, service_name, quote_usd, source, buys, why, rail, status, paid_usd, live_ask_usd')
       .eq('plan_id', plan.id)
       .order('idx'),
     supabase.from('agents').select('name, ens').eq('id', plan.agent_id).maybeSingle(),
+    supabase.from('envelopes').select('funded_usd').eq('plan_id', plan.id).maybeSingle(),
   ])
   const steps = (stepRows ?? []) as StepRow[]
+
+  const isBlocked = plan.status === 'blocked'
+  const blockedStep = steps.find((s) => s.status === 'blocked')
+  const money = {
+    ceilingUsd: Number(plan.ceiling_usd),
+    fundedUsd: Number(envelope?.funded_usd ?? plan.ceiling_usd),
+    tolerancePct: Number(plan.tolerance_pct),
+    steps: steps.map((s) => ({
+      quoteUsd: Number(s.quote_usd),
+      status: s.status,
+      paidUsd: s.paid_usd == null ? undefined : Number(s.paid_usd),
+    })),
+  }
+  const driftSteps = steps.map((s) => ({
+    idx: s.idx,
+    serviceName: s.service_name,
+    buys: s.buys,
+    quoteUsd: Number(s.quote_usd),
+    status: s.status,
+    paidUsd: s.paid_usd == null ? undefined : Number(s.paid_usd),
+    liveAskUsd: s.live_ask_usd == null ? undefined : Number(s.live_ask_usd),
+  }))
 
   const total = Number(plan.total_usd)
   const ceiling = Number(plan.ceiling_usd)
@@ -203,6 +230,17 @@ export default async function ApprovalPage({
               cannot exceed it, and what it does not spend sweeps back at expiry.
             </p>
           </>
+        ) : isBlocked && blockedStep ? (
+          // The plan stopped mid-execution because a seller changed its price. This is the
+          // second decision the product exists to ask for, and it is priced, not a popup.
+          <DriftDiff
+            planId={plan.id}
+            ticket={mintDecisionToken(plan.approval_key, plan.id)}
+            money={money}
+            steps={driftSteps}
+            blockedIdx={blockedStep.idx}
+            liveAskUsd={Number(blockedStep.live_ask_usd ?? blockedStep.quote_usd)}
+          />
         ) : (
           <div className={styles.settled}>
             <h2>{settled?.title ?? plan.status}</h2>

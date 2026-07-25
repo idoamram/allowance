@@ -319,3 +319,47 @@
   color: var(--ink-soft);
   margin-top: 1rem;
 }
+
+/* ── Drift diff: the second decision ─────────────────────────────────────────
+   Deliberately louder than the approval view. The human is being interrupted
+   mid-execution, so what changed and what each way out costs must read first. */
+.drift { border-top: 1px solid var(--rule); margin-top: 1.25rem; padding-top: 1.25rem; }
+.driftHead { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+.driftBadge {
+  align-self: flex-start; background: var(--stop); color: var(--manila);
+  font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 0.15rem 0.45rem; border-radius: 2px;
+}
+.driftLead { font-size: 1rem; line-height: 1.45; }
+.driftSteps { list-style: none; margin: 0 0 1rem; padding: 0; }
+.driftStep, .driftStepBlocked {
+  display: grid; grid-template-columns: 1.25rem 1fr auto; gap: 0.5rem;
+  align-items: baseline; padding: 0.45rem 0; border-bottom: 1px dotted var(--rule);
+}
+.driftStepBlocked { background: color-mix(in srgb, var(--stop) 7%, transparent); }
+.driftMark { color: var(--ok); font-weight: 700; }
+.driftStepBlocked .driftMark { color: var(--stop); }
+.driftBody { display: flex; flex-direction: column; }
+.driftBuys { font-size: 0.8rem; color: var(--ink-soft); }
+.driftPrice { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.driftPending { color: var(--ink-soft); font-size: 0.85rem; }
+.driftMoney {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem; margin: 0 0 1.1rem; padding: 0.75rem;
+  background: var(--manila-deep); border-radius: 3px;
+}
+.driftMoney div { display: flex; flex-direction: column; gap: 0.15rem; }
+.driftMoney dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); }
+.driftMoney dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; }
+.driftOver { color: var(--stop); font-weight: 400; font-size: 0.85rem; }
+.driftActions { display: flex; flex-direction: column; gap: 0.5rem; }
+.driftBtn, .driftBtnStop {
+  padding: 0.7rem 1rem; border: 1px solid var(--ink); border-radius: 3px;
+  background: transparent; color: var(--ink); font: inherit; cursor: pointer;
+  text-align: left;
+}
+.driftBtn:hover, .driftBtnStop:hover { background: var(--manila-deep); }
+.driftBtnStop { border-color: var(--stop); color: var(--stop); }
+.driftBtn:disabled, .driftBtnStop:disabled { opacity: 0.5; cursor: progress; }
+.driftError { color: var(--stop); font-size: 0.85rem; }
+.driftFoot { font-size: 0.82rem; color: var(--ink-soft); line-height: 1.5; margin-top: 0.9rem; }

@@ -118,3 +118,54 @@ export async function submitDecision(
   revalidatePath(`/p/${planId}`)
   return { ok: true, status: body.status }
 }
+
+/**
+ * The answer to a drift block: approve the live ask, re-plan the step, or abort and take
+ * the remainder back. Same authorisation as any other decision — the ticket proves the
+ * caller opened the real link — but no step-up gate: the human is not raising their
+ * exposure here, they are choosing among outcomes of a plan they already approved, and
+ * two of the three options spend strictly less.
+ */
+export async function submitDriftDecision(
+  _prev: DecisionState,
+  form: FormData,
+): Promise<DecisionState> {
+  const planId = String(form.get('planId') ?? '')
+  const supabase = db()
+  const { data: plan } = await supabase
+    .from('plans')
+    .select('approval_key, status')
+    .eq('id', planId)
+    .maybeSingle()
+
+  if (!plan || !verifyDecisionToken(String(form.get('token') ?? ''), plan.approval_key, planId)) {
+    return { error: 'This page is no longer valid. Open the approval link again.' }
+  }
+  if (plan.status !== 'blocked') {
+    return { error: `This plan is ${plan.status} — there is no drift to answer.` }
+  }
+
+  const stepIdx = field(form, 'stepIdx')
+  const parsed = decisionSchema.safeParse({
+    outcome: form.get('outcome'),
+    stepIdx: stepIdx === undefined ? undefined : Number(stepIdx),
+  })
+  if (!parsed.success || !parsed.data.outcome.startsWith('drift_')) {
+    return { error: 'That is not a drift answer.' }
+  }
+
+  const res = await fetch(
+    `${await selfOrigin()}/api/plans/${planId}/drift-decision?k=${encodeURIComponent(plan.approval_key)}`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(parsed.data),
+      cache: 'no-store',
+    },
+  )
+  const body = (await res.json().catch(() => ({}))) as { status?: string; error?: string }
+  if (!res.ok) return { error: body.error ?? `The decision was not recorded (${res.status}).` }
+
+  revalidatePath(`/p/${planId}`)
+  return { ok: true, status: body.status }
+}
