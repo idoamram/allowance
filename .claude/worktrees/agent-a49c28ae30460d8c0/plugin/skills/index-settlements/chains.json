@@ -1,0 +1,66 @@
+{
+  "_comment": "Chain registry for the index-settlements skill. `substreams` endpoints are transcribed from https://docs.substreams.dev/reference-material/chain-support/chains-and-endpoints (read 2026-07-26). `rpc` is a public JSON-RPC used ONLY to resolve the current head block so the skill can pick a recent start block; every entry below was probed live with eth_blockNumber on 2026-07-26. Override either with --endpoint / --rpc.",
+  "_schema": {
+    "substreams": "hostname:port passed to `substreams run -e`",
+    "rpc": "public JSON-RPC URL, used for eth_blockNumber only",
+    "blockTimeSec": "approximate seconds per block, used to translate --minutes into a block count"
+  },
+  "chains": {
+    "ethereum": {
+      "substreams": "mainnet.eth.streamingfast.io:443",
+      "rpc": "https://ethereum-rpc.publicnode.com",
+      "blockTimeSec": 12
+    },
+    "sepolia": {
+      "substreams": "sepolia.eth.streamingfast.io:443",
+      "rpc": "https://ethereum-sepolia-rpc.publicnode.com",
+      "blockTimeSec": 12
+    },
+    "base": {
+      "substreams": "base-mainnet.streamingfast.io:443",
+      "rpc": "https://mainnet.base.org",
+      "blockTimeSec": 2
+    },
+    "worldchain": {
+      "substreams": "mainnet.worldchain.streamingfast.io:443",
+      "rpc": "https://worldchain-mainnet.g.alchemy.com/public",
+      "blockTimeSec": 2
+    },
+    "optimism": {
+      "substreams": "mainnet.optimism.streamingfast.io:443",
+      "rpc": "https://mainnet.optimism.io",
+      "blockTimeSec": 2
+    },
+    "arbitrum": {
+      "substreams": "arb-one.streamingfast.io:443",
+      "rpc": "https://arb1.arbitrum.io/rpc",
+      "blockTimeSec": 1
+    },
+    "polygon": {
+      "substreams": "polygon.streamingfast.io:443",
+      "rpc": "https://polygon-bor-rpc.publicnode.com",
+      "blockTimeSec": 2
+    },
+    "bnb": {
+      "substreams": "bnb.streamingfast.io:443",
+      "rpc": "https://bsc-dataseed.binance.org",
+      "blockTimeSec": 3
+    },
+    "avalanche": {
+      "substreams": "avalanche-mainnet.streamingfast.io:443",
+      "rpc": "https://api.avax.network/ext/bc/C/rpc",
+      "blockTimeSec": 2
+    },
+    "unichain": {
+      "substreams": "mainnet.unichain.streamingfast.io:443",
+      "rpc": "https://mainnet.unichain.org",
+      "blockTimeSec": 1
+    }
+  },
+  "unsupported": {
+    "_comment": "Named here so the skill can fail with a reason instead of a generic 'unknown chain'.",
+    "solana": "Substreams supports Solana (mainnet.sol.streamingfast.io:443) but it is not EVM: the ERC-20 package used by this skill consumes sf.ethereum.type.v2.Block and cannot run against it. Index SPL tokens with a Solana-native package instead.",
+    "hedera": "No Substreams endpoint is published for Hedera. Use the Hedera Mirror Node API.",
+    "bitcoin": "Not EVM; no ERC-20 semantics."
+  }
+}
