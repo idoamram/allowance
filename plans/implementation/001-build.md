@@ -10,13 +10,14 @@ sellers, returns a priced+reasoned plan, one approval funds a bounded envelope, 
 hits drift gates, receipts land on HCS, and the console shows it all.
 
 **Architecture:** Local stdio MCP (agent key + orchestration) → Next.js API on Vercel
-(policy gates, Base plan-wallet custody, Hedera envelope ops) → Supabase Postgres (plans,
-decisions, insights) → Hedera testnet (envelope, HSS, HCS) + Base mainnet (x402 purchases,
-discovery via Bazaar).
+(policy gates, EVM plan-wallet custody, Hedera envelope ops) → Supabase Postgres (plans,
+decisions, insights) → Hedera testnet (envelope, HSS, HCS **and** x402 purchases — Flow A)
++ Worldchain mainnet (x402 purchases from real sellers — Flow B) + Base mainnet (fallback
+rail; discovery via Bazaar covers all three EVM rails).
 
 **Tech Stack:** pnpm workspaces · Next.js 16 (App Router) · TypeScript · `@x402/fetch` +
-`@x402/evm` v2.19.x · `@hiero-ledger/sdk` v2.86.x · `@supabase/supabase-js` · viem ·
-`@modelcontextprotocol/sdk` · vitest · Playwright (already available as MCP tool).
+`@x402/evm` + `@x402/hedera` v2.19.x · `@hiero-ledger/sdk` v2.86.x · `@supabase/supabase-js`
+· viem · `@modelcontextprotocol/sdk` · vitest · Playwright (already available as MCP tool).
 
 **Clock:** written Sat ~20:20. Submission Sun 09:00. Phase cut-lines are pre-agreed — cut
 between phases, never mid-task.
@@ -31,9 +32,20 @@ between phases, never mid-task.
 - **Packages (exact):** `@x402/fetch@^2.19`, `@x402/evm@^2.19`, `@hiero-ledger/sdk@^2.86`,
   `next@^16`, `@supabase/supabase-js@^2`, `viem@^2`, `@modelcontextprotocol/sdk@^1.29`,
   `zod`, `vitest`. Never the stale v1-line (`x402-express` etc.), never `@hashgraph/sdk`.
-- **Rails:** Hedera **testnet** for envelope/HSS/HCS. Base **mainnet** for purchases
-  (`MAINNET_PAY=false` blocks real spends until Ido flips it; discovery+probing are free
-  and always allowed). No Base Sepolia in demo paths.
+- **Rails (priority reordered by Ido, 2026-07-25 ~22:00 — the hackathon is Hedera/World/
+  Graph, Base earns no prize):**
+  1. **Hedera testnet, end-to-end** — envelope + HSS + HCS *and* the x402 purchase itself
+     settling on `hedera:testnet` (S4 kill-or-confirm; `@x402/hedera@2.19.0` verified
+     installed: `ExactHederaScheme` client builds a partially-signed TransferTransaction,
+     so the envelope account itself can be the payer via agent+policy co-sign).
+  2. **Worldchain mainnet (`eip155:480`)** — purchases from real third-party sellers;
+     Carbon & Cashmere's live 402s verified offering Worldchain USDC
+     (`0x79A0...24D1`) on 2026-07-25.
+  3. **Base mainnet (`eip155:8453`)** — stays supported in code as the fallback rail
+     (it's where market depth is); not the demo headline.
+  `MAINNET_PAY=false` blocks real mainnet spends (Worldchain + Base) until Ido flips it;
+  Hedera **testnet** spends are free and ungated. Discovery + probing always allowed.
+  No Base Sepolia in demo paths.
 - **Honesty strings are product code:** `[est.]` vs `[live]` labels, "since deployment",
   drift shows sunk cost + priced exits, custody wording per latest.md — copy exact wording
   from `plans/product-spec/latest.md` §5.
@@ -47,8 +59,10 @@ between phases, never mid-task.
 - **Env vars (the complete `.env.example`):**
   `APP_URL` · `SUPABASE_URL` · `SUPABASE_SERVICE_ROLE_KEY` · `SUPABASE_ANON_KEY` ·
   `HEDERA_NETWORK=testnet` · `HEDERA_OPERATOR_ID` · `HEDERA_OPERATOR_KEY` (treasury) ·
-  `HEDERA_POLICY_KEY` · `HCS_TOPIC_ID` (blank until T7 creates it) · `BASE_RPC_URL` ·
-  `BASE_TREASURY_KEY` (funds plan wallets) · `MAINNET_PAY=false` ·
+  `HEDERA_POLICY_KEY` · `HCS_TOPIC_ID` (blank until T7 creates it) · `WORLDCHAIN_RPC_URL` ·
+  `BASE_RPC_URL` · `EVM_TREASURY_KEY` (funds plan wallets on Worldchain/Base — renamed
+  from BASE_TREASURY_KEY with the rails amendment, before any code used it) ·
+  `MAINNET_PAY=false` ·
   `PLANBOUND_API_URL` · `PLANBOUND_AGENT_TOKEN` · `AGENT_EVM_KEY` (local MCP only) ·
   `WORLD_APP_ID` · `WORLD_ENV=staging` · `STEP_UP_USD=5` (verifier threshold) ·
   `DEMO_USD_PER_HBAR` (fixed demo rate).
@@ -139,9 +153,41 @@ where `Candidate = {url, name, priceUsd|null, network, description, inputSchema?
   alive endpoints per category (risk / age / networth / sanctions) from today's Bazaar
   results. Test asserts the file's endpoints still probe alive (skippable with env flag).
 - [ ] **S3.5** Commit `feat(s3): bazaar discovery + live quoting`.
+- [ ] **S3.6** *(added with the rails amendment)* Pin a `market` category in
+  `demo-sellers.json` from Carbon & Cashmere endpoints whose **live** 402 offers
+  `eip155:480` (listing metadata is not proof — probe). These are Flow B's sellers.
+
+### Task S4: Hedera x402 rail — the facilitator challenge (kill-or-confirm)
+
+**Files:** Create `fixtures/seller/hedera-seller.ts`, `scripts/spike-hedera-x402.ts`;
+extend `packages/chains/x402pay.ts` (register `ExactHederaScheme` for `hedera:testnet`)
+**Interfaces — Produces (consumed by T9):** `payAndFetch` able to settle scheme `exact`
+on `hedera:testnet`; a minimal reference seller, honestly labeled ours — no Hedera x402
+seller market exists and no directory can find one (verified 2026-07-25), so *being the
+first working seller+facilitator loop* is the Hedera-track story, not a fake market.
+
+- [ ] **S4.1** API surface already verified from installed dist: `@x402/hedera@2.19.0`
+  exports `exact/client` (`ExactHederaScheme`, `ClientHederaSigner {accountId,
+  createPartiallySignedTransferTransaction}`), `exact/server`, `exact/facilitator`
+  (`FacilitatorHederaSigner`, `createHederaSignAndSubmitTransaction`). Networks:
+  `hedera:testnet` / `hedera:mainnet`.
+- [ ] **S4.2** Minimal seller per the docs.hedera.com x402 guide: local HTTP endpoint
+  serving a real tiny service (e.g. live network fee/HBAR summary from the mirror node),
+  priced ~0.5 ℏ. Facilitator: try Blocky402 hosted testnet first; if it fights us,
+  self-host with `@x402/hedera/exact/facilitator` + treasury as fee payer (both paths
+  are per-spec; log friction in `docs/feedback/hedera.md` the same hour).
+- [ ] **S4.3** Pay the seller from the operator account (needs S1 creds): 402 → partial
+  sign → facilitator settles → data + Hedera transaction id printed.
+- [ ] **S4.4** Note for T9 (executed there, not here): graduate the payer to the
+  **envelope account** — agent+policy co-sign the partially-signed transfer. That makes
+  cap-enforcement and payment the same account on the same chain: the Flow A centerpiece.
+- [ ] **S4.5** Commit `spike(s4): x402 settles on hedera testnet` with findings.
+  **Timebox: 45 min from S4.2 start; red → Flow A degrades to envelope-only Hedera and
+  Flow B (Worldchain) carries the sponsor story. Pre-agreed, no debate at 04:00.**
 
 **PHASE 0 GATE (control tower):** S1 confirms key structure + schedule → T7 unblocked.
-S2 parsing proven → T9 unblocked. S3 returns live candidates → T4 unblocked. Any spike
+S2 parsing proven → T9 unblocked. S3 returns live candidates → T4 unblocked. S4 confirms
+the Hedera rail → Flow A locked in (red = pre-agreed degrade, see S4.5). Any spike
 failing = redesign that piece NOW, before the skeleton hardens around it.
 
 ---
@@ -168,7 +214,7 @@ package.json stubs, `.env.example` (full list from Global Constraints), `vercel 
 ```ts
 // types.ts — the shared vocabulary, mirrors latest.md §5 model
 export type QuoteSource = 'live-402' | 'estimate'
-export type Rail = 'hedera' | 'base'
+export type Rail = 'hedera' | 'worldchain' | 'base'  // priority order (amended 2026-07-25)
 export type PlanStatus = 'pending_approval'|'approved'|'rejected'|'executing'|'blocked'|'settled'|'aborted'|'expired'
 export type StepStatus = 'pending'|'paid'|'blocked'|'skipped'
 export type DecisionOutcome = 'approved'|'rejected'|'edited'|'drift_approved'|'drift_replan'|'drift_abort'
@@ -305,8 +351,9 @@ from env; create once, Ido puts ID in env).
 
 - [ ] **T7.1** Port S1 spike into real functions; vitest tagged `@testnet` (runs against
   testnet, skipped in CI-less runs).
-- [ ] **T7.2** Wire into approval flow: on `approved` → create envelope + Base plan wallet
-  (fund from `BASE_TREASURY_KEY` when `MAINNET_PAY=true`, else record only) → write
+- [ ] **T7.2** Wire into approval flow: on `approved` → create envelope + EVM plan wallet
+  (one key, same address on Worldchain and Base; fund USDC from `EVM_TREASURY_KEY` on the
+  rails the plan's steps need when `MAINNET_PAY=true`, else record only) → write
   `envelopes` row → `hcsLog('plan')` + `hcsLog('approval')` with plan hash.
 - [ ] **T7.3** Commit `feat(t7): envelope mint + hcs trail` → PR → merge.
 
@@ -354,8 +401,15 @@ from env; create once, Ido puts ID in env).
 
 - [ ] **T12.1** Ido: fund Base treasury (~$10 USDC + gas), flip `MAINNET_PAY=true` in prod
   env, confirm.
-- [ ] **T12.2** Full run: discovery → approval on phone → real USDC to ≥2 real sellers →
-  drift on the est. step → approve exit → receipts + sweep. Record segments 3–4.
+- [ ] **T12.2** Two flows (amended 2026-07-25 — sponsor rails headline the demo):
+  **Flow A — end-to-end Hedera:** goal quoted against our reference seller → envelope →
+  approval on phone → x402 purchase paid *from the envelope account* on `hedera:testnet`
+  → HCS receipts → sweep. One chain, consensus-enforced cap on the paying account itself.
+  **Flow B — Hedera + Worldchain:** market-brief goal (e.g. "brief me on BTC market
+  conditions before I allocate") quoted from Carbon & Cashmere → envelope on Hedera →
+  real USDC on `eip155:480` to ≥2 real third-party sellers → drift staged on an
+  estimate step → exit chosen on the diff → receipts + sweep. Record segments 3–4.
+  The Base wallet-vetting flow stays as fallback content if either flow stalls.
 - [ ] **T12.3** Any seller flake → swap from `demo-sellers.json` fallback, note in run log.
 
 **PHASE 2 CUT LINE — everything below is enhancement. If it's 04:00 and T12 isn't done,
@@ -402,9 +456,12 @@ Prize text qualifies both equally for the AI Use Case track; our workload (one c
 and the Rust/spkg pipeline is a 4am failure mode we don't need.
 
 **Files:** Create `subgraph/` (manifest, schema.graphql, mapping.ts)
-- [ ] Index USDC `Transfer` on Base mainnet, `startBlock` = deployment day, filtering in
-  handler to plan-wallet addresses (from a data-source template or a registry the API
-  exposes) + `demo-sellers.json` payTo addresses.
+- [ ] Index USDC `Transfer` on **Worldchain mainnet** (network `worldchain`, The Graph
+  supports it natively; USDC `0x79A02482A880bCE3F13e09Da970dC34db4CD24d1`) — that's
+  where Flow B's real settlements land, so the panel indexes our own money (amended
+  2026-07-25; Base variant only if Worldchain sync misbehaves). `startBlock` =
+  deployment day, filtering in handler to plan-wallet addresses (from a data-source
+  template or a registry the API exposes) + `demo-sellers.json` payTo addresses.
 - [ ] Deploy to Subgraph Studio (Ido creates the Studio API key → env). Console
   "claimed vs settled" panel: our receipts LEFT JOIN subgraph settlements; mismatches
   highlighted. Copy: "settled since deployment".
@@ -467,8 +524,11 @@ you left honest-but-unfinished.
 
 1. 2-of-2 × exact scheme unverified → S1 first, T7 blocked until confirmed.
 2. Seller flake → `demo-sellers.json` fallback, probed fresh at T12.
-3. Funding latency → Ido bridges during Phase 1, not at T12.
+3. Funding latency → Ido bridges **Worldchain USDC** (+ Base only if the fallback rail
+   is exercised) during Phase 1, not at T12.
 4. Subgraph sync → recent startBlock only; claim "since deployment".
-5. Time → cut order: H4 → H3 → H2 → H1 → T12 drift-exit variants. Core (T6+T11) is the
-   floor and is never cut.
+5. Hedera x402 rail unproven → S4 kill-or-confirm with a 45-min timebox and a pre-agreed
+   degrade (Flow A → envelope-only; Flow B carries the sponsor story).
+6. Time → cut order: H4 → H1 → T12 drift-exit variants → Flow A's Hedera-rail purchase
+   (degrade per S4.5). Core (T6 + T11 + Flow B) is the floor and is never cut.
 ```
