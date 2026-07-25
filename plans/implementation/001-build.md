@@ -45,7 +45,15 @@ between phases, never mid-task.
      (it's where market depth is); not the demo headline.
   `MAINNET_PAY=false` blocks real mainnet spends (Worldchain + Base) until Ido flips it;
   Hedera **testnet** spends are free and ungated. Discovery + probing always allowed.
-  No Base Sepolia in demo paths.
+- **Testnet-first execution (Ido, 2026-07-25 ~22:10):** every flow must be fully
+  executable end-to-end on testnets before any mainnet variant exists — envelope + Flow A
+  on `hedera:testnet`; Flow B's pipeline against our reference seller carrying an EVM
+  **testnet** accepts entry (Base Sepolia `eip155:84532` via the CDP facilitator's
+  testnet support; Worldchain Sepolia `eip155:4801` only if CDP settles it — verify,
+  don't assume). Mainnet = swapping the seller catalog + `MAINNET_PAY=true` at T12,
+  only after testnet runs are green, and only if needed. The old "no Base Sepolia in
+  demo paths" rule still bans presenting sepolia Bazaar junk as *market data* — our
+  honestly-labeled reference seller on a testnet rail is not that.
 - **Honesty strings are product code:** `[est.]` vs `[live]` labels, "since deployment",
   drift shows sunk cost + priced exits, custody wording per latest.md — copy exact wording
   from `plans/product-spec/latest.md` §5.
@@ -397,10 +405,13 @@ from env; create once, Ido puts ID in env).
 - [ ] **T11.2** Driver full loop test on testnet-only mode. Record video segment 2.
 - [ ] **T11.3** Commit `feat(t11): receipts + sweep` → PR → merge.
 
-### Task T12: Mainnet demo run — FULL DEMO CHECKPOINT
+### Task T12: Demo runs — FULL DEMO CHECKPOINT (testnet-green first, mainnet on top)
 
-- [ ] **T12.1** Ido: fund Base treasury (~$10 USDC + gas), flip `MAINNET_PAY=true` in prod
-  env, confirm.
+- [ ] **T12.0** Both flows green **fully on testnets** (envelope + payments + drift +
+  receipts + sweep, reference seller on the EVM leg). This is the demo floor — record
+  it. Mainnet below is the upgrade, not the prerequisite.
+- [ ] **T12.1** Ido: fund **Worldchain** treasury USDC (~$10; Base only if the fallback
+  rail is exercised), flip `MAINNET_PAY=true` in prod env, confirm.
 - [ ] **T12.2** Two flows (amended 2026-07-25 — sponsor rails headline the demo):
   **Flow A — end-to-end Hedera:** goal quoted against our reference seller → envelope →
   approval on phone → x402 purchase paid *from the envelope account* on `hedera:testnet`
