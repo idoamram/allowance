@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { submitDecision, type DecisionState } from './actions'
+import { StepUp } from './step-up'
 import styles from './approval.module.css'
 
 /** The four things a "no" can be about. Typed, because free text alone teaches nothing. */
@@ -12,23 +13,41 @@ const TARGETS = [
   { value: 'service', label: 'Service', hint: "wrong seller — down-ranks it in future discovery" },
 ] as const
 
+/**
+ * What this plan's ceiling demands of the human, when policy asks for more than the link.
+ * `null` is the ordinary case and the default everywhere.
+ */
+export type StepUpRequirement = {
+  ceilingLabel: string
+  thresholdLabel: string
+  /** Set when the verifier is selected but misconfigured — approval fails closed. */
+  configError?: string
+}
+
 export function DecisionForm({
   planId,
   token,
   approveLabel,
   steps,
+  stepUp = null,
 }: {
   planId: string
   /** Proof this form was rendered from the approval link. Not the approval key itself. */
   token: string
   approveLabel: string
   steps: { idx: number; name: string }[]
+  stepUp?: StepUpRequirement | null
 }) {
   const [state, action, pending] = useActionState<DecisionState, FormData>(
     submitDecision.bind(null, planId),
     {},
   )
   const [rejecting, setRejecting] = useState(false)
+  const [stepUpTicket, setStepUpTicket] = useState('')
+
+  // Rejecting is always available: a "no" funds nothing, so gating it would only buy
+  // friction. It is approval — the act that moves money — that has to clear the bar.
+  const blockedByStepUp = stepUp !== null && stepUpTicket === ''
 
   if (state.ok) {
     // The page revalidates behind this, so the settled state is one reload away — but say
@@ -48,15 +67,40 @@ export function DecisionForm({
   return (
     <form action={action} className={styles.actions}>
       <input type="hidden" name="token" value={token} />
+      <input type="hidden" name="stepUpTicket" value={stepUpTicket} />
 
       {!rejecting ? (
         <>
+          {stepUp?.configError ? (
+            <p className={styles.error} role="alert">
+              Step-up verification is required for this ceiling but is not configured
+              correctly, so nothing can be funded from this page. {stepUp.configError}
+            </p>
+          ) : (
+            stepUp !== null &&
+            stepUpTicket === '' && (
+              <StepUp
+                planId={planId}
+                token={token}
+                ceilingLabel={stepUp.ceilingLabel}
+                thresholdLabel={stepUp.thresholdLabel}
+                onVerified={setStepUpTicket}
+              />
+            )
+          )}
+          {stepUp !== null && stepUpTicket !== '' && (
+            <p className={styles.hint}>
+              <span className={`${styles.stamp} ${styles.stampGood}`}>human confirmed</span>{' '}
+              Verified for this plan only, for the next ten minutes.
+            </p>
+          )}
+
           <button
             type="submit"
             name="outcome"
             value="approved"
             className={`${styles.btn} ${styles.approve}`}
-            disabled={pending}
+            disabled={pending || blockedByStepUp}
           >
             {pending ? 'Recording…' : approveLabel}
           </button>

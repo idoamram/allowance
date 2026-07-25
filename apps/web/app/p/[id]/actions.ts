@@ -4,6 +4,8 @@ import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { decisionSchema } from '@planbound/core'
 import { db } from '@/lib/db'
+import { humanVerifier } from '@/lib/verify'
+import { verifyStepUpTicket } from '@/lib/verify/ticket'
 import { verifyDecisionToken } from './token'
 
 export type DecisionState = {
@@ -29,6 +31,36 @@ const field = (form: FormData, name: string): string | undefined => {
 }
 
 /**
+ * Whether this approval may proceed, given the configured verifier. Returns the message to
+ * show the human, or `undefined` when the gate is open.
+ *
+ * A misconfigured verifier blocks rather than waves through: policy said this ceiling needs
+ * a human factor, and "we could not check" is not "it passed".
+ */
+function stepUpGate(
+  planId: string,
+  approvalKey: string,
+  ceilingUsd: number,
+  goal: string,
+  form: FormData,
+): string | undefined {
+  let verifier
+  try {
+    verifier = humanVerifier()
+  } catch (err) {
+    return `Step-up verification is misconfigured, so nothing can be funded: ${(err as Error).message}`
+  }
+
+  if (!verifier.required({ planId, ceilingUsd, goal })) return undefined
+
+  const ticket = String(form.get('stepUpTicket') ?? '')
+  if (!verifyStepUpTicket(ticket, approvalKey, planId, verifier.id)) {
+    return 'This ceiling needs a human factor. Verify above, then approve — the proof lasts ten minutes.'
+  }
+  return undefined
+}
+
+/**
  * The human's answer, submitted from the approval page.
  *
  * Two validations, deliberately: the form validates so the human is told what is missing,
@@ -43,12 +75,21 @@ export async function submitDecision(
   const supabase = db()
   const { data: plan } = await supabase
     .from('plans')
-    .select('approval_key')
+    .select('approval_key, goal, ceiling_usd')
     .eq('id', planId)
     .maybeSingle()
 
   if (!plan || !verifyDecisionToken(String(form.get('token') ?? ''), plan.approval_key, planId)) {
     return { error: 'This page is no longer valid. Open the approval link again.' }
+  }
+
+  // Step-up, enforced here and not only in the UI. A disabled button is a courtesy to the
+  // human; this is the check that matters, because a server action is addressable by
+  // anyone who can read the client bundle. Only approval is gated — a rejection funds
+  // nothing, so making the human prove themselves to say "no" is pure friction.
+  if (form.get('outcome') === 'approved') {
+    const gate = stepUpGate(planId, plan.approval_key, Number(plan.ceiling_usd), plan.goal, form)
+    if (gate) return { error: gate }
   }
 
   const stepIdx = field(form, 'stepIdx')

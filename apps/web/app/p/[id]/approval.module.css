@@ -191,6 +191,25 @@
   cursor: progress;
 }
 
+/* step-up: the extra factor a large ceiling asks for, in front of the approve button */
+.stepUp {
+  margin-top: 0.8rem;
+  border: 1px dashed var(--rule);
+  border-radius: 10px;
+  padding: 0.7rem 0.75rem 0.75rem;
+  background: var(--manila);
+}
+
+.stepUp .legend {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.stepUp .btn {
+  margin-top: 0.2rem;
+}
+
 .rejectPanel {
   margin-top: 0.8rem;
   border-top: 1px solid var(--rule);

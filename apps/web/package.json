@@ -12,6 +12,7 @@
     "@planbound/chains": "workspace:*",
     "@planbound/core": "workspace:*",
     "@supabase/supabase-js": "^2.47.0",
+    "@worldcoin/idkit": "^4.2.1",
     "dotenv": "^16.4.5",
     "next": "^16.2.11",
     "react": "^19.2.0",
