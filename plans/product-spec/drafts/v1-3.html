@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+  mermaid.initialize({ startOnLoad: true, theme: dark ? 'dark' : 'neutral' });
+</script>
+</head>
+<body>
+<title>Spend Envelopes — product & journeys</title>
+<style>
+  :root {
+    --paper: #FAF8F3;
+    --paper-2: #F1EDE4;
+    --ink: #1C2430;
+    --ink-soft: #4A5568;
+    --ink-faint: #8A94A3;
+    --rule: #D8D2C4;
+    --manila: #B07E1F;
+    --manila-soft: #F3E8CF;
+    --good: #2E7D5B;
+    --good-soft: #E2F0E9;
+    --warn: #B45D00;
+    --warn-soft: #F7E9D8;
+    --bad: #B03A31;
+    --bad-soft: #F5E2E0;
+    --card: #FFFFFF;
+    --term-bg: #10151D;
+    --term-ink: #D5DBE4;
+    --shadow: 0 1px 3px rgba(28,36,48,.08), 0 4px 16px rgba(28,36,48,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #141A23;
+      --paper-2: #1A2130;
+      --ink: #E6E2D8;
+      --ink-soft: #A8B0BC;
+      --ink-faint: #6B7583;
+      --rule: #2C3543;
+      --manila: #D9A83E;
+      --manila-soft: #33290F;
+      --good: #5BBF93;
+      --good-soft: #142B21;
+      --warn: #E09140;
+      --warn-soft: #33230F;
+      --bad: #E07067;
+      --bad-soft: #331512;
+      --card: #1B2230;
+      --shadow: 0 1px 3px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.2);
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #FAF8F3; --paper-2: #F1EDE4; --ink: #1C2430; --ink-soft: #4A5568;
+    --ink-faint: #8A94A3; --rule: #D8D2C4; --manila: #B07E1F; --manila-soft: #F3E8CF;
+    --good: #2E7D5B; --good-soft: #E2F0E9; --warn: #B45D00; --warn-soft: #F7E9D8;
+    --bad: #B03A31; --bad-soft: #F5E2E0; --card: #FFFFFF;
+    --shadow: 0 1px 3px rgba(28,36,48,.08), 0 4px 16px rgba(28,36,48,.05);
+  }
+  :root[data-theme="dark"] {
+    --paper: #141A23; --paper-2: #1A2130; --ink: #E6E2D8; --ink-soft: #A8B0BC;
+    --ink-faint: #6B7583; --rule: #2C3543; --manila: #D9A83E; --manila-soft: #33290F;
+    --good: #5BBF93; --good-soft: #142B21; --warn: #E09140; --warn-soft: #33230F;
+    --bad: #E07067; --bad-soft: #331512; --card: #1B2230;
+    --shadow: 0 1px 3px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.2);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    line-height: 1.55;
+    margin: 0;
+    padding: 0 20px 80px;
+    font-size: 15.5px;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+
+  h1, h2, h3 { font-family: Charter, Georgia, "Times New Roman", serif; text-wrap: balance; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: .2em 0 .3em; font-weight: 700; }
+  h2 { font-size: 1.5rem; margin: 0 0 .35em; font-weight: 700; }
+  h3 { font-size: 1.12rem; margin: 0 0 .3em; font-weight: 700; }
+
+  .eyebrow {
+    font-size: .72rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--manila); font-weight: 600; font-family: -apple-system, system-ui, sans-serif;
+  }
+  .mono, code, .amt {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .amt { font-weight: 600; }
+
+  header.masthead { padding: 56px 0 28px; }
+  .masthead .sub { color: var(--ink-soft); max-width: 62ch; font-size: 1.05rem; }
+  .masthead .meta { color: var(--ink-faint); font-size: .82rem; margin-top: 14px; }
+  .masthead .meta b { color: var(--ink-soft); font-weight: 600; }
+
+  section { margin: 0 0 8px; padding: 34px 0 26px; border-top: 3px double var(--rule); }
+  section > .lede { color: var(--ink-soft); max-width: 66ch; margin: 0 0 22px; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 6px;
+    padding: 18px 18px 16px; box-shadow: var(--shadow);
+  }
+  .card .who { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 6px; }
+  .card p { margin: .4em 0 0; color: var(--ink-soft); font-size: .92rem; }
+
+  .stamp {
+    display: inline-block; font-size: .68rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; padding: 2px 8px; border-radius: 3px; border: 1px solid currentColor;
+  }
+  .stamp.good { color: var(--good); background: var(--good-soft); }
+  .stamp.warn { color: var(--warn); background: var(--warn-soft); }
+  .stamp.bad  { color: var(--bad);  background: var(--bad-soft); }
+  .stamp.plain{ color: var(--ink-soft); background: var(--paper-2); }
+
+  /* storyboard */
+  .board { display: flex; flex-direction: column; gap: 26px; margin-top: 22px; }
+  .beat { display: grid; grid-template-columns: 46px 1fr; gap: 16px; align-items: start; }
+  .beat .n {
+    font-family: Charter, Georgia, serif; font-size: 1.5rem; font-weight: 700; color: var(--manila);
+    border-top: 2px solid var(--manila); padding-top: 6px; text-align: left;
+  }
+  .beat .body h3 { margin-top: 2px; }
+  .beat .body > p { color: var(--ink-soft); max-width: 64ch; margin: .3em 0 .8em; }
+  .beat .tech {
+    font-size: .84rem; color: var(--ink-soft); background: var(--paper-2);
+    border-left: 3px solid var(--manila); padding: 10px 14px; border-radius: 0 4px 4px 0;
+    max-width: 68ch; margin-top: 10px;
+  }
+  .beat .tech b { color: var(--ink); }
+
+  /* terminal mockup */
+  .term {
+    background: var(--term-bg); color: var(--term-ink); border-radius: 8px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: .8rem;
+    padding: 14px 18px; line-height: 1.65; overflow-x: auto; box-shadow: var(--shadow);
+    max-width: 640px;
+  }
+  .term .dim { opacity: .55; }
+  .term .hi { color: #E9C46A; }
+  .term .g { color: #8FD0AE; }
+  .term .r { color: #ED8E86; }
+  .term table { border-collapse: collapse; }
+  .term td { padding: 0 18px 0 0; white-space: nowrap; }
+  .term .num { text-align: right; }
+
+  /* phone mockup */
+  .phone {
+    width: 320px; max-width: 100%; background: var(--card); border: 1px solid var(--rule);
+    border-radius: 18px; padding: 16px 16px 14px; box-shadow: var(--shadow);
+  }
+  .phone .apphead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .phone .apphead .t { font-weight: 700; font-size: .95rem; }
+  .phone .goal { font-size: .82rem; color: var(--ink-soft); margin-bottom: 6px; }
+  .phone .logicline { font-size: .72rem; color: var(--ink-faint); margin-bottom: 10px; line-height: 1.5; }
+  .phone .logicline b { color: var(--ink-soft); }
+  .tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+  .tabs span {
+    font-size: .7rem; padding: 3px 10px; border-radius: 99px; border: 1px solid var(--rule); color: var(--ink-faint);
+  }
+  .tabs span.on { background: var(--manila-soft); color: var(--manila); border-color: var(--manila); font-weight: 700; }
+  .ptable { width: 100%; border-collapse: collapse; font-size: .8rem; }
+  .ptable td { padding: 5px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .ptable td:last-child { text-align: right; white-space: nowrap; }
+  .ptable .src { font-size: .62rem; letter-spacing: .05em; }
+  .ptable .buys { color: var(--ink-faint); font-size: .72rem; display: block; }
+  .ptable tr.total td { border-bottom: none; border-top: 2px solid var(--ink); font-weight: 700; padding-top: 7px; }
+  .phone .ceiling { font-size: .78rem; color: var(--ink-soft); margin: 10px 0 4px; display: flex; justify-content: space-between; }
+  .btn {
+    display: block; text-align: center; border-radius: 8px; padding: 9px 0; font-weight: 700;
+    font-size: .88rem; margin-top: 10px; border: 1px solid transparent;
+  }
+  .btn.approve { background: var(--good); color: #fff; }
+  .btn.ghost { background: transparent; border-color: var(--rule); color: var(--ink-soft); font-weight: 600; font-size: .8rem; }
+  .phone .note { font-size: .7rem; color: var(--ink-faint); margin-top: 8px; text-align: center; }
+
+  /* drift card */
+  .drift {
+    width: 360px; max-width: 100%; background: var(--card); border: 1px solid var(--bad);
+    border-radius: 10px; padding: 16px 18px; box-shadow: var(--shadow);
+  }
+  .drift .dh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .drift table { width: 100%; font-size: .8rem; border-collapse: collapse; }
+  .drift td { padding: 4px 0; }
+  .drift td:last-child { text-align: right; white-space: nowrap; }
+  .drift .strike { text-decoration: line-through; color: var(--ink-faint); }
+  .drift .actions { display: flex; gap: 8px; margin-top: 12px; }
+  .drift .actions span {
+    flex: 1; text-align: center; font-size: .74rem; font-weight: 700; padding: 7px 0; border-radius: 6px;
+  }
+  .a1 { background: var(--good-soft); color: var(--good); }
+  .a2 { background: var(--paper-2); color: var(--ink-soft); }
+  .a3 { background: var(--bad-soft); color: var(--bad); }
+
+  .row2 { display: flex; gap: 22px; flex-wrap: wrap; align-items: flex-start; }
+
+  /* ladder */
+  .ladder { border-collapse: collapse; width: 100%; font-size: .88rem; }
+  .ladder th { text-align: left; font-size: .7rem; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-faint); padding: 6px 14px 6px 0; border-bottom: 2px solid var(--ink); font-weight: 600;}
+  .ladder td { padding: 10px 14px 10px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .ladder td:first-child { font-family: Charter, Georgia, serif; font-weight: 700; white-space: nowrap; }
+
+  .mermaid-box { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 14px; overflow-x: auto; box-shadow: var(--shadow); margin-top: 16px; }
+
+  .rails { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
+  @media (max-width: 640px) { .rails { grid-template-columns: 1fr; } }
+  .rail { border: 1px solid var(--rule); border-radius: 6px; padding: 16px 18px; background: var(--card); box-shadow: var(--shadow); }
+  .rail ul { margin: .5em 0 0; padding-left: 1.1em; color: var(--ink-soft); font-size: .9rem; }
+  .rail li { margin: .25em 0; }
+
+  .tracks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .tracks span {
+    font-size: .74rem; padding: 4px 11px; border-radius: 99px; background: var(--paper-2);
+    border: 1px solid var(--rule); color: var(--ink-soft);
+  }
+  .tracks b { color: var(--ink); }
+
+  .honesty {
+    border: 1px dashed var(--manila); border-radius: 6px; padding: 14px 18px; margin-top: 20px;
+    background: var(--manila-soft); font-size: .9rem; max-width: 72ch;
+  }
+  .honesty b { color: var(--manila); }
+
+  .learn { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-top: 14px; }
+  .learn .card b { display: block; font-size: .84rem; margin-bottom: 4px; }
+  .learn .card span { font-size: .82rem; color: var(--ink-soft); }
+
+  /* zoomable diagrams */
+  .mermaid-box { position: relative; cursor: zoom-in; }
+  .mermaid-box .zoom-hint {
+    position: absolute; top: 8px; right: 10px; font-size: .68rem; color: var(--ink-faint);
+    background: var(--paper-2); border: 1px solid var(--rule); border-radius: 99px;
+    padding: 2px 9px; pointer-events: none;
+  }
+  .zoom-overlay {
+    position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column;
+    background: var(--paper); touch-action: none;
+  }
+  .zoom-bar { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px; border-bottom: 1px solid var(--rule); }
+  .zoom-bar button {
+    font: 700 .9rem/1 -apple-system, system-ui, sans-serif; color: var(--ink);
+    background: var(--card); border: 1px solid var(--rule); border-radius: 6px;
+    padding: 8px 12px; cursor: pointer; box-shadow: var(--shadow); min-width: 40px;
+  }
+  .zoom-bar button:focus-visible { outline: 2px solid var(--manila); outline-offset: 1px; }
+  .zoom-canvas { flex: 1; overflow: hidden; cursor: grab; position: relative; }
+  .zoom-canvas.panning { cursor: grabbing; }
+  .zoom-stage { transform-origin: 0 0; will-change: transform; position: absolute; top: 0; left: 0; }
+  .zoom-stage svg { display: block; max-width: none !important; height: auto; }
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow">Product design · working name TBD</div>
+  <h1>An agent shops the task. A human funds the envelope.<br>Consensus keeps it honest.</h1>
+  <p class="sub">Before a task runs, the agent discovers real services, probes their prices,
+  and returns a priced, reasoned plan.
+  One approval funds a single-use envelope the agent physically cannot exceed — and every
+  rejection teaches the system to ask less next time.</p>
+  <div class="meta">spec draft v1.3 · ETHGlobal Lisbon 2026 · submission Sun 9:00 · <b>Ido</b> chain/backend/agents · <b>Yuval</b> frontend/UX</div>
+</header>
+
+<section>
+  <div class="eyebrow">System</div>
+  <h2>Three surfaces, one ledger</h2>
+  <p class="lede">Three actors touch the product, and each gets the surface it would naturally
+  reach for. The approval deliberately lives <em>outside</em> the agent's context: a
+  prompt-injected agent must not be able to draw — or click — its own consent screen.</p>
+
+  <div class="cards">
+    <div class="card">
+      <div class="who">The agent · machine</div>
+      <h3>MCP server</h3>
+      <p><code>quote_task</code> · <code>submit_plan</code> · <code>await_approval</code> ·
+      <code>pay_and_call</code> · <code>report_drift</code>. Framework-agnostic: anything that
+      speaks MCP gets a budget. This is the reusable payment tooling.</p>
+    </div>
+    <div class="card">
+      <div class="who">The developer · terminal</div>
+      <h3>Claude Code plugin</h3>
+      <p>A SKILL that drafts and prices the plan inline, prints the approval link, and waits.
+      The dev never leaves the flow; the decision still happens elsewhere.</p>
+    </div>
+    <div class="card">
+      <div class="who">The approver · any device</div>
+      <h3>Next.js app</h3>
+      <p>The plan at three depths, live execution feed, drift diffs, receipts, and the
+      learning console. Magic-link auth; World Selfie Check as step-up on large plans.</p>
+    </div>
+  </div>
+
+  <div class="mermaid-box">
+<pre class="mermaid">
+flowchart LR
+  subgraph DEV["Dev machine"]
+    CC["Claude Code<br/>plugin + SKILL"]
+  end
+  subgraph VERCEL["Next.js on Vercel"]
+    APP["Web app<br/>/p/:id · /console · /feed"]
+    MCP["MCP server<br/>/api/mcp (Bearer auth)"]
+    POL["Policy co-signer<br/>allowlist · per-step caps"]
+  end
+  DB[("Postgres<br/>plans · decisions ·<br/>receipts · insights")]
+  subgraph HED["Hedera testnet"]
+    ENV["Envelope account<br/>2-of-2 threshold key"]
+    HCS["HCS topic<br/>plan → approval → receipts"]
+    HSS["HSS scheduled sweep<br/>expiry refund"]
+  end
+  subgraph BASE["Base mainnet"]
+    WAL["Plan wallet · USDC"]
+    SVC["real x402 sellers<br/>(Bazaar-discovered)"]
+  end
+  BAZ["x402 Bazaar<br/>keyless discovery"]
+  GRAPH["The Graph<br/>subgraph on Base spend"]
+  WORLD["World<br/>AgentBook · Selfie Check"]
+
+  CC -- "MCP tools" --> MCP
+  MCP -- "semantic search" --> BAZ
+  MCP --> DB
+  APP --> DB
+  MCP --> POL
+  POL -- "co-sign or refuse" --> ENV
+  POL --> WAL
+  WAL -- "402 pay" --> SVC
+  MCP -- "log" --> HCS
+  ENV --> HSS
+  WAL --> GRAPH
+  GRAPH -- "spend history" --> APP
+  APP -- "step-up" --> WORLD
+  CC -- "agent registered" --> WORLD
+</pre>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Journey A · the demo backbone</div>
+  <h2>The priced plan, and the drift</h2>
+  <p class="lede">A developer asks their agent to vet three counterparty wallets before
+  paying them. The agent shops a real market — every seller a stranger, discovered live —
+  and what used to be a per-transaction popup becomes one priced, reasoned decision. When
+  reality drifts from the plan, the agent hits a wall instead of the human's patience.</p>
+
+  <div class="board">
+
+    <div class="beat">
+      <div class="n">1</div>
+      <div class="body">
+        <h3>The dev asks; the agent shops a real market — and checks its own logic</h3>
+        <p>In Claude Code, <code>/plan-spend</code> sends the goal. The agent searches the
+        <b>x402 Bazaar</b> — Coinbase's public, keyless catalog — probes the candidates for
+        live <span class="mono">402</span> quotes, then <b>validates the plan against the
+        goal and fixes what fails</b>, up to 3 turns, before any human sees it.</p>
+        <div class="term">
+<span class="dim">›</span> /plan-spend vet 3 counterparty wallets before I pay them<br>
+<span class="dim">bazaar: 14 candidates in 4 categories · probing top 6 → 5 live quotes</span><br>
+<span class="dim">self-check ×2:</span> <span class="hi">dropped duplicate risk scan · replaced dead endpoint</span> <span class="dim">(probe 404)</span><br><br>
+<table>
+<tr><td class="dim">1</td><td>risk.scan ×3</td><td class="num g">$0.45</td><td class="dim">honeypot &amp; illiquidity flags</td><td><span class="g">[live]</span></td></tr>
+<tr><td class="dim">2</td><td>age.check ×3</td><td class="num g">$0.09</td><td class="dim">burner-wallet signal</td><td><span class="g">[live]</span></td></tr>
+<tr><td class="dim">3</td><td>networth ×3</td><td class="num g">$0.06</td><td class="dim">skin-in-the-game check</td><td><span class="g">[live]</span></td></tr>
+<tr><td class="dim">4</td><td>sanctions</td><td class="num hi">$0.10</td><td class="dim">no public quote — estimated</td><td><span class="hi">[est.]</span></td></tr>
+<tr><td></td><td><b>total</b></td><td class="num"><b>$0.70</b></td><td colspan="2" class="dim">3 wallets vetted</td></tr>
+</table><br>
+<span class="dim">logic: cheap facts on all 3 wallets first, the judgment call last</span><br>
+<span class="dim">awaiting approval →</span> <span class="g">https://‹app›/p/pl_9c2e</span>
+        </div>
+        <div class="tech"><b>Technically:</b> <code>quote_task</code> → Bazaar semantic search
+        (<code>maxUsdPrice</code>, <code>curatedOnly</code> filters — policy applied at
+        discovery) → HTTP probes → each 402 response becomes a step with
+        <code>quoteSource: 'live-402' | 'estimate'</code> and a one-line <code>why</code>.
+        Every seller is a real third party; the probe is the reliability filter (a listing
+        behind a bot wall never enters the plan). Self-check is bounded (≤3 turns), fixes
+        logged — the human reviews a checked plan, not a first draft. An estimate is never
+        dressed as a quote; reasoning is never more than a line.</div>
+      </div>
+    </div>
+
+    <div class="beat">
+      <div class="n">2</div>
+      <div class="body">
+        <h3>One decision — on the cost <em>and</em> the logic</h3>
+        <p>The link opens on any device. Same plan, three depths — a bound to grant, options
+        to weigh, or the full itemisation. Every line says <em>why it earns its price</em>,
+        and the plan states its logic in one sentence — so the human can challenge the
+        reasoning without digging into each choice.</p>
+        <div class="row2">
+          <div class="phone">
+            <div class="apphead"><span class="t">Plan pl_9c2e</span><span class="stamp plain">expires 20:14</span></div>
+            <div class="goal">"Vet 3 counterparty wallets before paying them" — vetting.agent.eth</div>
+            <div class="logicline"><b>Logic:</b> cheap facts on all 3 wallets first, the judgment
+            call last&ensp;·&ensp;<span class="stamp good">self-checked ×2</span></div>
+            <div class="tabs"><span>Bound</span><span>Options</span><span class="on">Itemised</span></div>
+            <table class="ptable">
+              <tr><td>risk.scan ×3 <span class="buys">honeypot &amp; illiquidity flags before money moves</span></td><td><span class="amt">$0.45</span> <span class="src stamp good">live</span></td></tr>
+              <tr><td>age.check ×3 <span class="buys">young or dormant wallets read as burner risk</span></td><td><span class="amt">$0.09</span> <span class="src stamp good">live</span></td></tr>
+              <tr><td>networth ×3 <span class="buys">no skin in the game is a red flag</span></td><td><span class="amt">$0.06</span> <span class="src stamp good">live</span></td></tr>
+              <tr><td>sanctions <span class="buys">one OFAC hit outweighs everything else</span></td><td><span class="amt">$0.10</span> <span class="src stamp warn">est.</span></td></tr>
+              <tr class="total"><td>Total quoted</td><td class="amt">$0.70</td></tr>
+            </table>
+            <div class="ceiling"><span>Ceiling (drift headroom)</span><span class="amt">$1.20</span></div>
+            <span class="btn approve">Approve $1.20 envelope</span>
+            <span class="btn ghost">Question a step · Edit · Reject with reason</span>
+            <div class="note">Approving signs the USDC transfer from your wallet — approval <em>is</em> the funding · under your $5 step-up line</div>
+          </div>
+        </div>
+        <div class="tech"><b>Technically:</b> <code>submit_plan</code> wrote the plan; the page renders
+        from Postgres, not from the agent. Approval is out-of-band by design — consent an agent
+        can render is consent an injected agent can forge. Feedback is <b>typed</b> — price,
+        logic, scope, or service — so a "no" teaches the loop exactly what was wrong.</div>
+      </div>
+    </div>
+
+    <div class="beat">
+      <div class="n">3</div>
+      <div class="body">
+        <h3>Approval mints the envelope — approval <em>is</em> the money</h3>
+        <p>No permission flag is set anywhere. An account is created and funded with exactly
+        the ceiling; a sweep-back is scheduled for expiry; the plan and the approval land on
+        the public record. Then the agent runs unattended.</p>
+        <div class="tech"><b>On Hedera testnet, zero Solidity:</b>
+        <b>HTS</b> — envelope account funded to $1.20, key =
+        <code>1-of-[2-of-2(agent, policy), treasury]</code>: spends need both agent and
+        policy signatures; the treasury alone can reclaim at any time.
+        <b>HSS</b> — <code>ScheduleCreate</code> at approval: a full refund fires at 20:14 if
+        the plan was abandoned; partial remainders are swept home by the control plane
+        (scheduled transfers carry fixed amounts — "whatever remains" isn't schedulable,
+        so we say so).
+        <b>HCS</b> — plan hash + approval appended to the audit topic.
+        <b>On Base mainnet:</b> the approve tap is itself the human's wallet signing the
+        USDC transfer to the fresh plan wallet (gasless via EIP-3009; our relayer submits) —
+        approval and funding are one act. Custody exists and is bounded: one plan's ceiling,
+        one plan's lifetime, never the treasury. The purchases pay real sellers real money,
+        every run.
+        <br><b>Pre-flight re-verify:</b> before the first cent moves, every quotable step is
+        re-probed — a 402 probe <em>is</em> the current quote and costs nothing. A stale quote
+        surfaces here, at zero sunk cost; what pre-flight can't cover is <code>[est.]</code>
+        steps, which is exactly why they're labeled.</div>
+      </div>
+    </div>
+
+    <div class="beat">
+      <div class="n">4</div>
+      <div class="body">
+        <h3>The drift — with the sunk cost on the table</h3>
+        <p>Three steps are already paid when the sanctions screen — the one <em>estimated</em>
+        step — asks $0.50 against its $0.10 estimate. The envelope could cover it, but a 5×
+        step is a decision, not a rounding error: the co-signer refuses the per-step gate.
+        The human gets a diff that answers three questions: <em>what's already spent and what
+        it bought, what changed, and what each exit costs.</em></p>
+        <div class="drift">
+          <div class="dh"><b>Drift on pl_9c2e</b><span class="stamp bad">blocked at step 4</span></div>
+          <table>
+            <tr><td style="color:var(--good)">✓ risk.scan ×3 — 1 wallet flagged</td><td class="amt">$0.45 paid</td></tr>
+            <tr><td style="color:var(--good)">✓ age.check ×3 — ages 2y·3y·11d</td><td class="amt">$0.09 paid</td></tr>
+            <tr><td style="color:var(--good)">✓ networth ×3 — all funded</td><td class="amt">$0.06 paid</td></tr>
+            <tr><td style="border-top:1px solid var(--rule)">sanctions estimated <span class="stamp warn" style="font-size:.58rem">est.</span></td><td class="amt strike" style="border-top:1px solid var(--rule)">$0.10</td></tr>
+            <tr><td>sanctions now asks</td><td class="amt" style="color:var(--bad)">$0.50 &nbsp;(5.0×)</td></tr>
+            <tr><td style="border-top:2px solid var(--ink);font-weight:700">Spent · kept either way</td><td class="amt" style="border-top:2px solid var(--ink)">$0.60</td></tr>
+            <tr><td style="font-weight:700">Left in envelope</td><td class="amt">$0.60</td></tr>
+          </table>
+          <div class="actions"><span class="a1">Approve step · +$0.40</span><span class="a2">Re-plan step</span><span class="a3">Abort · $0.60 back</span></div>
+        </div>
+        <div class="tech"><b>Technically:</b> <code>pay_and_call</code> failed the per-step gate —
+        note the funds <em>were</em> sufficient ($0.50 ≤ $0.60 left); the block is the drift
+        tolerance, not the balance. That's the gate and the bound doing different jobs.
+        Approving releases the step at the real ask; re-plan re-shops the sanctions check
+        (Bazaar has rival sellers); abort triggers the sweep now. The HCS record shows
+        quote, ask, and decision either way.</div>
+      </div>
+    </div>
+
+    <div class="beat">
+      <div class="n">5</div>
+      <div class="body">
+        <h3>Receipt: promised vs. actual, sworn on the record</h3>
+        <p>The task finishes, unspent money returns automatically, and the receipt pairs every
+        quote with what was actually paid — the artifact an agency forwards as the client
+        invoice line.</p>
+        <div class="term">
+<span class="dim">plan pl_9c2e · settled</span><br>
+<table>
+<tr><td>quoted</td><td class="num">$0.70</td><td class="dim">4 steps · 5 real sellers</td></tr>
+<tr><td>paid</td><td class="num">$1.10</td><td class="dim">1 drift approved (+$0.40)</td></tr>
+<tr><td>swept back</td><td class="num g">$0.10</td><td class="dim">HSS · automatic</td></tr>
+</table><br>
+<span class="g">✓</span> 3 wallets vetted — <span class="r">#2 flagged: 71% of holdings illiquid</span> · receipts on HCS <span class="dim">topic 0.0.491x</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mermaid-box">
+<pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant D as Dev (Claude Code)
+  participant M as MCP server
+  participant A as Approver (phone)
+  participant P as Policy co-signer
+  participant H as Hedera testnet
+  participant B as Base · x402 service
+
+  D->>M: quote_task(goal)
+  M->>B: Bazaar search (keyless) → probe candidates
+  B-->>M: 402 quotes from real sellers
+  loop self-check · ≤3 turns
+    M->>M: does each step serve the goal? fix + re-price
+  end
+  M-->>D: priced plan (live vs est. · one-line why per step)
+  D->>M: submit_plan → approval URL
+  A->>M: approve · ceiling $1.20
+  M->>H: create 2-of-2 envelope + fund + schedule sweep (HSS)
+  M->>H: HCS: plan hash + approval
+  M->>B: pre-flight: re-probe quotable steps (free)
+  Note over M,A: quote moved beyond tolerance? → diff before any spend
+  loop each step
+    M->>P: pay_and_call(step)
+    P->>P: gate: live ask ≤ quote+tol · allowlist · cap
+    P->>B: co-signed x402 payment → 200 + data
+    M->>H: HCS receipt
+  end
+  Note over P,A: sanctions asks $0.50 vs $0.10 estimate — gate blocks, funds sufficed
+  P-->>A: drift diff → approve step / re-plan / abort
+  H->>H: expiry — scheduled full refund (abandoned) or control-plane sweep (partial)
+</pre>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Journey B · trust that compounds</div>
+  <h2>Step-up, rejection, and the loop that closes</h2>
+  <p class="lede">The second run shows what no threshold product has: memory. A big plan
+  demands a face; a rejection carries a reason; the next plan arrives already shaped by it.</p>
+
+  <div class="board">
+    <div class="beat">
+      <div class="n">1</div>
+      <div class="body">
+        <h3>Above the line, the plan asks for a face</h3>
+        <p>A $12 deep-audit plan — full portfolio history on all three wallets — crosses the
+        $5 step-up threshold. Approval requires World <b>Selfie Check</b> — a liveness signal
+        on a risky decision, not a login.</p>
+        <div class="tech"><b>Technically:</b> the agent was registered once in <b>AgentBook</b>
+        (World ID proof, CAIP-122 challenge) — the fleet is provably human-backed. Selfie Check
+        gates only high-value approvals: risk signal, which is exactly what the beta track rewards.</div>
+      </div>
+    </div>
+    <div class="beat">
+      <div class="n">2</div>
+      <div class="body">
+        <h3>A rejection is the one answer worth mining</h3>
+        <p>The dev rejects one step — <em>"premium audit at $9/wallet isn't worth it, the
+        $0.15 scan was fine"</em> — typed as a <b>price</b> objection against that step's stated logic.
+        Only rejections prompt for a reason. Approvals are mostly fatigue; 93% of permission
+        prompts get approved. The signal lives in the <em>no</em> — and a typed no teaches
+        the loop exactly which part of the reasoning failed.</p>
+      </div>
+    </div>
+    <div class="beat">
+      <div class="n">3</div>
+      <div class="body">
+        <h3>The third plan arrives pre-shaped, and clears untouched</h3>
+        <p>Next task: the agent's plan already uses the cheap tier; the console shows the insight
+        that shaped it; the plan clears without interrupting anyone.</p>
+        <div class="learn">
+          <div class="card"><b>Learned</b><span>premium-audit rejected on price — prefer standard scan under ~$0.20/wallet; that seller down-ranked in future discovery</span></div>
+          <div class="card"><b>Never learned</b><span>the ceiling. Learning narrows what gets <em>asked</em>, never widens what's <em>allowed</em>.</span></div>
+          <div class="card"><b>Held-out check</b><span>occasionally a would-be-auto plan is still shown. Success = fewer interruptions, zero rise in disagreement.</span></div>
+        </div>
+        <div class="tech"><b>Demo honesty:</b> nothing is seeded. The history shown is the real
+        decision log from <em>using the product to build the product</em> — every plan we
+        approved or rejected during development, with real timestamps. Dogfooding is the seed.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Enforcement</div>
+  <h2>What actually holds the line</h2>
+  <p class="lede">Graded honestly — the demo says which rung each guarantee lives on.
+  Competitors' caps are database rows in a service that fails open. The envelope fails shut.</p>
+
+  <div style="overflow-x:auto">
+  <table class="ladder">
+    <tr><th>Rung</th><th>Mechanism</th><th>Enforces</th><th>Grade</th><th>Status</th></tr>
+    <tr>
+      <td>1 · Balance</td>
+      <td>Envelope account funded to the ceiling, nothing more</td>
+      <td>Total — you can't spend money that isn't there</td>
+      <td><span class="stamp good">consensus</span></td>
+      <td>ships now</td>
+    </tr>
+    <tr>
+      <td>2 · Expiry</td>
+      <td>HSS scheduled full refund (abandoned case) · control-plane sweep for partial remainders · treasury co-key reclaims unilaterally</td>
+      <td>Authority dies on time; funds always recoverable</td>
+      <td><span class="stamp good">consensus (abandoned)</span> <span class="stamp warn">key + ops (partial)</span></td>
+      <td>ships now</td>
+    </tr>
+    <tr>
+      <td>3 · Co-sign</td>
+      <td>Envelope key <code>1-of-[2-of-2(agent, policy), treasury]</code>; policy signer refuses off-plan spends</td>
+      <td>Allowlist + per-step caps — bypass is <em>impossible</em>, not forbidden; fails closed; treasury alone can reclaim</td>
+      <td><span class="stamp warn">key structure on-chain · policy off-chain</span></td>
+      <td>ships now</td>
+    </tr>
+    <tr>
+      <td>4 · Plan-on-ledger</td>
+      <td>ScheduleCreate per live-quoted step; agent releases via ScheduleSign; unused expire</td>
+      <td>The exact approved transfers, and nothing else</td>
+      <td><span class="stamp good">consensus</span></td>
+      <td>roadmap slide</td>
+    </tr>
+    <tr>
+      <td>5 · Escrow</td>
+      <td>Plan-authority contract releasing against the committed plan hash</td>
+      <td>Full recipient restriction, Base included</td>
+      <td><span class="stamp plain">solidity · post-hackathon</span></td>
+      <td>roadmap</td>
+    </tr>
+  </table>
+  </div>
+
+  <div class="rails">
+    <div class="rail">
+      <h3>Hedera testnet — the control plane</h3>
+      <ul>
+        <li><b>HTS</b> — envelope accounts, 2-of-2 keys, the funded bound</li>
+        <li><b>HSS</b> — expiry sweeps; the approve/manage-scheduled-actions UX</li>
+        <li><b>HCS</b> — append-only plan → approval → receipt trail</li>
+        <li>Three native services, zero Solidity · HIP-1313 lane ≈ 10–12.5k TPS entity creation</li>
+        <li>Optional depth: labeled test seller on the Hedera rail (Blocky402 hosted testnet facilitator) — envelope ops already qualify; cut first if time runs short</li>
+      </ul>
+    </div>
+    <div class="rail">
+      <h3>Base mainnet — where the sellers are</h3>
+      <ul>
+        <li><b>Bazaar</b> — keyless discovery: search, filters, curated flags (verified live)</li>
+        <li><b>x402</b> — all purchases from real sellers; a full plan runs $0.05–$0.50</li>
+        <li><b>USDC</b> plan wallet; policy co-signer in the payment path</li>
+        <li><b>The Graph</b> — subgraph indexes plan-wallet spend; console + loop read it live</li>
+        <li>10,249 live mainnet endpoints · 882 providers (78,290-route census) · sepolia = CI fixtures only</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="honesty"><b>Said out loud in the README:</b> per-service policy logic is off-chain
+  today (rung 3 makes it unbypassable, not on-chain); on Base the plan wallet's key is ours —
+  custody bounded to one plan's ceiling and lifetime, never the treasury; the keeperless
+  refund covers the abandoned-plan case, partial remainders are swept by us or reclaimed by
+  the treasury key; every demo purchase pays a real third-party seller on Base mainnet —
+  sepolia fixtures never appear in demo runs; demo drift is our own conservative estimate
+  meeting a real seller's real ask; the learning history is real decisions from building the
+  product with itself. Every other claim rides consensus.</div>
+
+  <div class="tracks">
+    <span>Hedera · Agentic Payments <b>$6k</b></span>
+    <span>Hedera · No Solidity <b>$3k</b></span>
+    <span>Hedera · Automation <b>$1k</b></span>
+    <span>World · AgentKit <b>$8k</b></span>
+    <span>World · Selfie Check <b>$1.75k</b></span>
+    <span>The Graph · AI Tooling <b>$5k</b></span>
+    <span>The Graph · AI Use Case <b>$3k</b></span>
+    <span>ENS · AI Agents <b>$1.5k</b></span>
+  </div>
+</section>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  function makeZoomable(box) {
+    if (box.dataset.zoomable) return;
+    var svg = box.querySelector('svg');
+    if (!svg) return;
+    box.dataset.zoomable = '1';
+    var hint = document.createElement('span');
+    hint.className = 'zoom-hint';
+    hint.textContent = '⤢ zoom';
+    box.appendChild(hint);
+    box.addEventListener('click', function () { openOverlay(svg); });
+  }
+
+  function openOverlay(srcSvg) {
+    var overlay = document.createElement('div');
+    overlay.className = 'zoom-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Diagram viewer');
+    overlay.innerHTML =
+      '<div class="zoom-bar">' +
+        '<button data-z="out" aria-label="Zoom out">−</button>' +
+        '<button data-z="in" aria-label="Zoom in">+</button>' +
+        '<button data-z="fit">Fit</button>' +
+        '<button data-z="close" aria-label="Close">✕ Close</button>' +
+      '</div>' +
+      '<div class="zoom-canvas"><div class="zoom-stage"></div></div>';
+    var canvas = overlay.querySelector('.zoom-canvas');
+    var stage = overlay.querySelector('.zoom-stage');
+    var clone = srcSvg.cloneNode(true);
+    stage.appendChild(clone);
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
+
+    // natural size from viewBox, falling back to on-screen size
+    var vb = srcSvg.viewBox && srcSvg.viewBox.baseVal;
+    var nw = (vb && vb.width) || srcSvg.getBoundingClientRect().width || 800;
+    var nh = (vb && vb.height) || srcSvg.getBoundingClientRect().height || 600;
+    clone.removeAttribute('width');
+    clone.removeAttribute('height');
+    clone.style.width = nw + 'px';
+
+    var s = 1, tx = 0, ty = 0;
+    function apply() {
+      stage.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + s + ')';
+    }
+    function fit() {
+      var r = canvas.getBoundingClientRect();
+      s = Math.min(r.width / nw, r.height / nh) * 0.95;
+      s = Math.max(s, 0.2);
+      tx = (r.width - nw * s) / 2;
+      ty = (r.height - nh * s) / 2;
+      apply();
+    }
+    function zoomAt(px, py, f) {
+      var ns = Math.min(Math.max(s * f, 0.2), 12);
+      tx = px - (px - tx) * (ns / s);
+      ty = py - (py - ty) * (ns / s);
+      s = ns;
+      apply();
+    }
+    function center() {
+      var r = canvas.getBoundingClientRect();
+      return { x: r.width / 2, y: r.height / 2 };
+    }
+    function close() {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+      overlay.remove();
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') close();
+      if (e.key === '+' || e.key === '=') zoomAt(center().x, center().y, 1.4);
+      if (e.key === '-') zoomAt(center().x, center().y, 1 / 1.4);
+      if (e.key === '0') fit();
+    }
+
+    overlay.querySelector('.zoom-bar').addEventListener('click', function (e) {
+      var z = e.target.getAttribute && e.target.getAttribute('data-z');
+      if (z === 'in') zoomAt(center().x, center().y, 1.4);
+      else if (z === 'out') zoomAt(center().x, center().y, 1 / 1.4);
+      else if (z === 'fit') fit();
+      else if (z === 'close') close();
+    });
+
+    canvas.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      var r = canvas.getBoundingClientRect();
+      zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.15 : 1 / 1.15);
+    }, { passive: false });
+
+    // pan with one pointer, pinch with two
+    var pointers = new Map();
+    canvas.addEventListener('pointerdown', function (e) {
+      canvas.setPointerCapture(e.pointerId);
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      canvas.classList.add('panning');
+    });
+    canvas.addEventListener('pointermove', function (e) {
+      if (!pointers.has(e.pointerId)) return;
+      var prev = pointers.get(e.pointerId);
+      if (pointers.size === 1) {
+        tx += e.clientX - prev.x;
+        ty += e.clientY - prev.y;
+        apply();
+      } else if (pointers.size === 2) {
+        var ids = Array.from(pointers.keys());
+        var otherId = ids[0] === e.pointerId ? ids[1] : ids[0];
+        var other = pointers.get(otherId);
+        var r = canvas.getBoundingClientRect();
+        var dOld = Math.hypot(prev.x - other.x, prev.y - other.y);
+        var dNew = Math.hypot(e.clientX - other.x, e.clientY - other.y);
+        var mx = (e.clientX + other.x) / 2 - r.left;
+        var my = (e.clientY + other.y) / 2 - r.top;
+        if (dOld > 0) zoomAt(mx, my, dNew / dOld);
+      }
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    });
+    function endPointer(e) {
+      pointers.delete(e.pointerId);
+      if (pointers.size === 0) canvas.classList.remove('panning');
+    }
+    canvas.addEventListener('pointerup', endPointer);
+    canvas.addEventListener('pointercancel', endPointer);
+    canvas.addEventListener('dblclick', function (e) {
+      var r = canvas.getBoundingClientRect();
+      zoomAt(e.clientX - r.left, e.clientY - r.top, 2);
+    });
+
+    document.addEventListener('keydown', onKey);
+    fit();
+  }
+
+  function scan() {
+    document.querySelectorAll('.mermaid-box').forEach(makeZoomable);
+  }
+  // mermaid renders asynchronously (CDN here, native runtime in the artifact) —
+  // watch for the SVGs to appear rather than assuming render order
+  var mo = new MutationObserver(scan);
+  mo.observe(document.body, { childList: true, subtree: true });
+  scan();
+  window.addEventListener('load', scan);
+})();
+</script>
+</body></html>
