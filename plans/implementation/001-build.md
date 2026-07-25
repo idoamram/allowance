@@ -396,6 +396,11 @@ Phase 3 sessions get killed and all hands finish the core.**
 
 ### Task H3: Subgraph (The Graph, load-bearing)
 
+**Decision (2026-07-25): vanilla subgraph core; Substreams only as the stretch below.**
+Prize text qualifies both equally for the AI Use Case track; our workload (one contract,
+~a dozen addresses, recent startBlock) gets nothing from Substreams' parallel backfill,
+and the Rust/spkg pipeline is a 4am failure mode we don't need.
+
 **Files:** Create `subgraph/` (manifest, schema.graphql, mapping.ts)
 - [ ] Index USDC `Transfer` on Base mainnet, `startBlock` = deployment day, filtering in
   handler to plan-wallet addresses (from a data-source template or a registry the API
@@ -405,6 +410,13 @@ Phase 3 sessions get killed and all hands finish the core.**
   highlighted. Copy: "settled since deployment".
 - [ ] Seller-trust: settlement counts per payTo → exposed via
   `GET /api/mcp/seller-trust?host=` → discovery ordering input (compose with H1).
+- [ ] **Stretch (only if H3 core is green early):** swap the data source to the
+  **Standardized ERC-20 Transfers Substreams package** feeding the same subgraph schema
+  (substreams-powered subgraph — no Rust if the prebuilt covers Base USDC; VERIFY that
+  first, don't assume). Unlocks the Composable track claim ("compose two or more Graph
+  products / standardized schema") with zero console changes. If the prebuilt doesn't
+  fit Base USDC out of the box, stop — the core subgraph already qualifies for the AI
+  Use Case track.
 
 ### Task H4: ENS authority records
 
