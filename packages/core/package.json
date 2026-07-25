@@ -1,0 +1,16 @@
+{
+  "name": "@planbound/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./types.ts",
+  "exports": {
+    "." : "./types.ts",
+    "./types": "./types.ts",
+    "./money": "./money.ts",
+    "./schemas": "./schemas.ts"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  }
+}
