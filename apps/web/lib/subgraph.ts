@@ -15,7 +15,15 @@ import type { SettlementLike } from './reconcile'
  */
 
 /** Worldchain mainnet, CAIP-2. The only rail this subgraph covers. */
-export const WORLDCHAIN_NETWORK = 'eip155:480'
+/**
+ * The rail the subgraph indexes. Base since 2026-07-25: Subgraph Studio dropped subgraph
+ * support for Worldchain, so we index where our EVM settlements actually land.
+ * Everything downstream reads this rather than a literal.
+ */
+export const SETTLEMENT_NETWORK = 'eip155:8453'
+
+/** @deprecated kept so an older import keeps compiling; points at the indexed rail. */
+export const WORLDCHAIN_NETWORK = SETTLEMENT_NETWORK
 
 /**
  * The Studio query URL is treated as a secret: gateway URLs carry an API key in the path,

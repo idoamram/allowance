@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import demoSellers from '@planbound/chains/demo-sellers.json'
 import { agentFromRequest } from '@/lib/auth'
-import { WORLDCHAIN_NETWORK, indexWindow, sellerTrust, subgraphUrl } from '@/lib/subgraph'
+import { SETTLEMENT_NETWORK, indexWindow, sellerTrust, subgraphUrl } from '@/lib/subgraph'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
  *
  * A Bazaar listing is a claim. A 402 probe proves the seller is alive. Neither says whether
  * anyone has ever actually paid them. This route answers that from The Graph: how many USDC
- * settlements this seller's payTo address has received on Worldchain since we started
+ * settlements this seller's payTo address has received on the indexed rail since we started
  * indexing, and from how many distinct payers.
  *
  * The address is resolved by probing the seller live rather than from a stored table,
@@ -31,11 +31,11 @@ interface Accepts {
 }
 
 /**
- * Read the seller's live 402 and take the Worldchain offer specifically. A seller commonly
- * offers several chains; scoring a Base payTo against a Worldchain index would silently
+ * Read the seller's live 402 and take the indexed rail's offer specifically. A seller commonly
+ * offers several chains; scoring one chain's payTo against another chain's index would silently
  * report zero for a busy seller, which is worse than reporting nothing.
  */
-async function probeWorldchainPayTo(
+async function probeIndexedPayTo(
   url: string,
 ): Promise<{ payTo: string; priceUsd: number } | null> {
   let res: Response
@@ -65,7 +65,7 @@ async function probeWorldchainPayTo(
   }
 
   const accepts = payload?.accepts?.find(
-    (a) => a.network === WORLDCHAIN_NETWORK && a.scheme === 'exact',
+    (a) => a.network === SETTLEMENT_NETWORK && a.scheme === 'exact',
   )
   if (!accepts) return null
   return { payTo: accepts.payTo, priceUsd: Number(accepts.amount) / 1e6 }
@@ -120,7 +120,7 @@ export async function GET(req: Request) {
       )
     }
     for (const candidate of candidates) {
-      const probed = await probeWorldchainPayTo(candidate)
+      const probed = await probeIndexedPayTo(candidate)
       if (probed) {
         payTo = probed.payTo
         priceUsd = probed.priceUsd
@@ -133,7 +133,7 @@ export async function GET(req: Request) {
           error: 'no_worldchain_offer',
           detail:
             'seller did not answer a 402 offering Worldchain USDC — it may be down, or it may settle on another rail',
-          network: WORLDCHAIN_NETWORK,
+          network: SETTLEMENT_NETWORK,
         },
         { status: 502 },
       )
@@ -145,7 +145,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     host: host ?? (url ? new URL(url).host : null),
     payTo,
-    network: WORLDCHAIN_NETWORK,
+    network: SETTLEMENT_NETWORK,
     priceUsd,
     // Absence of history is absence, not a bad score: this seller may predate our
     // startBlock or settle elsewhere. Callers must not read null as "untrustworthy".

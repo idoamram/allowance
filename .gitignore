@@ -91,3 +91,6 @@ tmp/
 temp/
 *.local
 .env*
+
+# Private SDK feedback drafts — shared with sponsor teams directly, not published
+.feedbacks/
