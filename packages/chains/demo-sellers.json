@@ -78,5 +78,31 @@
       "priceUsd": 0.005,
       "source": "bazaar 2026-07-25"
     }
+  ],
+  "market": [
+    {
+      "url": "https://api.carbon-cashmere.de/v1/btc-derivatives/fee-curve",
+      "name": "api.carbon-cashmere.de",
+      "priceUsd": 0.02,
+      "source": "bazaar 2026-07-25, live-402 offers eip155:480 (worldchain USDC)"
+    },
+    {
+      "url": "https://api.carbon-cashmere.de/v1/btc-derivatives/diversity",
+      "name": "api.carbon-cashmere.de",
+      "priceUsd": 0.02,
+      "source": "bazaar 2026-07-25, live-402 offers eip155:480 (worldchain USDC)"
+    },
+    {
+      "url": "https://api.carbon-cashmere.de/v1/btc-derivatives/coin-days-destroyed",
+      "name": "api.carbon-cashmere.de",
+      "priceUsd": 0.03,
+      "source": "bazaar 2026-07-25, live-402 offers eip155:480 (worldchain USDC)"
+    },
+    {
+      "url": "https://api.carbon-cashmere.de/v1/btc-derivatives/ordinals-flow",
+      "name": "api.carbon-cashmere.de",
+      "priceUsd": 0.02,
+      "source": "bazaar 2026-07-25, live-402 offers eip155:480 (worldchain USDC)"
+    }
   ]
 }
