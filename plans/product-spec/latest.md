@@ -219,34 +219,39 @@ payment settles through the CDP facilitator, testnet included.
 | 4 | `ScheduleCreate` per live-quoted step; agent releases via `ScheduleSign` | The exact approved transfers and nothing else | consensus | roadmap |
 | 5 | Plan-authority escrow contract | Full recipient restriction incl. Base | Solidity | post-hackathon |
 
-### Three rails, and why
+### Three rails, and why *(reprioritized 2026-07-25 ~22:00, Ido's direction, spike-verified)*
 
 Of 78,290 indexed x402 routes, 15,123 returned a live 402 quote when probed (TOLL·402,
 2026-07-21): **10,249 on Base mainnet (882 providers), 3,635 on Solana, 0 on Hedera** —
 `@x402/hedera` first published 2026-05-25, 5.5 months after the EVM/SVM packages. Base
 Sepolia's apparent inventory (1,160 routes, 33 provider groups) is staging junk on
-inspection: one anime-metadata catalog is 915 of them; the rest are named `staging`,
-`api-dev`, `x402-test`, `x402hackathon`. There is no testnet *market* — so purchases go
-where the market is, and testnet is scoped to what actually requires it:
+inspection. What changed tonight, verified live: **Worldchain (`eip155:480`) has a real
+seller market** — Carbon & Cashmere's live 402s offer Worldchain USDC (the CDP facilitator
+settles World) — and **an x402 payment settled end-to-end on `hedera:testnet`** through
+Blocky402's hosted facilitator (spike S4, mirror-node-proven). The hackathon is
+Hedera/World/Graph, so rails are priority-ordered by sponsor depth, not market depth:
 
 | Rail | Role | Why |
 |---|---|---|
-| **Hedera testnet** | Envelope, co-sign, HSS sweep, HCS trail | Where testnet is mandated; three native services, zero Solidity. HIP-1313's high-volume lane (live since v0.73, May 2026) covers per-plan entity creation at 10–12.5k TPS |
-| **Base mainnet** | **All purchases** — real sellers, Bazaar-discovered, USDC plan wallet | A full 4-step plan runs **$0.05–$0.50** at real market prices; twenty judge re-runs cost under $10. Every run pays real strangers. The Graph subgraph indexes the plan wallet here (Studio dev endpoint, ~3k queries/day free) |
-| **Base Sepolia** | **CI fixtures only — never in demo runs** | Free dev loop (faucet USDC, 20/2h); deterministic drift testing via a price-controllable fixture; one CDP-facilitator settle lists fixtures in the real Bazaar, exercising discovery end-to-end |
+| **Hedera testnet** | Envelope, co-sign, HSS sweep, HCS trail — **and Flow A's purchase itself** (our labeled reference seller, Blocky402 facilitator) | Cap enforcement and payment under one consensus. No Hedera x402 seller market or directory exists (verified 2026-07-25) — being the first working seller+facilitator loop is the story, honestly labeled |
+| **Worldchain mainnet** | **Flow B purchases** — real third-party sellers, Bazaar-discovered with the network filter, USDC plan wallet | Real strangers on the sponsor's chain: C&C endpoints at $0.02–$0.03/call, live-verified `eip155:480` accepts. The Graph indexes `worldchain` natively |
+| **Base mainnet** | **Fallback rail** — supported in code, not the demo headline | Where market depth lives (10k+ sellers, all four wallet-vetting categories); the honest answer when a category has no Worldchain seller |
+| **Base Sepolia** | **CI fixtures only — never presented as market data** | Free dev loop; deterministic drift testing via a price-controllable fixture |
 
-The fixture boundary is a product-honesty line: the demo buys from sellers we don't control,
-discovered through a catalog we don't control. Fixtures exist for CI, for testing the
-drift gates (a real seller can't be ordered to change its price; a fixture can), and as a
-labeled stage fallback.
+The fixture boundary is a product-honesty line: demo purchases on Worldchain/Base are from
+sellers we don't control, discovered through a catalog we don't control; the Hedera-rail
+seller is ours and labeled as such, because that market doesn't exist yet. **Testnet-first
+execution rule (Ido):** every flow must run fully end-to-end on testnets (Hedera testnet;
+reference seller carrying a testnet EVM rail) before any mainnet variant; mainnet is the
+final demo upgrade, not a prerequisite.
 
-**One payment client, both rails.** The x402 v2 client is scheme-pluggable:
-`new x402Client().register('eip155:', ExactEvmScheme).register('hedera:', ExactHederaScheme)` —
-`pay_and_call` routes by `Step.rail` and nothing above it cares. A Hedera-rail purchase
-(from a **labeled test seller** of ours, settling via Blocky402's hosted facilitator, whose
-hosted testnet is Hedera Testnet) is **depth, not qualification** — the envelope's funded
-transfers and HSS sweep already are the "financial operation on Hedera Testnet." The test
-seller is the first thing cut if time runs short.
+**One payment client, all rails.** The x402 v2 client is scheme-pluggable:
+`new x402Client().register('eip155:*', ExactEvmScheme).register('hedera:testnet', ExactHederaScheme)` —
+`pay_and_call` routes by `Step.rail` and nothing above it cares. Spike S4 proved the
+Hedera path with the standard stack; T9 graduates the payer to the envelope account itself
+(agent+policy co-sign the partially-signed transfer; the facilitator is the external fee
+payer that completes the threshold — S1's key finding). If the Hedera purchase rail slips,
+the pre-agreed degrade is envelope-only Hedera + Worldchain purchases.
 
 ### The Graph — load-bearing, not a mirror
 
@@ -262,7 +267,9 @@ provide:
    starts from a recent `startBlock` so it syncs in minutes, which is why the honest claim
    is "since deployment," not "this month."
 
-One Base-mainnet subgraph in Studio (free dev endpoint, ~3k queries/day) serves both.
+One **Worldchain** subgraph in Studio (free dev endpoint, ~3k queries/day) serves both —
+that's where Flow B's real settlements land, so the panel indexes our own money on a
+natively-supported network (The Graph does not index Hedera; Base variant only as fallback).
 
 ### Onboarding — who needs what
 
@@ -278,8 +285,8 @@ from the faucet-fed treasury (asset: testnet HBAR, USD-denominated at a fixed de
 World is rail-independent for identity: AgentBook registration is gasless via World's own
 relay; the CAIP-122 challenge and Selfie Check are off-chain signatures. AgentKit's *x402
 seller-side verification*, however, is documented for EVM routes only ("your paid route can
-run on any EVM chain") — so AgentKit is demonstrated on the Base-rail purchases, not the
-Hedera rail.
+run on any EVM chain") — so AgentKit is demonstrated on the EVM-rail purchases
+(Worldchain, or Base fallback), not the Hedera rail.
 
 **ENS, load-bearing (restored from v0).** Agents get ENS subnames with **ENSIP-26 text
 records publishing current authority**: the AgentBook registration reference and the live
@@ -291,9 +298,10 @@ required. Identity that answers the question servers actually ask, not a cosmeti
 
 Discovery and 402 probing are **free reads against the mainnet market** — quoting and
 planning develop against real sellers at zero cost. Settlement mechanics (envelope,
-co-sign, drift gates, sweep) develop on **Hedera testnet + Base Sepolia fixtures** with
-faucet funds. Mainnet settlement happens only in demo runs, at $0.05–$0.50 a run. Nothing
-about the build requires real money until the demo take.
+co-sign, drift gates, sweep, and the Hedera-rail purchase) develop on **Hedera testnet +
+testnet EVM fixtures** with faucet funds, and every flow must be green end-to-end there
+first (testnet-first rule). Mainnet settlement happens only in demo runs, at $0.05–$0.50
+a run. Nothing about the build requires real money until the demo take.
 
 ### Plan and decision model
 
@@ -319,7 +327,7 @@ type Step = {
   quoteSource: 'live-402' | 'estimate'   // an estimate is never dressed as a quote
   buys: string                   // what this yields toward the goal
   why: string                    // one line: why this step earns its price
-  rail: 'hedera' | 'base'
+  rail: 'hedera' | 'worldchain' | 'base'
 }
 
 type Decision = {
