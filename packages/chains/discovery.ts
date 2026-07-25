@@ -40,30 +40,36 @@ interface BazaarResource {
   extensions?: { bazaar?: { info?: { input?: unknown } } }
 }
 
-const toCandidate = (r: BazaarResource): Candidate | null => {
+const toCandidate = (r: BazaarResource, network: string): Candidate | null => {
   if (!r.resource?.startsWith('http')) return null
-  const base = r.accepts?.find((a) => a.network === BASE_NETWORK && a.scheme === 'exact')
-  if (!base) return null
+  const entry = r.accepts?.find((a) => a.network === network && a.scheme === 'exact')
+  if (!entry) return null
   return {
     url: r.resource,
     name: r.serviceName ?? new URL(r.resource).hostname,
-    priceUsd: base.amount != null ? Number(base.amount) / 10 ** USDC_DECIMALS : null,
-    network: BASE_NETWORK,
+    priceUsd: entry.amount != null ? Number(entry.amount) / 10 ** USDC_DECIMALS : null,
+    network,
     description: r.description ?? '',
     inputSchema: r.extensions?.bazaar?.info?.input,
     calls30d: r.quality?.l30DaysTotalCalls,
   }
 }
 
-/** Search the Bazaar for Base-mainnet sellers matching a task query. Free, keyless. */
+/**
+ * Search the Bazaar for sellers matching a task query. Free, keyless.
+ * `opts.network` (CAIP-2, default Base) is passed to the Bazaar as a hard filter AND
+ * applied to accepts[] — semantic search alone won't surface rail-specific sellers.
+ */
 export async function discover(
   query: string,
-  opts: { maxUsdPrice?: number; limit?: number } = {},
+  opts: { maxUsdPrice?: number; limit?: number; network?: string } = {},
 ): Promise<Candidate[]> {
   const limit = opts.limit ?? 10
+  const network = opts.network ?? BASE_NETWORK
+  const netParam = `&network=${encodeURIComponent(network)}`
   const urls = [
-    `${BAZAAR}/search?query=${encodeURIComponent(query)}&limit=${limit}`,
-    `${BAZAAR}/resources?limit=${limit}`, // fallback: unfiltered listing
+    `${BAZAAR}/search?query=${encodeURIComponent(query)}&limit=${limit}${netParam}`,
+    `${BAZAAR}/resources?limit=${limit}${netParam}`, // fallback: unfiltered listing
   ]
   for (const u of urls) {
     try {
@@ -71,7 +77,7 @@ export async function discover(
       if (!res.ok) continue
       const body = (await res.json()) as { resources?: BazaarResource[] }
       const candidates = (body.resources ?? [])
-        .map(toCandidate)
+        .map((r) => toCandidate(r, network))
         .filter((c): c is Candidate => c !== null)
         .filter((c) => opts.maxUsdPrice == null || c.priceUsd == null || c.priceUsd <= opts.maxUsdPrice)
       if (candidates.length > 0) return candidates.slice(0, limit)
