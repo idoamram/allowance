@@ -1,0 +1,124 @@
+/* Claimed vs settled — the panel that lets an approver check our backend against the chain.
+   Its own module rather than an addition to console.module.css, so parallel console work
+   (insights panel, receipts) does not collide with it in one file. */
+
+.panel {
+  margin-top: 2.5rem;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.since {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+.sub {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  margin: 0.25rem 0 1rem;
+  max-width: 46rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.table th {
+  text-align: left;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+  border-bottom: 1px solid var(--rule);
+  padding: 0 0.6rem 0.4rem 0;
+}
+
+.table td {
+  padding: 0.5rem 0.6rem 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+
+/* A row that disagrees must be impossible to skim past — that is the whole point. */
+.rowFlagged {
+  background: color-mix(in srgb, var(--stop) 7%, transparent);
+}
+
+.num {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.service {
+  display: block;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--rule);
+  border-radius: 99px;
+  padding: 1px 8px;
+  white-space: nowrap;
+  color: var(--ink-soft);
+}
+
+.badgeOk {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--rule));
+}
+
+.badgeBad {
+  color: var(--stop);
+  border-color: color-mix(in srgb, var(--stop) 40%, var(--rule));
+}
+
+.evidence {
+  display: block;
+  font-size: 0.66rem;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+.state {
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  border: 1px dashed var(--rule);
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+
+.note {
+  margin-top: 0.9rem;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  max-width: 46rem;
+}
