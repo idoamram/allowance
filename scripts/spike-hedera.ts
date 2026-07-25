@@ -229,4 +229,6 @@ console.log(
     ? 'S1 PASS: envelope + dual-control + keeperless refund all confirmed'
     : 'S1 PARTIAL: schedule did not execute at expiry — check schedule info',
 )
+relayerClient.close()
 client.close()
+process.exit(refunded ? 0 : 1)
