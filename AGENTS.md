@@ -6,8 +6,8 @@ symlink.
 
 ## What we're building
 
-**Allowance** — a control plane that gives AI agents a capped, network-enforced spending
-budget instead of a private key.
+**PlanBound** (planbound.xyz) — an agent shops the task and returns a priced, reasoned
+plan; one human approval funds a single-use envelope the agent cannot exceed.
 
 **The product spec is `plans/product-spec/latest.md`** — one file, five sections. It is still
 being written and changes daily. Read it before proposing anything about the product; don't
