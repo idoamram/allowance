@@ -10,10 +10,12 @@
     "keygen": "tsx scripts/keygen.ts",
     "spike:hedera": "tsx scripts/spike-hedera.ts",
     "spike:hedera-x402": "tsx scripts/spike-hedera-x402.ts",
-    "driver": "tsx scripts/driver.ts"
+    "driver": "tsx scripts/driver.ts",
+    "seed:agent": "tsx scripts/seed-agent.ts"
   },
   "dependencies": {
     "@hiero-ledger/sdk": "^2.86.0",
+    "@supabase/supabase-js": "^2.47.0",
     "@x402/evm": "^2.19.0",
     "@x402/fetch": "^2.19.0",
     "@x402/hedera": "^2.19.0",

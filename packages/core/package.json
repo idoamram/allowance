@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "main": "./types.ts",
+  "main": "./index.ts",
   "exports": {
-    "." : "./types.ts",
+    ".": "./index.ts",
     "./types": "./types.ts",
     "./money": "./money.ts",
     "./schemas": "./schemas.ts"
