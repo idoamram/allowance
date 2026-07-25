@@ -1,4 +1,4 @@
-# 002 — Vendor onboarding
+# Addon Vendor v1
 
 > Status: proposal  
 > Relationship to v1: optional supply-side expansion; not required for the core hackathon demo.
