@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "planbound": {
+      "command": "pnpm",
+      "args": ["--silent", "--dir", "${CLAUDE_PLUGIN_ROOT}/..", "--filter", "mcp", "start"]
+    }
+  }
+}

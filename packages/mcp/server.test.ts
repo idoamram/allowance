@@ -1,22 +1,35 @@
 import { describe, expect, it } from 'vitest'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
+import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const here = dirname(fileURLToPath(import.meta.url))
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
+const pluginRoot = resolve(repoRoot, 'plugin')
+
+/** The launch command the plugin actually ships, with the plugin-root variable resolved. */
+function pluginLaunch(): { command: string; args: string[] } {
+  const config = JSON.parse(readFileSync(resolve(pluginRoot, '.mcp.json'), 'utf8')) as {
+    mcpServers: Record<string, { command: string; args: string[] }>
+  }
+  const server = config.mcpServers.planbound
+  return {
+    command: server.command,
+    args: server.args.map((a) => a.replaceAll('${CLAUDE_PLUGIN_ROOT}', pluginRoot)),
+  }
+}
 
 /**
- * Spawns the real server over real stdio. Unit tests cannot catch a bad tool
- * registration — a malformed schema only fails when a client actually connects, which
- * in production means "the plugin is silently broken in someone's terminal".
+ * Spawns the real server the way the plugin does. Unit tests cannot catch a bad tool
+ * registration or a launch command that prints to stdout — both only fail when a client
+ * actually connects, which in production means "silently broken in someone's terminal".
  */
 describe('stdio server', () => {
   it('starts and advertises exactly the seven contracted tools', async () => {
     const client = new Client({ name: 'test', version: '0' })
     const transport = new StdioClientTransport({
-      command: 'npx',
-      args: ['tsx', resolve(here, 'server.ts')],
+      ...pluginLaunch(),
       // No control-plane config: the server must still start and list its tools.
       env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' },
     })
