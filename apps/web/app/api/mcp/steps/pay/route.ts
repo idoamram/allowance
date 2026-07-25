@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { gate, payRequestSchema, remainingUsd } from '@planbound/core'
 import type { PlanMoneyView, StepStatus } from '@planbound/core'
 import { NETWORK_FOR_RAIL, probe, payAndFetch } from '@planbound/chains/x402pay'
-import { hcsLog } from '@planbound/chains/hedera'
+import { createEnvelopeSigner, hcsLog, parseKey, treasury } from '@planbound/chains/hedera'
 import { agentFromRequest } from '@/lib/auth'
 import { db } from '@/lib/db'
 
@@ -116,11 +116,38 @@ export async function POST(req: Request) {
         )}`
       : step.service_url
 
+    // On the Hedera rail the payer IS the envelope: the account bounded by the approved
+    // ceiling pays the seller directly, agent + policy co-signing, with the facilitator's
+    // fee-payer signature completing the threshold. Cap and payment, one account, one chain.
+    let hederaSigner
+    if (step.rail === 'hedera') {
+      if (!envelope.hedera_account) {
+        return NextResponse.json({ error: 'plan has no Hedera envelope to pay from' }, { status: 409 })
+      }
+      const { policyKey } = await treasury()
+      // Verify the agent key against the public key the envelope was actually built from.
+      // Raw-hex keys are algorithm-ambiguous, and the only symptom of getting it wrong is
+      // INVALID_SIGNATURE at settlement — far from the cause (spike S1, and again tonight).
+      const { data: agentRow } = await supabase
+        .from('agents')
+        .select('hedera_public_key')
+        .eq('id', plan.agent_id)
+        .maybeSingle()
+      hederaSigner = createEnvelopeSigner({
+        envelopeAccountId: envelope.hedera_account,
+        agentKey: parseKey(
+          process.env.AGENT_HEDERA_KEY ?? process.env.AGENT_EVM_KEY ?? '',
+          agentRow?.hedera_public_key ?? undefined,
+        ),
+        policyKey,
+      })
+    }
+
     const paid = await payAndFetch(
       url,
       {
         evmKey: process.env.PLAN_WALLET_KEY as `0x${string}` | undefined,
-        hedera: undefined, // envelope-as-payer lands with the Hedera rail wiring
+        hedera: hederaSigner,
       },
       { maxUsd: verdict.maxAllowedUsd, network },
     )

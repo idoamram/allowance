@@ -30,6 +30,7 @@ import {
   Timestamp,
   TopicCreateTransaction,
   TopicMessageSubmitTransaction,
+  TransactionId,
   TransferTransaction,
 } from '@hiero-ledger/sdk'
 
@@ -90,22 +91,48 @@ export async function resolveAccountKey(accountId: string, raw: string): Promise
   return match
 }
 
-/** Parse a key of unknown algorithm with no account to check against (policy/agent keys). */
-export function parseKey(raw: string): PrivateKey {
+/**
+ * Parse a key of unknown algorithm (policy/agent keys).
+ *
+ * **`PrivateKey.fromStringDer()` does not reject a raw 64-hex string — it silently returns
+ * a DIFFERENT key** (an ED25519 one). So "try DER, then ECDSA" is not a safe fallback
+ * chain: for raw hex the first branch always wins and always wins wrongly, and the only
+ * symptom is INVALID_SIGNATURE at settlement, far from the cause. DER is therefore
+ * selected by prefix, never by trial.
+ *
+ * `expectedPublicKeyDer` closes the remaining ambiguity: raw hex is still valid as both
+ * ECDSA and ED25519, so when the caller knows which public key the key must correspond to
+ * (we register the agent's), we verify rather than assume.
+ */
+export function parseKey(raw: string, expectedPublicKeyDer?: string): PrivateKey {
   let s = raw.trim().replace(/^['"]|['"]$/g, '')
   if (s.toLowerCase().startsWith('0x')) s = s.slice(2)
-  for (const parse of [
-    () => PrivateKey.fromStringDer(s),
-    () => PrivateKey.fromStringECDSA(s),
-    () => PrivateKey.fromStringED25519(s),
-  ]) {
+  if (!s) throw new Error('empty Hedera private key')
+
+  const isDer = /^30[0-9a-f]{2}/i.test(s) && s.length > 64
+  const candidates: PrivateKey[] = []
+  for (const parse of isDer
+    ? [() => PrivateKey.fromStringDer(s)]
+    : [() => PrivateKey.fromStringECDSA(s), () => PrivateKey.fromStringED25519(s)]) {
     try {
-      return parse()
+      candidates.push(parse())
     } catch {
       /* next */
     }
   }
-  throw new Error('could not parse a Hedera private key (expected 64-hex or DER)')
+  if (candidates.length === 0) {
+    throw new Error('could not parse a Hedera private key (expected 64-hex or DER)')
+  }
+  if (!expectedPublicKeyDer) return candidates[0]
+
+  const match = candidates.find((k) => k.publicKey.toStringDer() === expectedPublicKeyDer)
+  if (!match) {
+    throw new Error(
+      'the configured key does not derive the expected public key — ' +
+        'it is a different key, or a different algorithm than the one registered',
+    )
+  }
+  return match
 }
 
 interface Treasury {
@@ -254,6 +281,59 @@ export async function hcsLog(
   } catch (err) {
     console.warn(`[hedera] hcsLog('${event}') failed:`, (err as Error).message)
     return { seq: null }
+  }
+}
+
+/**
+ * An x402 client signer whose payer is the **envelope account** — the account bounded by
+ * the approved ceiling. This is the whole product in one function: the thing that enforces
+ * the cap and the thing that pays the seller are the same account, on the same chain.
+ *
+ * Two signatures go on, agent and policy, satisfying the inner 2-of-2. Neither alone is
+ * enough. The threshold is completed by a third signature we never hold: the facilitator's,
+ * added when it pays the transaction fee (spike S1). That is why the transaction id is
+ * generated against the facilitator's fee payer — it is the payer, and its signature counts.
+ *
+ * Shaped to match `createClientHederaSigner` from @x402/hedera 2.19 (read from dist, not
+ * guessed); it differs only in signing twice and in never holding the treasury key.
+ */
+export function createEnvelopeSigner(opts: {
+  envelopeAccountId: string
+  agentKey: PrivateKey
+  policyKey: PrivateKey
+}): {
+  accountId: string
+  createPartiallySignedTransferTransaction: (requirements: {
+    network: string
+    amount: string
+    asset: string
+    payTo: string
+    extra?: { feePayer?: string }
+  }) => Promise<string>
+} {
+  return {
+    accountId: opts.envelopeAccountId,
+    createPartiallySignedTransferTransaction: async (requirements) => {
+      const feePayer = requirements.extra?.feePayer
+      if (typeof feePayer !== 'string') {
+        throw new Error('feePayer is required in paymentRequirements.extra')
+      }
+      const amount = BigInt(requirements.amount)
+      if (amount <= 0n) throw new Error('amount must be greater than zero')
+      if (requirements.asset !== '0.0.0') {
+        throw new Error(`envelope pays HBAR only, got asset ${requirements.asset}`)
+      }
+
+      const { client } = await treasury() // network config only; the treasury never signs here
+      const tx = new TransferTransaction()
+        .addHbarTransfer(opts.envelopeAccountId, Hbar.fromTinybars((-amount).toString()))
+        .addHbarTransfer(requirements.payTo, Hbar.fromTinybars(amount.toString()))
+        .setTransactionId(TransactionId.generate(feePayer))
+        .freezeWith(client)
+
+      const signed = await (await tx.sign(opts.agentKey)).sign(opts.policyKey)
+      return Buffer.from(signed.toBytes()).toString('base64')
+    },
   }
 }
 

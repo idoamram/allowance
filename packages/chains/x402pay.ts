@@ -155,11 +155,14 @@ export interface PayResult {
 export interface PayCredentials {
   /** EVM plan-wallet key — pays the Worldchain and Base rails. */
   evmKey?: `0x${string}`
-  /** Hedera envelope account and its signers — pays the Hedera rail. */
+  /**
+   * Hedera envelope signer — pays the Hedera rail. Shape matches @x402/hedera's
+   * ClientHederaSigner; `createEnvelopeSigner` in ./hedera builds one that signs with
+   * agent + policy so the envelope account itself is the payer.
+   */
   hedera?: {
     accountId: string
-    /** Both signatures: the envelope's key is 2-of-2(agent, policy) under the outer 1-of. */
-    sign: (transactionBase64: string) => Promise<string>
+    createPartiallySignedTransferTransaction: (requirements: never) => Promise<string>
   }
 }
 
@@ -196,12 +199,7 @@ export async function payAndFetch(
     // The envelope account is the payer; the facilitator pays the fee, and that fee-payer
     // signature is what completes the threshold without the treasury ever signing (S1).
     const { ExactHederaScheme } = await import('@x402/hedera')
-    const signer = {
-      accountId: creds.hedera.accountId,
-      createPartiallySignedTransferTransaction: (requirements: unknown) =>
-        creds.hedera!.sign(JSON.stringify(requirements)),
-    }
-    client.register(caip2, new ExactHederaScheme(signer as never))
+    client.register(caip2, new ExactHederaScheme(creds.hedera as never))
   } else {
     if (!creds.evmKey) throw new Error(`${quote.network} needs an EVM plan-wallet key`)
     client.register(caip2, new ExactEvmScheme(privateKeyToAccount(creds.evmKey)))
@@ -209,7 +207,12 @@ export async function payAndFetch(
   const fetchWithPay = wrapFetchWithPayment(fetch, client)
 
   const res = await fetchWithPay(url, opts.init)
-  if (!res.ok) throw new Error(`paid fetch failed: HTTP ${res.status}`)
+  if (!res.ok) {
+    // The seller's body says which of verify/settle refused and why. Swallowing it turns
+    // every payment failure into the same unactionable line.
+    const detail = await res.text().catch(() => '')
+    throw new Error(`paid fetch failed: HTTP ${res.status}${detail ? ` — ${detail.slice(0, 400)}` : ''}`)
+  }
 
   const receiptHeader =
     res.headers.get('payment-response') ?? res.headers.get('x-payment-response')
