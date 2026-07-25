@@ -1,5 +1,6 @@
 import { db } from '@/lib/db'
 import { usd } from '@/lib/format'
+import ClaimedVsSettled from './claimed-vs-settled'
 import styles from './console.module.css'
 
 export const dynamic = 'force-dynamic'
@@ -27,8 +28,9 @@ const STATUS_CLASS: Record<string, string> = {
  * The operator's view: every plan this control plane has ever been asked to approve.
  *
  * Approval keys are never selected here — the console tells you a plan exists and what
- * it costs; it does not hand out the authority to approve it. T11 adds receipts and the
- * claimed-vs-settled diff read from the subgraph.
+ * it costs; it does not hand out the authority to approve it. The claimed-vs-settled diff
+ * below reads the chain instead, so none of this table has to be taken on trust; T11 adds
+ * receipts.
  */
 export default async function ConsolePage() {
   const { data } = await db()
@@ -81,6 +83,8 @@ export default async function ConsolePage() {
           </tbody>
         </table>
       )}
+
+      <ClaimedVsSettled />
 
       <p className={styles.note}>
         This console is not yet behind a login &mdash; magic-link auth lands with the operator

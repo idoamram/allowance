@@ -1,0 +1,102 @@
+# PlanBound settlement index — Worldchain USDC.
+#
+# Two consumers, both load-bearing (a subgraph that mirrors our Postgres is decoration):
+#
+# 1. Claimed vs settled. Our `steps.receipt` records what the control plane CLAIMS it paid.
+#    `Settlement` records what actually landed on chain. The console diffs the two, so an
+#    approver can check our backend against consensus without trusting our backend.
+# 2. Seller trust. `Seller.settlementCount` / `uniquePayerCount` are a discovery-ranking
+#    input: how much real money this payTo address has received since indexing began.
+#
+# Amounts come in two shapes on purpose: `amount` is raw USDC atomic units (6dp, what the
+# chain says) and `amountUsd` is the human number. Comparing our claim against the chain is
+# done on the raw value — float rounding must never be the reason a diff shows a mismatch.
+
+"""
+One USDC transfer. Immutable: a settled transfer is a historical fact and is never
+rewritten. `id` is `txHash-logIndex`, which is also how the console joins our receipts
+(`steps.receipt.txRef` is the transaction hash) to what settled.
+"""
+type Settlement @entity(immutable: true) {
+  id: Bytes!
+  "Payer side — for our own plans this is the plan wallet."
+  payer: Payer!
+  "Recipient side — for a purchase this is the seller's x402 payTo address."
+  seller: Seller!
+  from: Bytes!
+  to: Bytes!
+  "Raw USDC atomic units (6dp). The authoritative number."
+  amount: BigInt!
+  "Same value as dollars, for display only."
+  amountUsd: BigDecimal!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
+
+"""
+An address that has RECEIVED USDC. Sellers are not enumerated at manifest time — any
+address that gets paid becomes one — so a seller discovered by the agent at runtime is
+already indexed by the time we ask about it.
+"""
+type Seller @entity(immutable: false) {
+  "The payTo address, lowercased bytes."
+  id: Bytes!
+  settlementCount: BigInt!
+  "Distinct paying addresses. N payments from 1 payer is a much weaker signal than N from N."
+  uniquePayerCount: BigInt!
+  totalReceived: BigInt!
+  totalReceivedUsd: BigDecimal!
+  firstSeenBlock: BigInt!
+  firstSeenTimestamp: BigInt!
+  lastSeenBlock: BigInt!
+  lastSeenTimestamp: BigInt!
+  settlements: [Settlement!]! @derivedFrom(field: "seller")
+}
+
+"""An address that has SENT USDC. Our plan wallets show up here once they spend."""
+type Payer @entity(immutable: false) {
+  id: Bytes!
+  paymentCount: BigInt!
+  uniqueSellerCount: BigInt!
+  totalSent: BigInt!
+  totalSentUsd: BigDecimal!
+  firstSeenBlock: BigInt!
+  firstSeenTimestamp: BigInt!
+  lastSeenBlock: BigInt!
+  lastSeenTimestamp: BigInt!
+  settlements: [Settlement!]! @derivedFrom(field: "payer")
+}
+
+"""
+Payer→seller edge. Exists to count distinct counterparties; also answers "has this plan
+wallet ever paid this seller before?" in one lookup.
+"""
+type PayerSeller @entity(immutable: false) {
+  "payer-seller, hex concatenated."
+  id: Bytes!
+  payer: Payer!
+  seller: Seller!
+  count: BigInt!
+  totalAmount: BigInt!
+  firstSeenTimestamp: BigInt!
+  lastSeenTimestamp: BigInt!
+}
+
+"""
+Singleton (`id: "meta"`) recording the real indexing window.
+
+This is what makes the UI copy honest rather than decorative: the console says "settled
+since deployment" and prints THIS timestamp, instead of hardcoding a claim about a period
+the subgraph never actually covered. A recent startBlock is a deliberate choice (syncs in
+minutes); stating it is the price of making it.
+"""
+type IndexMeta @entity(immutable: false) {
+  id: String!
+  firstIndexedBlock: BigInt!
+  firstIndexedTimestamp: BigInt!
+  lastIndexedBlock: BigInt!
+  lastIndexedTimestamp: BigInt!
+  settlementCount: BigInt!
+}
