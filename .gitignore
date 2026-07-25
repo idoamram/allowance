@@ -1,0 +1,88 @@
+# ---- Secrets ----------------------------------------------------------------
+# Never commit these. On a public repo a leaked key is exploited within minutes,
+# and deleting it in a later commit does NOT remove it from history.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.keystore
+secrets.json
+operator-key*
+**/keys/
+
+# ---- Dependencies -----------------------------------------------------------
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/versions
+
+# ---- Next.js ----------------------------------------------------------------
+.next/
+out/
+build/
+dist/
+
+# ---- Vercel -----------------------------------------------------------------
+.vercel
+
+# ---- TypeScript -------------------------------------------------------------
+*.tsbuildinfo
+
+# ---- Testing / coverage -----------------------------------------------------
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+blob-report/
+.playwright-mcp/
+
+# ---- Database (local Postgres) ----------------------------------------------
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.sql.gz
+pgdata/
+
+# ---- Onchain build artifacts ------------------------------------------------
+# Harmless if unused; keeps generated output out if contracts get added.
+artifacts/
+cache/
+cache_forge/
+typechain/
+typechain-types/
+broadcast/
+!broadcast/**/dry-run/
+
+# ---- Logs -------------------------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ---- Caches -----------------------------------------------------------------
+.cache/
+.turbo/
+.eslintcache
+.parcel-cache/
+
+# ---- Editors / OS -----------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# ---- Scratch ----------------------------------------------------------------
+tmp/
+temp/
+*.local
