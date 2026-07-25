@@ -90,3 +90,4 @@ Thumbs.db
 tmp/
 temp/
 *.local
+.env*
