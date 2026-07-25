@@ -5,6 +5,7 @@ import { safeEqual } from '@/lib/ids'
 import { DecisionForm, type StepUpRequirement } from './decision-form'
 import { Countdown } from './countdown'
 import { DriftDiff } from './drift-diff'
+import { Receipts } from './receipts'
 import { mintDecisionToken } from './token'
 import { usd } from '@/lib/format'
 import { humanVerifierOrError, DEFAULT_STEP_UP_USD } from '@/lib/verify'
@@ -40,7 +41,11 @@ type StepRow = {
   status: 'pending' | 'paid' | 'blocked' | 'skipped'
   paid_usd: number | string | null
   live_ask_usd: number | string | null
+  receipt: { txRef?: string; network?: string; payTo?: string; at?: string } | null
 }
+
+/** Statuses where money has moved, so the page owes a reconciliation rather than a sentence. */
+const SHOWS_RECEIPTS = new Set(['executing', 'settled', 'aborted'])
 
 /** What the plan's status means for the human now that it is no longer theirs to answer. */
 const SETTLED_COPY: Record<string, { title: string; body: string }> = {
@@ -86,11 +91,15 @@ export default async function ApprovalPage({
   const [{ data: stepRows }, { data: agent }, { data: envelope }] = await Promise.all([
     supabase
       .from('steps')
-      .select('idx, service_name, quote_usd, source, buys, why, rail, status, paid_usd, live_ask_usd')
+      .select('idx, service_name, quote_usd, source, buys, why, rail, status, paid_usd, live_ask_usd, receipt')
       .eq('plan_id', plan.id)
       .order('idx'),
     supabase.from('agents').select('name, ens').eq('id', plan.agent_id).maybeSingle(),
-    supabase.from('envelopes').select('funded_usd').eq('plan_id', plan.id).maybeSingle(),
+    supabase
+      .from('envelopes')
+      .select('funded_usd, swept_usd, hedera_account, hcs_topic')
+      .eq('plan_id', plan.id)
+      .maybeSingle(),
   ])
   const steps = (stepRows ?? []) as StepRow[]
 
@@ -242,10 +251,21 @@ export default async function ApprovalPage({
             liveAskUsd={Number(blockedStep.live_ask_usd ?? blockedStep.quote_usd)}
           />
         ) : (
-          <div className={styles.settled}>
-            <h2>{settled?.title ?? plan.status}</h2>
-            <p>{settled?.body ?? 'This plan is no longer awaiting an answer.'}</p>
-          </div>
+          <>
+            <div className={styles.settled}>
+              <h2>{settled?.title ?? plan.status}</h2>
+              <p>{settled?.body ?? 'This plan is no longer awaiting an answer.'}</p>
+            </div>
+            {SHOWS_RECEIPTS.has(plan.status) && (
+              <Receipts
+                steps={driftSteps.map((s, i) => ({ ...s, receipt: steps[i]?.receipt ?? null }))}
+                fundedUsd={envelope?.funded_usd == null ? null : Number(envelope.funded_usd)}
+                sweptUsd={envelope?.swept_usd == null ? null : Number(envelope.swept_usd)}
+                envelopeAccount={envelope?.hedera_account ?? null}
+                hcsTopic={envelope?.hcs_topic ?? null}
+              />
+            )}
+          </>
         )}
       </div>
       <p className={styles.footer}>
