@@ -119,7 +119,94 @@ We went with `staging` + simulator because that is the path the verify API docum
 **What would have helped:** one page saying which of simulator/sandbox is the recommended
 path as of today, and whether `sandbox` proofs verify through the same v4 endpoint.
 
+### 6. The simulator calls a staging v4 request a "production request"
+
+The most concrete blocker of the session, reproduced twice on both simulator hosts with
+freshly-minted connect URLs.
+
+The widget renders correctly in staging — it shows its own "Testing in staging? Use the
+simulator" affordance, and the connect URL it generates points at `staging.world.org`:
+
+```
+https://simulator.worldcoin.org/?connect_url=https%3A%2F%2Fstaging.world.org%2Fverify%3Ft%3Dwld%26i%3D…
+```
+
+Following that link, the simulator answers:
+
+> **Production request detected**
+> This simulator only accepts staging requests.
+> Set `environment: "staging"` in your request payload.
+> Update the request and try again.
+
+`environment: "staging"` **is** set — it is what produced the staging bridge host and the
+simulator link in the first place. Same result on `simulator.worldcoin.org` and
+`simulator.orb.engineer` (they appear to be the same app; both carry the banner *"This
+simulator will change with the adoption of World ID 4.0"*).
+
+Screenshot: [`img/world-simulator-production-request-detected.png`](img/world-simulator-production-request-detected.png).
+
+**Two candidate causes, and we could not isolate which:**
+
+1. The simulator is 3.x-era (its own banner says so) and reads `environment` from a
+   v3-shaped payload, so a v4 request looks like it has none and defaults to production.
+2. Our `rp_id` was a placeholder for this run, because the app's RP registration is still
+   `rp_not_active` (§1) — a malformed RP context might be reported this way.
+
+Distinguishing the two needs an active RP, which is the thing we are blocked on. Recorded
+as unresolved rather than guessed.
+
+**What would have helped:** an error that names what it actually parsed
+(`"expected environment field, got protocol_version 4.0"`), or a simulator build that
+states plainly whether it supports v4 requests yet.
+
+### 7. `agentkit-cli register` cannot be driven headlessly
+
+`npx @worldcoin/agentkit-cli@0.2.0 status <address>` is well-behaved and useful:
+
+```
+agent: 0x2eA363b5ACAA8b6b86Bd156B2336c21EbBf5073F
+registered: false
+humanId: null
+contract: 0xA23aB2712eA7BBa896930544C7d6636a96b944dA
+network: "eip155:480"
+```
+
+`register` blocks indefinitely with no output when stdin is not a TTY — including with
+`--manual --format json`, which reads like it should print call data and exit. We stopped
+it at 150s twice rather than burn time; registration needs a human with World App, which is
+the documented and correct design. Worth a one-line "requires an interactive terminal" in
+`--help`, and `--manual` genuinely printing call data without a proof would let a CI or
+agent context prepare the transaction for a human to sign later.
+
+Also: `@worldcoin/agentkit-cli@0.2.0` pulls in `@worldcoin/idkit-core@2.1.0`, which npm
+flags as deprecated ("Old-versions moved to new ones") — a v2 dependency inside the
+weekend's flagship v4 tooling.
+
 ---
+
+## What we verified end-to-end, and what we did not
+
+Verified in a browser on 2026-07-25, dev server on port 3002:
+
+- **`HUMAN_VERIFIER` unset / `none`** — the approval page is byte-identical to before this
+  task. No step-up block, approve button live. This is the shipping default.
+- **`HUMAN_VERIFIER=world`, incomplete config** — the page fails closed and names the gap:
+  *"Step-up verification is required for this ceiling but is not configured correctly, so
+  nothing can be funded from this page. World verifier selected but WORLD_RP_ID is not
+  set…"*. Approve disabled; reject still available.
+- **`HUMAN_VERIFIER=world`, $50 ceiling against a $5 threshold** — the step-up block renders
+  and gates the approve button:
+  [`img/world-step-up-block.png`](img/world-step-up-block.png).
+- **IDKit widget opens against staging** — server-minted RP signature, QR code, and the
+  simulator affordance: [`img/world-idkit-staging-qr.png`](img/world-idkit-staging-qr.png).
+- **24 unit tests** covering selection, threshold, challenge signing, every verify refusal
+  path, ticket scoping/expiry, and both published `hashSignal` vectors.
+
+**Not verified: a real proof completing end-to-end.** Blocked on `rp_not_active` (§1) plus
+the simulator's "production request detected" (§6), and on the app having no action created
+yet in the staging environment (§2). Two Portal values are still needed before this can be
+claimed as working: `WORLD_RP_ID`, and an action named `planbound-approve-plan` created
+with `environment: staging`.
 
 ## Design consequences for PlanBound
 
@@ -141,3 +228,7 @@ These are ours, not World's, but they came out of the above:
   worry about — a plan is single-use and moves out of `pending_approval` on the first
   decision, and the ticket is plan-scoped and expires in ten minutes — but it is a real gap
   and it needs a migration before this is a uniqueness claim rather than a liveness one.
+- **AgentBook registration is a human's five minutes, not an agent's.** `register` needs a
+  TTY and a World App scan by design. The agent wallet
+  `0x2eA363b5ACAA8b6b86Bd156B2336c21EbBf5073F` currently reads `registered: false` against
+  AgentBook `0xA23aB2712eA7BBa896930544C7d6636a96b944dA` on `eip155:480`.
