@@ -1,14 +1,26 @@
-# PlanBound settlement subgraph — Worldchain USDC
+# PlanBound settlement subgraph — Base USDC
 
-Indexes every USDC `Transfer` on Worldchain mainnet so the control plane can be checked
-against consensus instead of believed.
+Indexes every USDC `Transfer` on Base mainnet so the control plane can be checked against
+consensus instead of believed.
 
-- **Network:** `worldchain` (CAIP-2 `eip155:480`). The identifier is the one The Graph
-  documents for World Chain mainnet — read off the supported-networks page on 2026-07-25,
-  not guessed. The CLI does not validate network names locally; Studio does that at deploy.
-- **Contract:** USDC `0x79A02482A880bCE3F13e09Da970dC34db4CD24d1`. Verified live on
-  2026-07-25: contract code present, `decimals()` → 6, `symbol()` → `USDC`.
-- **startBlock:** `32820000` = 2026-07-25T10:33:59Z, verified by `eth_getBlockByNumber`.
+- **Network:** `base` (CAIP-2 `eip155:8453`).
+- **Contract:** USDC `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`. Verified live
+  2026-07-25: `decimals()` → 6.
+- **startBlock:** `49111773` — ~3000 blocks (~100 min) behind head at deploy time, so this
+  syncs in minutes. The honest claim stays "settled since deployment", never "this month";
+  `IndexMeta` carries the real window so the UI prints it rather than asserting it.
+
+## Why this targets Base and not Worldchain
+
+It targeted Worldchain until 2026-07-25 ~23:20, when Subgraph Studio refused the deploy:
+*"Subgraphs no longer supported on WorldChain."* The Graph's own supported-networks page
+still listed WorldChain at that moment, and **`graph build` does not validate network
+names** — so a fully built, tested subgraph was the first thing to discover the deprecation.
+
+Studio's suggested remedy is standalone Substreams, which is a Rust/`.spkg` pipeline feeding
+a sink rather than a GraphQL endpoint — a rewrite, not a migration. Base is unambiguously
+supported and is where our EVM settlements land, so this indexes our own money rather than
+an empty chain. Written up for The Graph in `.feedbacks/thegraph.md`.
 
 ## Why this is not a mirror of our Postgres
 
@@ -34,7 +46,7 @@ seller the agent discovers at runtime through the Bazaar would be missing from a
 pinned at build time, which defeats the point of ranking sellers we have not met before.
 
 The cost of indexing everything is sync volume, so it was measured rather than assumed:
-**Worldchain USDC emits ~1.2 `Transfer` events per 2-second block (~52k/day)**, sampled over
+**Worldchain USDC emitted ~1.2 `Transfer` events per 2-second block (~52k/day) when measured**, sampled over
 several ranges on 2026-07-25. At that rate the whole token is cheap, and generality is worth
 more than the saving. On a busier token the tradeoff would flip, and the manifest supports
 `topic1`/`topic2` indexed-argument filters (specVersion ≥ 1.2.0) as the escape hatch.
@@ -71,7 +83,7 @@ validated locally (codegen and WASM build both green); nothing here has been run
 Studio.
 
 Create the subgraph in [Subgraph Studio](https://thegraph.com/studio/) with network
-**World Chain**, then, from this directory:
+**Base**, then, from this directory:
 
 ```sh
 pnpm codegen && pnpm build

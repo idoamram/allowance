@@ -2,7 +2,7 @@ import { BigDecimal, BigInt, Bytes, ethereum } from '@graphprotocol/graph-ts'
 import { Transfer } from '../generated/USDC/ERC20'
 import { IndexMeta, Payer, PayerSeller, Seller, Settlement } from '../generated/schema'
 
-/** USDC is 6dp on Worldchain — verified live 2026-07-25 via decimals(). */
+/** USDC is 6dp on Base — verified live 2026-07-25 via decimals(). */
 const USDC_SCALE = BigDecimal.fromString('1000000')
 const META_ID = 'meta'
 
@@ -45,7 +45,7 @@ function loadPayer(address: Bytes, event: ethereum.Event): Payer {
 }
 
 /**
- * Every USDC transfer on Worldchain becomes a Settlement.
+ * Every USDC transfer on Base becomes a Settlement.
  *
  * Deliberately unfiltered. Our plan wallets are minted per approval, so their addresses do
  * not exist when this manifest is written — filtering to a known address set would mean

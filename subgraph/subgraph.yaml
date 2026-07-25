@@ -1,32 +1,34 @@
-# PlanBound settlement index — Worldchain mainnet USDC.
+# PlanBound settlement index — Base mainnet USDC.
 #
-# Network identifier `worldchain` is the one The Graph documents for World Chain mainnet
-# (thegraph.com/docs/en/supported-networks, checked 2026-07-25). Not guessed.
+# Network was Worldchain until 2026-07-25 ~23:20, when Subgraph Studio refused the deploy:
+# "Subgraphs no longer supported on WorldChain". The docs' supported-networks page still
+# listed it, and `graph build` does not validate network names — so this only surfaced at
+# deploy time, against a fully built and tested subgraph. Recorded in .feedbacks/thegraph.md.
 #
-# USDC 0x79A02482A880bCE3F13e09Da970dC34db4CD24d1 — verified live on 2026-07-25:
-# contract code present, decimals() == 6, symbol() == "USDC".
+# Base is unambiguously supported and is where our EVM settlements now land, so this panel
+# indexes our own money rather than an empty chain.
 #
-# startBlock 32820000 == 2026-07-25T10:33:59Z (verified by eth_getBlockByNumber). Recent by
-# design: ~19k blocks to head at deploy time, so this syncs in minutes rather than days.
-# The cost of that choice is that the honest claim is "settled since deployment" and never
-# "this month" — IndexMeta carries the real window so the UI prints it instead of asserting it.
+# USDC 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 — verified live 2026-07-25: decimals() == 6.
 #
-# No address filter. Measured 2026-07-25: Worldchain USDC emits ~1.2 Transfer events per
-# 2s block (~52k/day), so indexing every transfer is cheap. See subgraph/README.md for why
-# that beats a manifest-time address registry.
+# startBlock 49111773 — ~3000 blocks (~100 min) behind head at deploy time. Recent by design
+# so this syncs in minutes; the cost is that the honest claim stays "settled since
+# deployment", never "this month". IndexMeta carries the real window so the UI prints it.
+#
+# No address filter: plan wallets do not exist when the manifest is written, and sellers are
+# discovered at runtime. See subgraph/README.md.
 specVersion: 1.3.0
-description: PlanBound — USDC settlements on Worldchain, for claimed-vs-settled verification and seller trust.
+description: PlanBound — USDC settlements on Base, for claimed-vs-settled verification and seller trust.
 repository: https://github.com/idoamram/planbound
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum
     name: USDC
-    network: worldchain
+    network: base
     source:
-      address: "0x79A02482A880bCE3F13e09Da970dC34db4CD24d1"
+      address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
       abi: ERC20
-      startBlock: 32820000
+      startBlock: 49111773
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9

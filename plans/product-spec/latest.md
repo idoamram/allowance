@@ -234,8 +234,8 @@ Hedera/World/Graph, so rails are priority-ordered by sponsor depth, not market d
 | Rail | Role | Why |
 |---|---|---|
 | **Hedera testnet** | Envelope, co-sign, HSS sweep, HCS trail — **and Flow A's purchase itself** (our labeled reference seller, Blocky402 facilitator) | Cap enforcement and payment under one consensus. No Hedera x402 seller market or directory exists (verified 2026-07-25) — being the first working seller+facilitator loop is the story, honestly labeled |
-| **Worldchain mainnet** | **Flow B purchases** — real third-party sellers, Bazaar-discovered with the network filter, USDC plan wallet | Real strangers on the sponsor's chain: C&C endpoints at $0.02–$0.03/call, live-verified `eip155:480` accepts. The Graph indexes `worldchain` natively |
-| **Base mainnet** | **Fallback rail** — supported in code, not the demo headline | Where market depth lives (10k+ sellers, all four wallet-vetting categories); the honest answer when a category has no Worldchain seller |
+| **Base mainnet** | **Flow B purchases** — real third-party sellers, Bazaar-discovered, USDC plan wallet | Where the market actually is (10k+ live sellers, every wallet-vetting category), and the only EVM rail The Graph will still index for us — so the claimed-vs-settled panel diffs our own money rather than an empty chain |
+| **Worldchain mainnet** | Supported rail, not the demo headline | Real and verified — Carbon & Cashmere's live 402s offer `eip155:480` USDC and `parse402` selects it correctly. Demoted 2026-07-25 ~23:20 when Subgraph Studio dropped subgraph support for Worldchain; World's integration is identity (World ID step-up), which is the stronger claim anyway |
 | **Base Sepolia** | **CI fixtures only — never presented as market data** | Free dev loop; deterministic drift testing via a price-controllable fixture |
 
 The fixture boundary is a product-honesty line: demo purchases on Worldchain/Base are from
@@ -267,9 +267,14 @@ provide:
    starts from a recent `startBlock` so it syncs in minutes, which is why the honest claim
    is "since deployment," not "this month."
 
-One **Worldchain** subgraph in Studio (free dev endpoint, ~3k queries/day) serves both —
-that's where Flow B's real settlements land, so the panel indexes our own money on a
-natively-supported network (The Graph does not index Hedera; Base variant only as fallback).
+One **Base** subgraph in Studio (free dev endpoint, ~3k queries/day) serves both — that's
+where Flow B's EVM settlements land, so the panel indexes our own money. *(Changed
+2026-07-25 ~23:20: this said Worldchain until Subgraph Studio refused the deploy —
+"Subgraphs no longer supported on WorldChain" — while the supported-networks docs page
+still listed it. `graph build` does not validate network names, so it surfaced only at
+deploy. Standalone Substreams, Studio's suggested remedy, is a Rust pipeline feeding a
+sink rather than a GraphQL endpoint: a rewrite, not a migration.)* The Graph does not
+index Hedera, so Flow A's consensus evidence is the HCS trail instead.
 
 ### Onboarding — who needs what
 

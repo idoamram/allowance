@@ -1,4 +1,4 @@
-# PlanBound settlement index — Worldchain USDC.
+# PlanBound settlement index — Base USDC.
 #
 # Two consumers, both load-bearing (a subgraph that mirrors our Postgres is decoration):
 #

@@ -467,12 +467,26 @@ Prize text qualifies both equally for the AI Use Case track; our workload (one c
 and the Rust/spkg pipeline is a 4am failure mode we don't need.
 
 **Files:** Create `subgraph/` (manifest, schema.graphql, mapping.ts)
-- [ ] Index USDC `Transfer` on **Worldchain mainnet** (network `worldchain`, The Graph
-  supports it natively; USDC `0x79A02482A880bCE3F13e09Da970dC34db4CD24d1`) — that's
-  where Flow B's real settlements land, so the panel indexes our own money (amended
-  2026-07-25; Base variant only if Worldchain sync misbehaves). `startBlock` =
-  deployment day, filtering in handler to plan-wallet addresses (from a data-source
-  template or a registry the API exposes) + `demo-sellers.json` payTo addresses.
+
+> **Network changed to Base, 2026-07-25 ~23:20 (Ido).** This task originally targeted
+> Worldchain on the strength of The Graph's supported-networks page. Subgraph Studio
+> refuses that deploy — *"Subgraphs no longer supported on WorldChain"* — and `graph
+> build` does not validate network names, so a fully built and tested subgraph was the
+> first thing to find out. Studio's suggested remedy (standalone Substreams) is a Rust
+> `.spkg` pipeline feeding a sink, not a GraphQL endpoint: a rewrite, not a migration,
+> and not a trade worth making with the demo runs still outstanding.
+> **Consequence:** Flow B's EVM purchases settle on **Base**, so the panel indexes our
+> own money instead of an empty chain. Worldchain stays supported in code and `parse402`
+> still selects it correctly — it stops being the rail the demo narrates. World's
+> integration is identity (H2), which strengthened at the same time: the Portal app is a
+> production app, so the step-up is a *real* World ID verification rather than a
+> simulator. Written up for The Graph in `.feedbacks/thegraph.md`.
+
+- [ ] Index USDC `Transfer` on **Base mainnet** (network `base`, USDC
+  `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`, `decimals()` verified live).
+  `startBlock` ≈ 3000 blocks behind head at deploy so it syncs in minutes; the honest
+  claim stays "settled since deployment". No manifest-time address filter — plan wallets
+  do not exist when the manifest is written and sellers are discovered at runtime.
 - [ ] Deploy to Subgraph Studio (Ido creates the Studio API key → env). Console
   "claimed vs settled" panel: our receipts LEFT JOIN subgraph settlements; mismatches
   highlighted. Copy: "settled since deployment".
