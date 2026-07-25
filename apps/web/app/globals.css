@@ -1,0 +1,32 @@
+/* Design tokens — manila/ink identity from the spec's visualization.
+   Yuval's design pass (H5) owns this file; keep names stable. */
+:root {
+  --ink: #1b1a17;
+  --ink-soft: #4a4640;
+  --manila: #f4efe2;
+  --manila-deep: #e8dfc9;
+  --rule: #d6cbb0;
+  --accent: #8a5a2b;
+  --ok: #2f6b46;
+  --warn: #9a6a12;
+  --stop: #a33a2a;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--manila);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+}
