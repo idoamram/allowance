@@ -1,0 +1,302 @@
+/* The approval card. Manila/ink identity from the spec's visualization
+   (plans/product-spec/latest.html, "One decision — on the cost and the logic").
+   Tokens come from globals.css; nothing here redefines them. */
+
+.page {
+  max-width: 30rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.card {
+  background: #fffdf7;
+  border: 1px solid var(--rule);
+  border-radius: 18px;
+  padding: 1.1rem 1.1rem 1rem;
+  box-shadow: 0 1px 2px rgba(27, 26, 23, 0.06), 0 8px 24px rgba(27, 26, 23, 0.06);
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.planId {
+  font-weight: 700;
+  font-size: 0.95rem;
+  font-family: var(--font-mono);
+}
+
+.goal {
+  font-size: 0.95rem;
+  margin: 0.5rem 0 0.35rem;
+}
+
+.agent {
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.logic {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: 0.5rem 0 0.25rem;
+}
+
+.logic b {
+  color: var(--ink);
+}
+
+.fixes {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  margin: 0.2rem 0 0.9rem;
+  padding-left: 1rem;
+}
+
+.fixes li {
+  margin: 0.1rem 0;
+}
+
+/* stamps */
+.stamp {
+  display: inline-block;
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+  border: 1px solid var(--rule);
+  border-radius: 99px;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+
+.stampGood {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--rule));
+}
+
+.stampWarn {
+  color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 40%, var(--rule));
+}
+
+.stampStop {
+  color: var(--stop);
+  border-color: color-mix(in srgb, var(--stop) 40%, var(--rule));
+}
+
+.stampPlain {
+  color: var(--ink-soft);
+}
+
+/* itemised table */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin-top: 0.4rem;
+}
+
+.table td {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+
+.table td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.service {
+  font-weight: 600;
+}
+
+.why {
+  display: block;
+  font-weight: 400;
+  color: var(--ink-soft);
+  font-size: 0.74rem;
+}
+
+.amt {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.totalRow td {
+  border-bottom: none;
+  border-top: 2px solid var(--ink);
+  font-weight: 700;
+  padding-top: 0.5rem;
+}
+
+.ceiling {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin: 0.6rem 0 0.1rem;
+}
+
+.expiry {
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  text-align: right;
+}
+
+/* decision */
+.actions {
+  margin-top: 0.9rem;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  border-radius: 8px;
+  padding: 0.6rem 0;
+  font-weight: 700;
+  font-size: 0.9rem;
+  font-family: inherit;
+  border: 1px solid transparent;
+  cursor: pointer;
+  margin-top: 0.55rem;
+}
+
+.approve {
+  background: var(--ok);
+  color: #fff;
+}
+
+.ghost {
+  background: transparent;
+  border-color: var(--rule);
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
+.danger {
+  background: var(--stop);
+  color: #fff;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.rejectPanel {
+  margin-top: 0.8rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.7rem;
+}
+
+.legend {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0;
+  margin-bottom: 0.1rem;
+}
+
+.hint {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  margin: 0 0 0.5rem;
+}
+
+.targets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  border: 0;
+  padding: 0;
+  margin: 0 0 0.6rem;
+}
+
+.target {
+  font-size: 0.78rem;
+  border: 1px solid var(--rule);
+  border-radius: 99px;
+  padding: 0.2rem 0.7rem;
+  cursor: pointer;
+  background: var(--manila);
+}
+
+.target input {
+  margin-right: 0.35rem;
+}
+
+.target:has(input:checked) {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.label {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.2rem;
+}
+
+.select,
+.textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.82rem;
+  color: var(--ink);
+  background: var(--manila);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.textarea {
+  min-height: 4.5rem;
+  resize: vertical;
+}
+
+.note {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  text-align: center;
+  margin-top: 0.7rem;
+}
+
+.error {
+  font-size: 0.78rem;
+  color: var(--stop);
+  margin-top: 0.6rem;
+}
+
+.settled {
+  margin-top: 0.9rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.8rem;
+  font-size: 0.85rem;
+}
+
+.settled h2 {
+  font-size: 0.95rem;
+  margin: 0 0 0.25rem;
+}
+
+.settled p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+}
+
+.footer {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  margin-top: 1rem;
+}

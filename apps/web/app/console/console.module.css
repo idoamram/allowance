@@ -1,0 +1,108 @@
+/* Operator console — same manila/ink identity, wider than the phone-shaped approval card.
+   Deliberately plain: T11 adds receipts and the claimed-vs-settled diff here. */
+
+.page {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+.title {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.sub {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  margin: 0.25rem 0 1.5rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.table th {
+  text-align: left;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+  border-bottom: 1px solid var(--rule);
+  padding: 0 0.6rem 0.4rem 0;
+}
+
+.table td {
+  padding: 0.55rem 0.6rem 0.55rem 0;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+
+.num {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.id {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.goal {
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  display: block;
+}
+
+.when {
+  color: var(--ink-soft);
+  white-space: nowrap;
+  font-size: 0.78rem;
+}
+
+.status {
+  display: inline-block;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--rule);
+  border-radius: 99px;
+  padding: 1px 8px;
+  white-space: nowrap;
+  color: var(--ink-soft);
+}
+
+.statusOpen {
+  color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 40%, var(--rule));
+}
+
+.statusGood {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--rule));
+}
+
+.statusStop {
+  color: var(--stop);
+  border-color: color-mix(in srgb, var(--stop) 40%, var(--rule));
+}
+
+.empty {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  border: 1px dashed var(--rule);
+  border-radius: 10px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.note {
+  margin-top: 1.5rem;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
