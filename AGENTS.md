@@ -250,11 +250,14 @@ as though a stranger will read it, because one will.
   not a version you remember from an earlier session. It's the output of a long deliberate
   process and it moves daily. A suggestion that contradicts it is welcome, but must say so
   explicitly and argue the case.
-- **Never commit, push, open a PR, or merge without explicit approval — every time.** Not
-  committing, not even on a scratch branch. Make the changes, say what you'd commit and why,
-  and wait. Approval for one commit is not approval for the next. This overrides the
-  commit-every-30-minutes rule above: that rule is for the humans; the agent's job is to have
-  the change ready, not to land it.
+- **Git autonomy is scoped by the implementation plan** *(amended by Ido, 2026-07-25, for
+  the implementation phase)*. Work that is part of the agreed plan under
+  `plans/implementation/` flows without per-step approval: commit and push continuously to
+  your own task branch, open the PR, merge it. Small continuous commits are event
+  compliance — large single commits risk disqualification. **The plan is the approval
+  boundary:** anything outside it still requires explicit human approval, as does any
+  change to `plans/product-spec/latest.md`, to the implementation plan itself, or to this
+  file. Direct commits to `main` remain forbidden for agents.
 - **Don't pad a document to make it look finished.** An honest gap beats confident filler —
   every claim in these docs has to survive someone asking where it came from.
 - **Say "I don't know."** Several SDKs here — World AgentKit, Selfie Check, x402 V2,

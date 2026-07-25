@@ -41,6 +41,10 @@ test-results/
 blob-report/
 .playwright-mcp/
 
+# ---- Supabase CLI litter -----------------------------------------------------
+# .temp holds link state incl. pooler connection URLs - never commit.
+supabase/.temp/
+
 # ---- Database (local Postgres) ----------------------------------------------
 *.sqlite
 *.sqlite3
