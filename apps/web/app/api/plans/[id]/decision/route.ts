@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import { decisionSchema } from '@planbound/core'
 import type { PlanStatus } from '@planbound/core'
+import { hcsLog } from '@planbound/chains/hedera'
 import { db } from '@/lib/db'
+import { mintEnvelopeForPlan } from '@/lib/envelope'
 import { safeEqual } from '@/lib/ids'
 
 export const runtime = 'nodejs'
@@ -66,6 +68,18 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const status = STATUS_FOR[decision.outcome]
   const { error: planError } = await supabase.from('plans').update({ status }).eq('id', id)
   if (planError) return NextResponse.json({ error: planError.message }, { status: 500 })
+
+  // Approval IS funding — the envelope is minted here, not promised for later.
+  // A mint failure leaves the plan approved and un-enveloped rather than silently
+  // claiming money moved; the console shows the gap and `reason` says why.
+  if (decision.outcome === 'approved') {
+    const mint = await mintEnvelopeForPlan(id)
+    return NextResponse.json({ ok: true, status, envelope: mint })
+  }
+
+  if (decision.outcome === 'drift_abort') {
+    await hcsLog('drift', { planId: id, outcome: 'abort', reason: decision.reason ?? null })
+  }
 
   return NextResponse.json({ ok: true, status })
 }
