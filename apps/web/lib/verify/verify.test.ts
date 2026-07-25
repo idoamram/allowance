@@ -21,13 +21,13 @@ const worldEnv = {
   WORLD_SIGNER_KEY: '0x' + '11'.repeat(32),
   WORLD_ENV: 'staging',
   STEP_UP_USD: '5',
-} as unknown as NodeJS.ProcessEnv
+}
 
 afterEach(() => vi.restoreAllMocks())
 
 describe('verifier selection', () => {
   it('defaults to none, so a clone with an empty env still approves plans', () => {
-    expect(humanVerifier({} as NodeJS.ProcessEnv).id).toBe('none')
+    expect(humanVerifier({}).id).toBe('none')
   })
 
   it('never requires step-up under the none verifier, at any ceiling', () => {
@@ -45,12 +45,12 @@ describe('verifier selection', () => {
   })
 
   it('names the missing Portal values instead of degrading to none', () => {
-    const partial = { HUMAN_VERIFIER: 'world', WORLD_APP_ID: 'app_x' } as NodeJS.ProcessEnv
+    const partial = { HUMAN_VERIFIER: 'world', WORLD_APP_ID: 'app_x' }
     expect(() => humanVerifier(partial)).toThrow(/WORLD_RP_ID, WORLD_SIGNER_KEY/)
   })
 
   it('rejects an unknown verifier name rather than guessing', () => {
-    expect(() => humanVerifier({ HUMAN_VERIFIER: 'orb' } as NodeJS.ProcessEnv)).toThrow(
+    expect(() => humanVerifier({ HUMAN_VERIFIER: 'orb' })).toThrow(
       /must be "none" or "world"/,
     )
   })
@@ -59,7 +59,7 @@ describe('verifier selection', () => {
 describe('world config', () => {
   it('defaults the environment to staging and the preset to proofOfHuman', () => {
     const { WORLD_ENV: _drop, ...rest } = worldEnv as Record<string, string>
-    const config = worldConfigFromEnv(rest as NodeJS.ProcessEnv)
+    const config = worldConfigFromEnv(rest)
     expect(config.environment).toBe('staging')
     expect(config.preset).toBe('proofOfHuman')
   })

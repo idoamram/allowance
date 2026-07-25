@@ -6,6 +6,7 @@ import {
   type HumanVerifier,
   type StepUpProof,
   type VerifyOutcome,
+  type VerifierEnv,
   type VerifyPlan,
   type WorldPreset,
 } from './types'
@@ -53,7 +54,7 @@ export class WorldConfigError extends Error {}
  * `rp_id` identifies the relying party at verification time, and the signer key is the
  * secret. An app that only has `WORLD_APP_ID` has not completed 4.0 registration yet.
  */
-export function worldConfigFromEnv(env: NodeJS.ProcessEnv = process.env): WorldConfig {
+export function worldConfigFromEnv(env: VerifierEnv = process.env): WorldConfig {
   // The Portal calls the secret half of the signer keypair the "signing key" in the docs
   // and hands it over as `WORLD_SIGNER_KEY` in the Managed flow. Both names are accepted
   // so nobody loses an hour to a rename.

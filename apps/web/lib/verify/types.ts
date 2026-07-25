@@ -10,6 +10,12 @@
  * Nothing in this file imports a provider SDK. `none.ts` and `world.ts` do.
  */
 
+/**
+ * Configuration source. Structurally `process.env`, but loose enough that a test can pass
+ * five keys instead of faking the whole environment.
+ */
+export type VerifierEnv = Record<string, string | undefined>
+
 /** The only part of a plan a verifier is allowed to reason about. */
 export type VerifyPlan = {
   planId: string

@@ -2,10 +2,11 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { db } from '@/lib/db'
 import { safeEqual } from '@/lib/ids'
-import { DecisionForm } from './decision-form'
+import { DecisionForm, type StepUpRequirement } from './decision-form'
 import { Countdown } from './countdown'
 import { mintDecisionToken } from './token'
 import { usd } from '@/lib/format'
+import { humanVerifierOrError, DEFAULT_STEP_UP_USD } from '@/lib/verify'
 import styles from './approval.module.css'
 
 export const dynamic = 'force-dynamic'
@@ -97,6 +98,23 @@ export default async function ApprovalPage({
   const fixes = plan.self_check?.fixes ?? []
   const settled = SETTLED_COPY[isExpired && plan.status === 'pending_approval' ? 'expired' : plan.status]
 
+  // Step-up is decided from the plan's own ceiling by whichever verifier this deployment
+  // runs. With the default (`none`) this is always null and the page is unchanged — which
+  // is the point of the seam: World is a registration, not a rewrite.
+  const forVerifier = { planId: plan.id, ceilingUsd: ceiling, goal: plan.goal }
+  const selected = humanVerifierOrError()
+  let stepUp: StepUpRequirement | null = null
+  if (!selected.verifier) {
+    // Fails closed for every ceiling: the operator opted into a verifier and it did not
+    // load, so we cannot know which plans it would have asked about.
+    stepUp = { ceilingLabel: usd(ceiling), thresholdLabel: '', configError: selected.error }
+  } else if (selected.verifier.required(forVerifier)) {
+    stepUp = {
+      ceilingLabel: usd(ceiling),
+      thresholdLabel: usd(Number(process.env.STEP_UP_USD ?? DEFAULT_STEP_UP_USD)),
+    }
+  }
+
   return (
     <main className={styles.page}>
       <div className={styles.card}>
@@ -178,6 +196,7 @@ export default async function ApprovalPage({
               token={mintDecisionToken(plan.approval_key, plan.id)}
               approveLabel={`Approve ${usd(ceiling)} envelope`}
               steps={steps.map((s) => ({ idx: s.idx, name: s.service_name }))}
+              stepUp={stepUp}
             />
             <p className={styles.note}>
               Approving funds a single-use envelope with exactly this ceiling &mdash; the agent
