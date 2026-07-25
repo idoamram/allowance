@@ -51,6 +51,15 @@ export interface CategorySpec {
   label: string
   /** What we ask the Bazaar. */
   query: string
+  /**
+   * What a seller must actually mention to be accepted for this category. Semantic
+   * search returns near-misses cheerfully, and a cheap live quote for the wrong data
+   * is still the wrong data — the step's `buys` line would be a lie.
+   *
+   * `null` means we have no grounds to judge relevance (the generic decomposition):
+   * everything is accepted, and nothing is ranked above anything else for topicality.
+   */
+  keywords: RegExp | null
   /** What the step yields toward the goal (becomes StepInput.buys). */
   buys: string
   /** One line: why the step earns its price (becomes StepInput.why). */
@@ -74,6 +83,7 @@ const PLAYBOOKS: Playbook[] = [
         pinned: 'risk',
         label: 'risk score',
         query: 'wallet risk score',
+        keywords: /\b(risk|fraud|scam|threat|reputation|x-?ray|triage|score)\b/i,
         buys: 'a risk score per counterparty wallet',
         why: 'the cheapest signal that an address is already known-bad',
       },
@@ -81,6 +91,7 @@ const PLAYBOOKS: Playbook[] = [
         pinned: 'age',
         label: 'wallet age',
         query: 'wallet age and activity history',
+        keywords: /\b(age|activity|history|first.?seen|created|lifetime|inception)\b/i,
         buys: 'first-seen date and activity history per wallet',
         why: 'a wallet minted this week is a different counterparty than one active for years',
       },
@@ -88,6 +99,7 @@ const PLAYBOOKS: Playbook[] = [
         pinned: 'networth',
         label: 'holdings',
         query: 'wallet net worth token holdings',
+        keywords: /\b(net.?worth|holdings?|balances?|portfolio|assets?)\b/i,
         buys: 'current token holdings and net worth per wallet',
         why: 'a counterparty that cannot cover the trade is the failure this catches early',
       },
@@ -95,6 +107,7 @@ const PLAYBOOKS: Playbook[] = [
         pinned: 'sanctions',
         label: 'sanctions screen',
         query: 'OFAC sanctions screening address',
+        keywords: /\b(sanctions?|ofac|watchlist|compliance|aml|blocklist|screening)\b/i,
         buys: 'an OFAC and global sanctions check per wallet',
         why: 'paying a sanctioned address is the one error whose cost is legal, not financial',
       },
@@ -107,6 +120,7 @@ const PLAYBOOKS: Playbook[] = [
         pinned: 'market',
         label: 'derivatives flow',
         query: 'bitcoin derivatives flow metrics',
+        keywords: /\b(derivatives?|futures?|perps?|funding|fee.?curve|flow|open.?interest|basis)\b/i,
         buys: 'the current BTC derivatives fee and flow curve',
         why: 'positioning moves before price does — this is the leading half of the brief',
       },
@@ -114,6 +128,7 @@ const PLAYBOOKS: Playbook[] = [
         pinned: 'market',
         label: 'on-chain supply',
         query: 'bitcoin on-chain holder supply metrics',
+        keywords: /\b(on.?chain|holders?|supply|coin.?days?|destroyed|diversity|hodl|utxo|ordinals)\b/i,
         buys: 'on-chain holder concentration and coin-days-destroyed',
         why: 'flow without holder behaviour reads every spike as the same event',
       },
@@ -127,6 +142,9 @@ const genericCategories = (goal: string): CategorySpec[] => [
     pinned: null,
     label: 'the task',
     query: goal,
+    // No hand-written keywords to judge relevance with: whatever the search returns is
+    // the best we can honestly claim, and the generic `buys` line says exactly that.
+    keywords: null,
     buys: `data for: ${goal}`.slice(0, 300),
     why: 'the only seller class the Bazaar surfaces for this goal',
   },
@@ -163,10 +181,32 @@ interface Pool {
   options: QuotedStep[]
 }
 
+const sellerText = (step: QuotedStep) => `${step.name} ${step.description} ${step.url}`
+
+/**
+ * How well a seller matches the category, by its own words: the number of *distinct*
+ * category terms it mentions. Binary relevance is not enough — two sellers can both
+ * be on-topic while one of them is obviously the thing we asked for.
+ */
+function relevanceScore(step: QuotedStep, spec: CategorySpec): number {
+  if (!spec.keywords) return 0
+  const all = new RegExp(spec.keywords.source, 'gi')
+  const hits = sellerText(step).match(all) ?? []
+  return new Set(hits.map((h) => h.toLowerCase())).size
+}
+
+/** Does this seller plausibly sell what the category asks for, by its own words? */
+const isRelevant = (step: QuotedStep, spec: CategorySpec): boolean =>
+  spec.keywords === null || spec.keywords.test(sellerText(step))
+
 /**
  * Shop one category: try each rail in priority order, fall back to the pinned list.
  * The pinned list is re-quoted like anything else — a pinned price is never trusted
  * as a live quote just because we wrote it down yesterday.
+ *
+ * Off-topic search hits are discarded here rather than priced. Semantic search is
+ * happy to answer "sanctions screening" with a balance endpoint, and buying that would
+ * make the step's `buys` line false while the price stayed perfectly accurate.
  */
 async function shop(
   spec: CategorySpec,
@@ -180,7 +220,7 @@ async function shop(
       network,
     })
     if (candidates.length === 0) continue
-    const quoted = await deps.quoteSteps(candidates)
+    const quoted = (await deps.quoteSteps(candidates)).filter((s) => isRelevant(s, spec))
     if (quoted.length > 0) return { spec, options: quoted }
   }
   const pinned = pinnedCandidates(spec.pinned)
@@ -188,12 +228,21 @@ async function shop(
   return { spec, options: await deps.quoteSteps(pinned) }
 }
 
-/** A live quote is a fact; an estimate is a claim. Facts win, then price, then usage. */
-const rank = (a: QuotedStep, b: QuotedStep): number => {
-  if (a.source !== b.source) return a.source === 'live-402' ? -1 : 1
-  if (a.quoteUsd !== b.quoteUsd) return a.quoteUsd - b.quoteUsd
-  return (b.calls30d ?? 0) - (a.calls30d ?? 0)
-}
+/**
+ * Ordering, most decisive first: the seller that best answers the question, then a live
+ * quote over an estimate (a fact beats a claim), then price, then usage. Price ranks
+ * below relevance on purpose — the cheapest answer to the wrong question is worthless,
+ * and the per-step cap already bounds what relevance can cost us.
+ */
+const byRelevance =
+  (spec: CategorySpec) =>
+  (a: QuotedStep, b: QuotedStep): number => {
+    const score = relevanceScore(b, spec) - relevanceScore(a, spec)
+    if (score !== 0) return score
+    if (a.source !== b.source) return a.source === 'live-402' ? -1 : 1
+    if (a.quoteUsd !== b.quoteUsd) return a.quoteUsd - b.quoteUsd
+    return (b.calls30d ?? 0) - (a.calls30d ?? 0)
+  }
 
 const hostOf = (url: string): string => {
   try {
@@ -214,7 +263,7 @@ function select(pools: Pool[], banned: Set<string>): Selected[] {
   const picked: Selected[] = []
   for (const pool of pools) {
     const choice = [...pool.options]
-      .sort(rank)
+      .sort(byRelevance(pool.spec))
       .find((o) => !banned.has(o.url) && !taken.has(o.url))
     if (!choice) continue
     taken.add(choice.url)
@@ -269,7 +318,7 @@ function audit(
       // We only swap when the market actually offers an alternative at a comparable price,
       // so one dead host cannot take out two steps of the plan.
       const alternative = [...(pools.find((p) => p.spec === spec)?.options ?? [])]
-        .sort(rank)
+        .sort(byRelevance(spec))
         .find(
           (o) =>
             !banned.has(o.url) &&
@@ -281,7 +330,7 @@ function audit(
       if (alternative) {
         problems.push({
           url: step.url,
-          fix: `swapped ${label} for ${alternative.name}: the plan already buys from ${host}, and one dead host should not cost two steps`,
+          fix: `swapped ${label} from ${host} to ${hostOf(alternative.url)}: the plan already buys from ${host}, and one dead host should not cost two steps`,
         })
         continue
       }

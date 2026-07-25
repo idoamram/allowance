@@ -34,7 +34,7 @@ function fakeDeps(
 }
 
 /** The pinned fallback list is real hosts; this drops it so a test can starve a category. */
-const onlyFakeHosts = (url: string) => !url.endsWith('.example/api')
+const onlyFakeHosts = (url: string) => !url.includes('.example')
 
 describe('categoriesFor', () => {
   it('decomposes the demo goal into the four wallet-vetting questions', () => {
@@ -68,7 +68,7 @@ describe('railOf', () => {
 
 describe('buildPlan — honesty rules', () => {
   /** One distinct seller per category — the shape a healthy market gives back. */
-  const slug = (query: string) => query.replace(/[^a-z]/gi, '').slice(0, 12).toLowerCase()
+  const slug = (query: string) => query.replace(/[^a-z]+/gi, '-').toLowerCase()
   const oneSellerPerCategory = (query: string) => [
     candidate({ url: `https://${slug(query)}.example/api` }),
   ]
@@ -105,6 +105,21 @@ describe('buildPlan — honesty rules', () => {
     expect(plan.steps).toEqual([])
     expect(plan.gaps).toHaveLength(4)
     expect(plan.approach).toMatch(/returned nothing quotable/)
+  })
+
+  it('refuses an off-topic search hit rather than let a step claim what it does not buy', async () => {
+    // Semantic search answering "sanctions screening" with a balance endpoint is the
+    // real failure mode here: the price would be accurate and the `buys` line a lie.
+    const deps = fakeDeps(
+      (q) =>
+        q.includes('sanctions')
+          ? [candidate({ url: 'https://balances.example/api', name: 'token balances' })]
+          : oneSellerPerCategory(q),
+      { drop: onlyFakeHosts },
+    )
+    const plan = await buildPlan('vet 3 counterparty wallets', {}, deps)
+    expect(plan.steps.map((s) => s.serviceName)).not.toContain('token balances')
+    expect(plan.gaps).toHaveLength(1)
   })
 
   it('prefers a live quote over a cheaper estimate — a fact beats a claim', async () => {
@@ -157,7 +172,11 @@ describe('buildPlan — honesty rules', () => {
   })
 
   it('never quotes the same endpoint twice across categories', async () => {
-    const deps = fakeDeps(() => [candidate({ url: 'https://one.example/a', name: 'only-seller' })])
+    // One seller relevant to both market categories, and no pinned fallback available.
+    const deps = fakeDeps(
+      () => [candidate({ url: 'https://one.example/derivatives-onchain', name: 'only-seller' })],
+      { drop: onlyFakeHosts },
+    )
     const plan = await buildPlan('brief me on BTC market conditions', {}, deps)
     expect(plan.steps).toHaveLength(1)
     expect(plan.gaps).toHaveLength(1)
