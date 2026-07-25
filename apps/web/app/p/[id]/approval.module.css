@@ -363,3 +363,18 @@
 .driftBtn:disabled, .driftBtnStop:disabled { opacity: 0.5; cursor: progress; }
 .driftError { color: var(--stop); font-size: 0.85rem; }
 .driftFoot { font-size: 0.82rem; color: var(--ink-soft); line-height: 1.5; margin-top: 0.9rem; }
+
+/* ── Receipts: what a finished plan leaves behind ─────────────────────────── */
+.receipts { border-top: 1px solid var(--rule); margin-top: 1.25rem; padding-top: 1.25rem; }
+.receiptsTitle { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--ink-soft); margin: 0 0 0.75rem; font-weight: 600; }
+.receiptList { list-style: none; margin: 0 0 1rem; padding: 0; }
+.receiptRow { display: flex; justify-content: space-between; gap: 0.75rem;
+  align-items: baseline; padding: 0.45rem 0; border-bottom: 1px dotted var(--rule); }
+.receiptBody { display: flex; flex-direction: column; min-width: 0; }
+.receiptTx { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-soft);
+  overflow-wrap: anywhere; margin-top: 0.15rem; }
+.receiptPrice { font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.receiptQuoted { display: block; font-size: 0.75rem; color: var(--ink-soft); font-weight: 400; }
+.receiptsFoot { font-size: 0.8rem; color: var(--ink-soft); line-height: 1.6; }
+.receiptsFoot a { overflow-wrap: anywhere; }
