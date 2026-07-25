@@ -133,6 +133,15 @@ fi
 # lowerCamelCased by the JSON printer.
 TOKEN_LC="$(printf '%s' "$TOKEN" | tr '[:upper:]' '[:lower:]')"
 
+# `substreams run` writes a plain-text trailer ("Completed successfully") to stdout after
+# the JSON stream, which makes `jq -s` fail with a parse error thousands of lines from the
+# real content.
+CLEAN_OUT="$(mktemp)"
+trap 'rm -f "$RAW_OUT" "$CLEAN_OUT"' EXIT
+# Pretty-printed JSON never begins a line with a letter at column 0, so status text is
+# separable without parsing it.
+grep -vE '^[A-Za-z]' "$RAW_OUT" | sed -E '/^[[:space:]]*$/d' > "$CLEAN_OUT"
+
 TRANSFERS="$(jq -s --arg token "$TOKEN_LC" '
   [ .[]
     | select(.["@data"].balanceChanges != null)
@@ -149,7 +158,7 @@ TRANSFERS="$(jq -s --arg token "$TOKEN_LC" '
         newBalance: .newBalance,
         changeType: .changeType
       }
-  ]' "$RAW_OUT")"
+  ]' "$CLEAN_OUT")"
 
 COUNT="$(printf '%s' "$TRANSFERS" | jq 'length')"
 
