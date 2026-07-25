@@ -14,7 +14,8 @@
     "seed:agent": "tsx scripts/seed-agent.ts",
     "smoke": "tsx scripts/smoke-api.ts",
     "register:agent": "tsx scripts/register-agent-key.ts",
-    "hcs:topic": "tsx scripts/create-hcs-topic.ts"
+    "hcs:topic": "tsx scripts/create-hcs-topic.ts",
+    "vercel:config": "tsx scripts/vercel-rootdir.mts"
   },
   "dependencies": {
     "@hiero-ledger/sdk": "^2.86.0",
