@@ -8,7 +8,8 @@
     ".": "./index.ts",
     "./x402pay": "./x402pay.ts",
     "./discovery": "./discovery.ts",
-    "./hedera": "./hedera.ts"
+    "./hedera": "./hedera.ts",
+    "./demo-sellers.json": "./demo-sellers.json"
   },
   "dependencies": {
     "@hiero-ledger/sdk": "^2.86.0",
