@@ -1,0 +1,82 @@
+{
+  "risk": [
+    {
+      "url": "https://x402-endpoints.onrender.com/crypto/wallet-xray",
+      "name": "Wallet Risk X-Ray",
+      "priceUsd": 0.05,
+      "source": "bazaar 2026-07-25"
+    },
+    {
+      "url": "https://api.wallettriage.com/scan",
+      "name": "WalletTriage",
+      "priceUsd": 0.01,
+      "source": "bazaar 2026-07-25"
+    },
+    {
+      "url": "https://x402.botsmith.dev/wallet-risk",
+      "name": "botsmith",
+      "priceUsd": 0.05,
+      "source": "bazaar 2026-07-25"
+    }
+  ],
+  "age": [
+    {
+      "url": "https://api.x402node.dev/wallet/age-activity",
+      "name": "api.x402node.dev",
+      "priceUsd": 0.05,
+      "source": "bazaar 2026-07-25"
+    },
+    {
+      "url": "https://402.com.tr/api/x402/ai-wallet-report",
+      "name": "AI Wallet Report",
+      "priceUsd": 0.06,
+      "source": "bazaar 2026-07-25"
+    },
+    {
+      "url": "https://taxpulse.theaslangroupllc.com/api/crypto/wallet-snapshot",
+      "name": "TaxPulse",
+      "priceUsd": 0.25,
+      "source": "bazaar 2026-07-25"
+    }
+  ],
+  "networth": [
+    {
+      "url": "https://x402.ottoai.services/wallet-holdings",
+      "name": "Otto AI",
+      "priceUsd": 0.02,
+      "source": "bazaar 2026-07-25"
+    },
+    {
+      "url": "https://jtifhcvbgxqwlywugvjv.supabase.co/functions/v1/cortex402-wallet-balance",
+      "name": "CorteX402 Wallet Balance",
+      "priceUsd": 0.02,
+      "source": "bazaar 2026-07-25"
+    },
+    {
+      "url": "https://402.com.tr/api/x402/wallet-networth",
+      "name": "Wallet Net Worth",
+      "priceUsd": 0.02,
+      "source": "bazaar 2026-07-25"
+    }
+  ],
+  "sanctions": [
+    {
+      "url": "https://api.agentfeeds.jp/v1/reg/sanctions/ofac/check",
+      "name": "api.agentfeeds.jp",
+      "priceUsd": 0.002,
+      "source": "bazaar 2026-07-25"
+    },
+    {
+      "url": "https://x402.professorsausages.com/sanctions-screen/changes",
+      "name": "OFAC Sanctions Name Screen",
+      "priceUsd": 0.003,
+      "source": "bazaar 2026-07-25"
+    },
+    {
+      "url": "https://api.agentfeeds.jp/v1/reg/sanctions/global",
+      "name": "api.agentfeeds.jp",
+      "priceUsd": 0.005,
+      "source": "bazaar 2026-07-25"
+    }
+  ]
+}
