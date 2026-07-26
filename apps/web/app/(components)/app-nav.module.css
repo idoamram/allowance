@@ -151,3 +151,38 @@
   border-color: var(--ink-soft);
   color: var(--ink);
 }
+
+/* ── Touch (motion pass) ──────────────────────────────────────────────────────
+   Everything in this bar is set at chrome size — 0.72rem type with almost no
+   padding — which makes every one of them a 20px target on a surface designed
+   to be used on a phone. The hit areas below are grown with pseudo-elements
+   rather than padding: padding would change the bar's height and the layout
+   above was measured at 320px.
+
+   Growth is vertical only. The links sit 0.85rem apart on one line, so a
+   horizontal expansion would have each one stealing its neighbour's taps. */
+.links a,
+.here,
+.signOut {
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.links a::after,
+.signOut::after {
+  content: '';
+  position: absolute;
+  inset: -12px -4px;
+}
+
+/* Pressed, in the app's own colours. The browser's blue flash fires late and
+   outlives the tap; this is immediate and reads as the link taking the press. */
+.links a:active {
+  color: var(--ink);
+}
+
+.signOut:active {
+  border-color: var(--ink);
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}

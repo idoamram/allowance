@@ -525,6 +525,11 @@
   background: var(--manila-deep);
   border-radius: 4px;
   overflow-x: auto;
+  /* Reaching the end of the command must not start dragging the page behind it,
+     and momentum inside it should feel like iOS rather than like a desktop
+     scrollbar someone put on a phone. */
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
   font-family: var(--font-mono);
   font-size: 0.78rem;
   line-height: 1.7;
@@ -533,6 +538,49 @@
 
 .commandDim {
   color: var(--ink-soft);
+}
+
+/* ── Touch (motion pass) ──────────────────────────────────────────────────────
+   A plan row is a link into a financial record, and on a phone the only thing
+   that ever acknowledged the tap was the browser's blue box. The hover tint
+   already exists and reads correctly as "this row is the target"; pressed is
+   the same idea, deeper, and it arrives on touch-down rather than late.
+
+   No gesture beyond that. A row is a link into money that was already spent —
+   swipe-to-approve or swipe-to-delete would put an irreversible act behind an
+   accidental thumb drag, which is precisely the failure this product exists to
+   stop the agent making. */
+.rowLink,
+.cta {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* The press tint is painted on the link's own stretched overlay rather than on
+   the row: the overlay is already the thing that covers the whole row, it sits
+   above the cell backgrounds so the two tinted states deepen instead of being
+   replaced, and it does not depend on `:active` propagating from an anchor up
+   to a `tr` — which iOS Safari is unreliable about. */
+.rowLink:active::after {
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.cta {
+  transition: background-color 120ms ease, color 120ms ease, transform 80ms var(--ease-settle);
+}
+
+.cta:active {
+  transform: translateY(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta {
+    transition: none;
+  }
+
+  .cta:active {
+    transform: none;
+  }
 }
 
 /* ── foot ─────────────────────────────────────────────────────────────────── */

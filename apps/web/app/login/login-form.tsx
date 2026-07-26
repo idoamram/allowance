@@ -29,7 +29,7 @@ export function LoginForm() {
   if (hasCode && state.kind !== 'sent') {
     const notice = verifyState.kind === 'sent' ? verifyState.notice : undefined
     return (
-      <form action={verify}>
+      <form action={verify} className={styles.step}>
         <h1 className={styles.title}>Enter your code</h1>
         <p className={styles.sub}>
           Type the address you asked for the code with, and the code itself. No new email is
@@ -98,7 +98,7 @@ export function LoginForm() {
     const notice = verifyState.kind === 'sent' ? verifyState.notice : state.notice
 
     return (
-      <div className={styles.sent}>
+      <div className={`${styles.sent} ${styles.step}`}>
         <span className={styles.stamp}>sent</span>
         <h1 className={styles.title}>Check your email</h1>
         <p className={styles.sub}>
@@ -153,7 +153,7 @@ export function LoginForm() {
   }
 
   return (
-    <form action={send}>
+    <form action={send} className={styles.step}>
       <h1 className={styles.title}>Sign in</h1>
       <p className={styles.sub}>
         We email you a sign-in link &mdash; no password to lose. Your account owns the agents

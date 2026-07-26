@@ -499,8 +499,123 @@
   }
 }
 
+/* ── The counterfoil arriving (motion pass) ───────────────────────────────────
+   The backdrop already faded; the panel itself appeared in place, which on a
+   phone is indistinguishable from a rendering glitch. It now enters from the
+   edge it belongs to, and the two layouts get different gestures because they
+   are different objects: the bottom sheet rises from the edge it is pinned to,
+   and the centred panel settles downward, the way a stub torn off a document
+   and handed over does.
+
+   Both are transform and opacity only, so nothing reflows behind them, and the
+   panel is the top layer on the page — the one surface in the product where an
+   entrance carries information, namely that this is a layer over the page and
+   not a new page. */
+.reveal {
+  animation: revealDrop 260ms var(--ease-settle) both;
+}
+
+@keyframes revealDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 34rem) {
+  .reveal {
+    animation: revealRise 280ms var(--ease-settle) both;
+  }
+
+  @keyframes revealRise {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+}
+
+/* ── Touch (motion pass) ──────────────────────────────────────────────────────
+   Every control in this section is a pill set at 0.78rem, which is a 32px
+   target on a page used with a thumb. The hit areas grow vertically with
+   pseudo-elements — padding would resize the pills, and they sit in rows where
+   growing sideways would have each stealing its neighbour's taps. */
+.btn,
+.rowBtn,
+.copyBtn,
+.doneBtn,
+.revealAck {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.rowBtn {
+  position: relative;
+  transition: background-color 120ms ease, transform 80ms var(--ease-settle);
+}
+
+.rowBtn::after {
+  content: '';
+  position: absolute;
+  inset: -6px 0;
+}
+
+.btn,
+.copyBtn,
+.doneBtn {
+  transition: background-color 120ms ease, color 120ms ease, transform 80ms var(--ease-settle);
+}
+
+.btn:active:not(:disabled),
+.rowBtn:active:not(:disabled),
+.copyBtn:active:not(:disabled),
+.doneBtn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
+}
+
+/* The outlined controls deepen towards ink; the two that are already filled with
+   ink shift towards the accent, the way `.approve` does on the approval sheet.
+   Reversing a filled button to transparent under the thumb would read as the
+   button vanishing at the moment it was pressed. */
+.rowBtn:active:not(:disabled),
+.doneBtn:active:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+}
+
+.btn:active:not(:disabled),
+.copyBtn:active:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 85%, var(--accent));
+  color: var(--manila);
+}
+
+.copyGhost:active:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  color: var(--ink);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .revealBackdrop {
+  .revealBackdrop,
+  .reveal {
     animation: none;
+  }
+
+  .btn,
+  .rowBtn,
+  .copyBtn,
+  .doneBtn {
+    transition: none;
+  }
+
+  .btn:active:not(:disabled),
+  .rowBtn:active:not(:disabled),
+  .copyBtn:active:not(:disabled),
+  .doneBtn:active:not(:disabled) {
+    transform: none;
   }
 }
