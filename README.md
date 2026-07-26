@@ -151,6 +151,27 @@ the approval capability, which both authenticate before they reach the database.
 | Headless driver (dogfood agent) | [`scripts/driver.ts`](scripts/driver.ts) |
 | Claude Code plugin | [`plugin/.mcp.json`](plugin/.mcp.json) |
 
+## Use it without running it
+
+Two ways to point an agent at the deployment, neither of which needs a clone or a key.
+
+```bash
+# The remote MCP server, over OAuth. Claude Code registers itself, sends you to our
+# consent screen, and comes back with seven tools scoped to one agent.
+claude mcp add --transport http planbound https://planbound.xyz/api/mcp/http
+```
+
+```bash
+# The plugin: the same seven tools, plus the skills — including a generic Substreams
+# indexer for reading settlements straight off a chain.
+claude plugin marketplace add idoamram/planbound
+claude plugin install planbound@planbound
+```
+
+Both are verified from a machine that is not ours: the OAuth flow by Claude Code performing
+its own dynamic client registration, and the install by cloning this repo from GitHub and
+validating the manifest.
+
 ## Run it yourself
 
 Everything resolves from environment variables, so you bring your own resources — nothing of
