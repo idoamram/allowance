@@ -48,13 +48,20 @@ describe('stdio server', () => {
       for (const tool of tools) expect(tool.description ?? '').not.toBe('')
 
       // A tool that needs the control plane must fail as a readable error, not a crash.
-      // `pl_nope` does not exist, so the route answers 404 and the tool has to surface
-      // that as text an agent can act on rather than letting it escape as a stack trace.
+      //
+      // The assertion covers both outcomes on purpose, because which one happens depends
+      // on whether a dev server is up — and this test must not depend on that. It asserted
+      // only `404` until a run with no server on the port turned the suite red, having
+      // passed earlier purely because one happened to be listening. A test whose result
+      // depends on the developer's other terminal tab is worse than no test.
+      //
+      // What is actually being pinned is narrower and always true: the failure arrives as
+      // text an agent can read, not as a stack trace escaping the transport.
       const result = (await client.callTool({
         name: 'close_plan',
         arguments: { planId: 'pl_nope' },
       })) as { content: { text: string }[] }
-      expect(result.content[0].text).toMatch(/404|not found/i)
+      expect(result.content[0].text).toMatch(/404|not found|unreachable/i)
     } finally {
       await client.close()
     }
