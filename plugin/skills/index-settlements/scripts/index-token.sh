@@ -131,7 +131,13 @@ fi
 # `substreams run --output json` emits one JSON object per block; module payload
 # sits under @data. Field names are the erc20.types.v1.BalanceChange proto,
 # lowerCamelCased by the JSON printer.
-TOKEN_LC="$(printf '%s' "$TOKEN" | tr '[:upper:]' '[:lower:]')"
+# The proto emits addresses as bare hex with no 0x prefix, while every explorer, every
+# doc and every human writes them with one. Comparing the two forms silently matches
+# nothing — and this script then reports "0 matching balance changes… that is a real
+# result, not an error", which is the most confidently wrong thing it could say. Both
+# sides are normalised to bare lowercase hex before comparison, and the 0x is put back on
+# the way out so the output pastes into a block explorer.
+TOKEN_LC="$(printf '%s' "$TOKEN" | tr '[:upper:]' '[:lower:]' | sed 's/^0x//')"
 
 # `substreams run` writes a plain-text trailer ("Completed successfully") to stdout after
 # the JSON stream, which makes `jq -s` fail with a parse error thousands of lines from the
@@ -147,11 +153,11 @@ TRANSFERS="$(jq -s --arg token "$TOKEN_LC" '
     | select(.["@data"].balanceChanges != null)
     | . as $blk
     | $blk["@data"].balanceChanges[]
-    | select($token == "" or (.contract | ascii_downcase) == $token)
+    | select($token == "" or ((.contract | ascii_downcase | ltrimstr("0x")) == $token))
     | {
         block:    ($blk["@block"] // $blk.clock.number // null),
-        contract: (.contract | ascii_downcase),
-        owner:    (.owner | ascii_downcase),
+        contract: ("0x" + (.contract | ascii_downcase | ltrimstr("0x"))),
+        owner:    ("0x" + (.owner | ascii_downcase | ltrimstr("0x"))),
         tx:       .transaction,
         value:    .transferValue,
         oldBalance: .oldBalance,
