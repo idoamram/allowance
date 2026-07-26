@@ -90,9 +90,7 @@ Exact lines, so nobody has to grep.
 
 ### Who is allowed to do what
 
-Three different identities, because they answer three different questions. ⟨VERIFY: the
-account-model pointers in this section land with the accounts lane (`task/a-accounts`,
-`29a1c01`); re-check them once it is on `main`.⟩
+Three different identities, because they answer three different questions.
 
 **The approver holds a capability URL, and that is deliberate.** `submit_plan` returns
 `/p/<planId>?k=<approvalKey>`; holding the key is the authority to decide that one plan.
@@ -120,11 +118,13 @@ the approval capability, which both authenticate before they reach the database.
 | …and checked, without the key reaching the client | [`apps/web/app/p/[id]/page.tsx:89`](apps/web/app/p/%5Bid%5D/page.tsx#L89) |
 | One-hour HMAC ticket so a server action can't be called cold | [`apps/web/app/p/[id]/token.ts:22`](apps/web/app/p/%5Bid%5D/token.ts#L22) |
 | Agent bearer token → sha256 lookup | [`apps/web/lib/auth.ts:14`](apps/web/lib/auth.ts#L14) |
-| Token issued / rotated / revoked from `/account` | [`apps/web/lib/accounts.ts:85`](apps/web/lib/accounts.ts#L85) |
+| Token issued / rotated / revoked by its owner | [`apps/web/lib/accounts.ts:85`](apps/web/lib/accounts.ts#L85) |
 | Ownership chain `auth.users → agents.owner_id → plans → …` | [`supabase/migrations/0004_accounts.sql:10`](supabase/migrations/0004_accounts.sql#L10) |
 | RLS: a signed-in user reads only their own rows | [`supabase/migrations/0004_accounts.sql:37`](supabase/migrations/0004_accounts.sql#L37) |
 | `token_hash` revoked from `authenticated` entirely | [`supabase/migrations/0004_accounts.sql:35`](supabase/migrations/0004_accounts.sql#L35) |
-| Session required for `/console` and `/account` — and nothing else | [`apps/web/middleware.ts:4`](apps/web/middleware.ts#L4) |
+| Session required for `/console` and `/account` — and nothing else | [`apps/web/middleware.ts:5`](apps/web/middleware.ts#L5) |
+| Magic-link callback exchanges the emailed token for a session | [`apps/web/app/auth/confirm/route.ts:13`](apps/web/app/auth/confirm/route.ts#L13) |
+| Console reads as the signed-in user, under RLS | [`apps/web/app/console/page.tsx:41`](apps/web/app/console/page.tsx#L41) |
 
 ### The agent surface
 
@@ -148,16 +148,15 @@ pnpm keygen HEDERA_POLICY_KEY AGENT_EVM_KEY   # writes to .env.local, prints onl
 # the browser session needs NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY as
 # well as the server-side SUPABASE_* trio
 pnpm hcs:topic                      # creates the audit topic, records its id
+pnpm seed:agent && pnpm register:agent
 pnpm dev
-# sign in at /login (magic link), create an agent at /account, paste its token into
-# .env.local as PLANBOUND_AGENT_TOKEN — the token is shown once and never again
-pnpm register:agent
 pnpm driver "vet 3 counterparty wallets before I pay them"
 ```
 
-`pnpm seed:agent` still works and is the faster path if you only want the agent side: it
-creates an unowned agent and writes the token itself. An unowned agent can spend, but no
-signed-in user can see its plans, so `/account` is the route to prefer.
+`seed:agent` creates an **unowned** agent and writes its token to `.env.local`. That agent can
+spend, but no signed-in user can see its plans — ownership is what the console scopes by. Once
+`/account` merges, creating the agent there instead is the path to prefer; it issues the same
+`pbt_` token, shown once, and lets you rotate it without touching the database.
 
 Hedera testnet is free, so the whole loop runs on faucet funds. Mainnet purchases stay
 impossible until you set `MAINNET_PAY=true` yourself.
@@ -184,8 +183,11 @@ impossible until you set `MAINNET_PAY=true` yourself.
   Two honest gaps: agents seeded before accounts existed have no `owner_id` and are therefore
   invisible to *every* signed-in user until claimed by an explicit update — the safe direction
   to fail, but a rough edge; and the account model landed on the last night, so it has had far
-  less use than the approval path. ⟨VERIFY: that the accounts lane has merged before this is
-  read as shipped — until then the console still lists every plan.⟩
+  less use than the approval path.
+- **The `/login` and `/account` pages are not merged yet.** The session layer is — middleware,
+  RLS, token issue/rotate/revoke — but the screens that drive them are still on
+  `task/a-ui-accounts`. Until they land, sign-in and agent creation are not clickable, and
+  `pnpm seed:agent` is the working path. ⟨VERIFY: delete this bullet once the UI lane merges.⟩
 - **The approval page has no login, on purpose.** It is a capability URL, and that is the
   design, not a gap — see "Who is allowed to do what" above.
 
