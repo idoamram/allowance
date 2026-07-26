@@ -572,6 +572,26 @@
   transition: background-color 120ms ease, color 120ms ease, transform 80ms var(--ease-settle);
 }
 
+/* The reveal's controls are full width, so a minimum height costs nothing
+   around them. They measured 39-40px, which is the wrong size for the one
+   panel in the product a hurried person must not fumble. */
+.copyBtn,
+.doneBtn {
+  min-height: 2.75rem;
+}
+
+/* "Create agent" shares a row with a text input and has to keep its height, so
+   it grows its hit area instead of its box. */
+.btn {
+  position: relative;
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: -4px 0;
+}
+
 .btn:active:not(:disabled),
 .rowBtn:active:not(:disabled),
 .copyBtn:active:not(:disabled),

@@ -366,7 +366,11 @@
   content: '';
   position: absolute;
   inset: 0 0 0 auto;
-  width: 2px;
+  /* Three, not one: shared with the box's own hairline it makes a 4px end-stop
+     against a 12px-tall bar, which is the difference between "the box ends
+     here" and "this is the wall the money stops at". Measured on the sheet at
+     390px — at 2px it was indistinguishable from the other three edges. */
+  width: 3px;
   background: var(--ink);
   transform: scaleY(1);
   animation: ceiling 200ms var(--ease-stamp) 400ms both;
@@ -1166,10 +1170,12 @@
     transform: scaleY(1);
   }
 
+  /* The sweep is motion or it is nothing: parked as a static bar it reads as a
+     progress fill that has stopped, which is the one thing this block must
+     never say. The empty envelope track stays — nothing is funded yet, so that
+     is accurate — and the elapsed count carries the "still going". */
   .scaleSweep {
-    animation: none;
-    width: 100%;
-    opacity: 0.25;
+    display: none;
   }
 
   .btn,

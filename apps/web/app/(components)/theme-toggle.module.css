@@ -45,7 +45,33 @@
 .option::after {
   content: '';
   position: absolute;
-  inset: -10px 0;
+  inset: -13px 0;
+}
+
+/* On a 320px bar the three words are competing with a wordmark, an address and
+   a way out. Measured there: at the size above the control took 135px of 288
+   and pushed the mark into the toggle. This is the same three words, tightened
+   until the row fits — not a different control, because a preference that
+   changes shape between widths is one more thing to learn. */
+@media (max-width: 46rem) {
+  .option {
+    font-size: 0.55rem;
+    letter-spacing: 0.06em;
+    padding: 0.28rem 0.4rem;
+  }
+}
+
+/* At 320 the row is exactly full and the mark and the control end up touching.
+   Tightened once more rather than swapped for a menu: all three states staying
+   visible is the reason to prefer this control at all, and 8.3px mono caps is
+   the register the rest of the product already labels things in. The 44px
+   target below is unaffected — it was never the visible chip. */
+@media (max-width: 30rem) {
+  .option {
+    font-size: 0.52rem;
+    letter-spacing: 0.04em;
+    padding: 0.28rem 0.3rem;
+  }
 }
 
 .option:hover {
