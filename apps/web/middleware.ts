@@ -33,11 +33,32 @@ export async function middleware(req: NextRequest) {
     },
   })
 
+  const path = req.nextUrl.pathname
+
+  /**
+   * A sign-in credential that landed somewhere with no handler.
+   *
+   * Supabase decides where an emailed link goes: `emailRedirectTo` when we set one, the
+   * project's Site URL when we do not. Both are configuration, and one of them is in a
+   * dashboard nobody here can see from the code. When that lands a `?code=` on `/`, the
+   * human has clicked a valid link, arrived at a page that ignores it, and been told
+   * nothing — which is what happened.
+   *
+   * Forwarding it to the one route that knows how to exchange it makes the flow depend on
+   * the credential arriving *somewhere* rather than on the dashboard agreeing with us.
+   * `/auth/confirm` is excluded so this cannot loop.
+   */
+  const strayCode = req.nextUrl.searchParams.get('code')
+  if (strayCode && !path.startsWith('/auth/')) {
+    const to = req.nextUrl.clone()
+    to.pathname = '/auth/confirm'
+    if (path !== '/') to.searchParams.set('next', path)
+    return NextResponse.redirect(to)
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser()
-
-  const path = req.nextUrl.pathname
   if (!user && PROTECTED.some((p) => path === p || path.startsWith(`${p}/`))) {
     const to = req.nextUrl.clone()
     to.pathname = '/login'

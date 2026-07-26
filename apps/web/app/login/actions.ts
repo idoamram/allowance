@@ -1,5 +1,6 @@
 'use server'
 
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { supabaseServer } from '@/lib/supabase/server'
 
@@ -57,8 +58,24 @@ function explain(message: string, status?: number): string {
  * to get wrong, survives being opened on a different device, and cannot be consumed by a
  * mail scanner prefetching links.
  *
- * `emailRedirectTo` is deliberately absent: there is no redirect in this flow.
+ * `emailRedirectTo` must be set even though we ask for a code, and getting this wrong cost
+ * a real sign-in: it was removed on the reasoning that a code needs no redirect, which is
+ * true — but the email template still carries a **link**, because editing that template
+ * requires custom SMTP on the free tier. With no `emailRedirectTo`, Supabase falls back to
+ * the project's Site URL, so the link landed on `/` carrying a `?code=` nobody handled.
+ *
+ * The rule: as long as the template can send a link, this must name where a link should
+ * land, regardless of what we would prefer it to send.
  */
+async function origin(): Promise<string> {
+  const h = await headers()
+  const host = h.get('x-forwarded-host') ?? h.get('host')
+  // The request's own host, so a dev server on any port and a preview deployment on a URL
+  // nobody configured each round-trip to themselves rather than to production.
+  if (host) return `${h.get('x-forwarded-proto') ?? 'https'}://${host}`
+  return process.env.APP_URL ?? 'http://localhost:3000'
+}
+
 export async function sendCode(prev: LoginState, form: FormData): Promise<LoginState> {
   const email = String(form.get('email') ?? '')
     .trim()
@@ -72,7 +89,10 @@ export async function sendCode(prev: LoginState, form: FormData): Promise<LoginS
   }
 
   const supabase = await supabaseServer()
-  const { error } = await supabase.auth.signInWithOtp({ email })
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: `${await origin()}/auth/confirm` },
+  })
 
   if (error) {
     const message = explain(error.message, error.status)

@@ -108,8 +108,14 @@ export function LoginForm() {
 
         <form action={verify}>
           <input type="hidden" name="email" value={state.email} />
+          {/*
+            The fallback, and it must read as one. This field used to carry autoFocus, so
+            the cursor landed here and the screen read as "we sent you a code" while the
+            email carried a link — Ido reported exactly that confusion. The link is the
+            path; this is for when it does not work.
+          */}
           <label className={styles.label} htmlFor="code">
-            Or type a code, if you have one
+            Link not working? Type the code instead
           </label>
           <input
             id="code"
@@ -120,8 +126,6 @@ export function LoginForm() {
             autoComplete="one-time-code"
             pattern="[0-9]*"
             maxLength={10}
-            required
-            autoFocus
             placeholder="123456"
             style={{ letterSpacing: '0.4em', fontVariantNumeric: 'tabular-nums' }}
           />
