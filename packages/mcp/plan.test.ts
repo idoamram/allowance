@@ -49,6 +49,16 @@ describe('categoriesFor', () => {
     ])
   })
 
+  // The regression this file exists for most: a goal about other assets used to match the
+  // market playbook on the bare word "price" and come back as a Bitcoin brief — priced,
+  // live-quoted, and answering a question nobody asked.
+  it('does not answer a non-Bitcoin market goal with the Bitcoin playbook', () => {
+    const specs = categoriesFor('brief me on ETH and HBAR prices and the headlines')
+    expect(specs).toHaveLength(1)
+    expect(specs[0].query).toBe('brief me on ETH and HBAR prices and the headlines')
+    expect(specs.map((s) => s.buys).join(' ')).not.toMatch(/btc|bitcoin/i)
+  })
+
   it('falls back to a single generic category built from the goal itself', () => {
     const specs = categoriesFor('find me a poem about tuesdays')
     expect(specs).toHaveLength(1)
