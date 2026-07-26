@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { Metadata } from 'next'
 import { Mark } from './(components)/mark'
 import styles from './landing.module.css'
@@ -93,6 +94,22 @@ const DRIFT = {
   quotedPct: 20,
   allowedPct: 24,
 }
+
+/* ── Six prompts against one decision ───────────────────────────────────────
+   The same task as the hero plan, as the agent would have to ask for it today:
+   one interruption per call, each naming a host and a price, none of them
+   naming a total. That is the argument the page makes in prose everywhere else
+   — here it is just visible, which is why this element earns its space.
+
+   Amounts are the real per-call prices from the same fixture the hero reads. */
+const PROMPTS = [
+  { host: 'sanctions-screen.x402', amount: '$0.004' },
+  { host: 'wallet-risk.x402', amount: '$0.012' },
+  { host: 'wallet-risk.x402', amount: '$0.012' },
+  { host: 'market-diversity.x402', amount: '$0.020' },
+  { host: 'sanctions-screen.x402', amount: '$0.004' },
+  { host: 'wallet-age.x402', amount: '$0.018' },
+]
 
 const EXITS = [
   { name: 'Finish', body: 'Top up the exact shortfall. The run completes.' },
@@ -358,6 +375,51 @@ export default function Home() {
                   of 78,290 routes, 2026-07-10.
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* The whole argument, made without arguing: six asks with no total,
+              against the one decision the hero already showed. */}
+          <div className={styles.versus}>
+            <div className={styles.versusSide}>
+              <ul className={styles.prompts}>
+                {PROMPTS.map((p, i) => (
+                  <li className={styles.prompt} key={i} style={{ '--i': i } as CSSProperties}>
+                    <span className={styles.promptText}>
+                      Allow payment of <b>{p.amount}</b> to {p.host}?
+                    </span>
+                    <span className={styles.promptBtns} aria-hidden="true">
+                      <span className={styles.promptNo}>Deny</span>
+                      <span className={styles.promptYes}>Allow</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className={styles.versusCaption}>
+                <b>Six asks, no total.</b> Each is true, cheap, and impossible to judge alone.
+              </p>
+            </div>
+
+            <div className={styles.versusSide}>
+              <div className={styles.oneCard}>
+                <span className={styles.oneCardLabel}>One plan</span>
+                <p className={styles.oneCardGoal}>&ldquo;{PLAN.goal}&rdquo;</p>
+                <p className={styles.oneCardRow}>
+                  <span>Total quoted</span>
+                  <span className={styles.num}>{PLAN.total}</span>
+                </p>
+                <p className={styles.oneCardRow}>
+                  <span>Ceiling</span>
+                  <span className={styles.num}>{PLAN.ceiling}</span>
+                </p>
+                <span className={styles.fakeBtn} aria-hidden="true">
+                  Approve {PLAN.ceiling} envelope
+                </span>
+              </div>
+              <p className={styles.versusCaption}>
+                <b>One decision, priced.</b> Approve, and the ceiling is the only money that
+                exists.
+              </p>
             </div>
           </div>
         </section>
@@ -668,6 +730,50 @@ export default function Home() {
                 <p className={styles.railBody}>
                   The tools, plus the skills &mdash; including a generic Substreams indexer for
                   reading settlements straight off a chain.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Where it goes ────────────────────────────────────────────────
+            Three directions, each one a small extension of a mechanism that
+            already exists rather than a new product. Marked plainly as unbuilt:
+            a roadmap that reads like a feature list is the fastest way to lose
+            the credibility the rest of this page spends its length earning. */}
+        <section className={`${styles.wrap} ${styles.band} ${styles.bandRule}`}>
+          <div className={styles.split}>
+            <div>
+              <p className={styles.eyebrow}>Where this goes</p>
+              <h2 className={styles.h2}>The envelope is the primitive.</h2>
+              <p className={styles.lede}>
+                None of the below is built. Each one is a short step from a mechanism that is —
+                which is the reason to say them out loud rather than the reason to claim them.
+              </p>
+            </div>
+            <div className={styles.rails}>
+              <div className={styles.rail}>
+                <span className={styles.railName}>Standing policy</span>
+                <p className={styles.railBody}>
+                  The policy signer already refuses to co-sign a payment that leaves the plan.
+                  Give it rules the human writes once — per-service caps, blocked categories, a
+                  daily total — and a plan stops needing an approval at all until it breaks one.
+                </p>
+              </div>
+              <div className={styles.rail}>
+                <span className={styles.railName}>Ranked by settlement</span>
+                <p className={styles.railBody}>
+                  Discovery ranks sellers by what a catalog claims. The index already knows what
+                  has actually settled to each payout address. Ranking on that turns a directory
+                  into a market with a memory — and the seller cannot write it.
+                </p>
+              </div>
+              <div className={styles.rail}>
+                <span className={styles.railName}>Beyond one task</span>
+                <p className={styles.railBody}>
+                  The same key holds a weekly allowance as easily as a single errand: one
+                  envelope, refilled on a schedule, revocable by the treasury alone. Nothing
+                  about the structure assumes the plan is short.
                 </p>
               </div>
             </div>
