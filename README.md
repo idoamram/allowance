@@ -34,6 +34,9 @@ approved was not the plan the agent found. The human got the diff: what already 
 what changed and by how much, and three priced exits — approve at the new price, re-plan the
 step, or abort and take the remainder back.
 
+The narration for the recorded walkthrough, beat by beat, is in
+[`docs/demo-script.md`](docs/demo-script.md).
+
 ## Where each integration lives
 
 Exact lines, so nobody has to grep.
@@ -85,6 +88,44 @@ Exact lines, so nobody has to grep.
 | Seller trust from settlement history | [`apps/web/app/api/mcp/seller-trust/route.ts`](apps/web/app/api/mcp/seller-trust/route.ts) |
 | **Substreams indexing skill** (generic, installable) | [`plugin/skills/index-settlements/`](plugin/skills/index-settlements/) |
 
+### Who is allowed to do what
+
+Three different identities, because they answer three different questions. ⟨VERIFY: the
+account-model pointers in this section land with the accounts lane (`task/a-accounts`,
+`29a1c01`); re-check them once it is on `main`.⟩
+
+**The approver holds a capability URL, and that is deliberate.** `submit_plan` returns
+`/p/<planId>?k=<approvalKey>`; holding the key is the authority to decide that one plan.
+There is no login on the approval page and there should not be one — approval happens
+out-of-band on a phone, and putting a sign-in between the human and the decision breaks the
+flow the whole product is built around. The key never reaches the browser: the page checks it
+server-side and hands the form an HMAC ticket scoped to one plan for one hour instead.
+
+**Above $5, the approver also has to prove they are human.** `STEP_UP_USD` (default 5) picks
+the plans that need it; `HUMAN_VERIFIER=none` is the shipping default and `world` swaps in
+World ID (enforced server-side — see the World table above). Only *approval* is gated —
+making someone prove themselves to say "no" is friction that buys nothing.
+
+**The agent holds a bearer token.** `pbt_`-prefixed, so a leak is greppable; only its sha256
+is stored, so the database never holds anything that can spend.
+
+**The human holds a session.** Supabase magic link. Agents are owned by a user, and the
+console shows that user's own plans — enforced by Postgres RLS through the anon key, not by a
+`where` clause the app could forget. The service-role client stays behind the agent API and
+the approval capability, which both authenticate before they reach the database.
+
+| What | Where |
+|---|---|
+| Approval capability URL minted | [`apps/web/app/api/mcp/plans/route.ts:62`](apps/web/app/api/mcp/plans/route.ts#L62) |
+| …and checked, without the key reaching the client | [`apps/web/app/p/[id]/page.tsx:89`](apps/web/app/p/%5Bid%5D/page.tsx#L89) |
+| One-hour HMAC ticket so a server action can't be called cold | [`apps/web/app/p/[id]/token.ts:22`](apps/web/app/p/%5Bid%5D/token.ts#L22) |
+| Agent bearer token → sha256 lookup | [`apps/web/lib/auth.ts:14`](apps/web/lib/auth.ts#L14) |
+| Token issued / rotated / revoked from `/account` | [`apps/web/lib/accounts.ts:85`](apps/web/lib/accounts.ts#L85) |
+| Ownership chain `auth.users → agents.owner_id → plans → …` | [`supabase/migrations/0004_accounts.sql:10`](supabase/migrations/0004_accounts.sql#L10) |
+| RLS: a signed-in user reads only their own rows | [`supabase/migrations/0004_accounts.sql:37`](supabase/migrations/0004_accounts.sql#L37) |
+| `token_hash` revoked from `authenticated` entirely | [`supabase/migrations/0004_accounts.sql:35`](supabase/migrations/0004_accounts.sql#L35) |
+| Session required for `/console` and `/account` — and nothing else | [`apps/web/middleware.ts:4`](apps/web/middleware.ts#L4) |
+
 ### The agent surface
 
 | What | Where |
@@ -103,12 +144,20 @@ ours is hardcoded anywhere.
 pnpm install
 cp .env.example .env.local          # every variable, with where to get it
 pnpm keygen HEDERA_POLICY_KEY AGENT_EVM_KEY   # writes to .env.local, prints only public values
-# add HEDERA_OPERATOR_ID / _KEY from portal.hedera.com (testnet), and your Supabase keys
+# add HEDERA_OPERATOR_ID / _KEY from portal.hedera.com (testnet), and your Supabase keys —
+# the browser session needs NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY as
+# well as the server-side SUPABASE_* trio
 pnpm hcs:topic                      # creates the audit topic, records its id
-pnpm seed:agent && pnpm register:agent
 pnpm dev
+# sign in at /login (magic link), create an agent at /account, paste its token into
+# .env.local as PLANBOUND_AGENT_TOKEN — the token is shown once and never again
+pnpm register:agent
 pnpm driver "vet 3 counterparty wallets before I pay them"
 ```
+
+`pnpm seed:agent` still works and is the faster path if you only want the agent side: it
+creates an unowned agent and writes the token itself. An unowned agent can spend, but no
+signed-in user can see its plans, so `/account` is the route to prefer.
 
 Hedera testnet is free, so the whole loop runs on faucet funds. Mainnet purchases stay
 impossible until you set `MAINNET_PAY=true` yourself.
@@ -130,7 +179,15 @@ impossible until you set `MAINNET_PAY=true` yourself.
   block so it syncs in minutes.
 - **World step-up has not completed a real proof end to end** at the time of writing; what is
   verified is documented in [`docs/feedback/world.md`](docs/feedback/world.md).
-- **The console has no auth** and lists every plan. Fine for demo data; it says so on itself.
+- **The console is scoped to the signed-in user, and Postgres is what enforces it.** Browser
+  sessions read through the anon key under RLS, so the scoping survives a forgotten `where`.
+  Two honest gaps: agents seeded before accounts existed have no `owner_id` and are therefore
+  invisible to *every* signed-in user until claimed by an explicit update — the safe direction
+  to fail, but a rough edge; and the account model landed on the last night, so it has had far
+  less use than the approval path. ⟨VERIFY: that the accounts lane has merged before this is
+  read as shipped — until then the console still lists every plan.⟩
+- **The approval page has no login, on purpose.** It is a capability URL, and that is the
+  design, not a gap — see "Who is allowed to do what" above.
 
 ## Team & AI use
 
