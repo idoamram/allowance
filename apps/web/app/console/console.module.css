@@ -262,42 +262,45 @@
     white-space: nowrap;
   }
 
+  /* Longhands, not the padding shorthand: `.table tr` outranks `.rowWants`, so a
+     shorthand here would silently reset the indent the marker needs. */
   .table tr {
     border-bottom: 1px solid var(--rule);
-    padding: 0.9rem 0 0.95rem;
-    position: relative;
+    padding-top: 0.9rem;
+    padding-bottom: 0.95rem;
+    padding-right: 0;
+    border-left: 2px solid transparent;
+    padding-left: 0.75rem;
   }
 
   .table td {
     border-bottom: 0;
-    padding: 0 0 0 0;
+    padding: 0;
   }
 
-  .rowWants td:first-child,
-  .rowStop td:first-child {
+  .table tr.rowWants td:first-child,
+  .table tr.rowStop td:first-child {
     box-shadow: none;
     padding-left: 0;
   }
 
-  .rowWants {
-    box-shadow: inset 2px 0 0 var(--warn);
-    padding-left: 0.7rem;
+  .table tr.rowWants {
+    border-left-color: var(--warn);
   }
 
-  .rowStop {
-    box-shadow: inset 2px 0 0 var(--stop);
-    padding-left: 0.7rem;
+  .table tr.rowStop {
+    border-left-color: var(--stop);
   }
 
-  /* status, then the two figures on one line, then the timestamp */
-  .cellStatus {
+  /* status, then the two figures side by side, then the timestamp */
+  .table td.cellStatus {
     margin-bottom: 0.5rem;
   }
 
-  .cellMoney {
+  .table td.cellMoney {
     display: inline-block;
     text-align: left;
-    margin: 0.6rem 1.5rem 0 0;
+    margin: 0.6rem 1.75rem 0 0;
   }
 
   .cellMoney::before {

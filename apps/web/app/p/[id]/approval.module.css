@@ -84,6 +84,12 @@
   overflow-wrap: anywhere;
 }
 
+/* When the three masthead items do not fit on one line, the expiry stamp keeps
+   its right edge rather than falling back to the left margin. */
+.masthead .stamp {
+  margin-left: auto;
+}
+
 /* ── Micro-labels ─────────────────────────────────────────────────────────── */
 .eyebrow {
   display: flex;
@@ -687,12 +693,40 @@
   white-space: normal;
 }
 
+/* Under 22rem — a 320px phone, not the 390px one — the struck-through price and
+   the new ask together leave the service name about eight characters of width.
+   There the price drops to its own line rather than shredding the name it
+   belongs to. At 390 it stays on the row, which is where it reads best. */
+@media (max-width: 22rem) {
+  .driftStep,
+  .driftStepBlocked {
+    grid-template-columns: 1.1rem minmax(0, 1fr);
+  }
+
+  .driftPrice {
+    grid-column: 2;
+  }
+
+  .receiptRow {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .receiptPrice {
+    width: 100%;
+    text-align: left;
+  }
+}
+
 /* Three figures, evenly weighted: the human is choosing between them, so none
    of the three may be typeset as the recommended one. */
+/* On a phone these read as ledger lines — label left, figure right — because
+   three side-by-side columns with labels of different lengths put the figures
+   on three different baselines, and comparing them is the entire task. */
 .driftMoney {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
-  gap: 0.9rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.55rem;
   margin: 0;
   padding: 0.9rem 0;
   border-top: 1px solid var(--rule);
@@ -701,8 +735,36 @@
 
 .driftMoney div {
   display: grid;
-  gap: 0.25rem;
-  align-content: start;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+}
+
+.driftMoney dd {
+  text-align: right;
+}
+
+@media (min-width: 30rem) {
+  /* Two explicit rows and a subgrid, so a label that wraps to two lines does not
+     drop its figure below the others. The three figures have to share a
+     baseline; they are being compared. */
+  .driftMoney {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+    gap: 0.3rem 1.25rem;
+  }
+
+  .driftMoney div {
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: 0.3rem;
+  }
+
+  .driftMoney dd {
+    text-align: left;
+  }
 }
 
 .driftMoney dt {
