@@ -48,16 +48,54 @@ a {
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --ink: #ece6d8;
-    --ink-soft: #9b9484;
+    --ink: #f2ede2;
+    --ink-soft: #c2baa9;
     --manila: #14130f;
     --manila-deep: #262319;
     --paper: #1c1a15;
-    --rule: #3a352a;
-    --accent: #d19a63;
-    --ok: #6cb98a;
-    --warn: #d5a63f;
-    --stop: #e5806a;
+    --rule: #544d3e;
+    --accent: #e0a978;
+    --ok: #84c79c;
+    --warn: #e2b45a;
+    --stop: #ef9a84;
+  }
+}
+
+/* ── Dark re-valued for contrast (console rebuild) ────────────────────────────
+   Measured, not nudged. Every value above is stated against the dark ground
+   #14130f and, where copy sits on a card, against the darkest card #262319:
+
+     --ink       14.94 / 12.62     headings and figures
+     --ink-soft   9.64 /  8.15     body copy — was 6.16, which cleared AA on
+                                   paper and still read as grey-on-grey at the
+                                   13-14px this app sets body copy in
+     --accent     8.95 /  7.57     links
+     --ok         9.41 /  7.95     settled
+     --warn       9.66 /  8.16     wants a human
+     --stop       8.52 /  7.20     blocked / destructive
+     --rule       2.22 /  1.88     hairlines — was 1.52, where table borders
+                                   disappeared entirely on an OLED phone
+
+   Light mode's --ink-soft is 8.16 on its own ground, so the two themes now
+   read at the same weight instead of dark being the quiet one. Nothing in the
+   light block above is touched, and no token is renamed: four other surfaces
+   are built on these names. */
+
+/* ── Console rebuild: shared additions ────────────────────────────────────────
+   Two things the whole signed-in app needs and no single route should own. */
+:root {
+  /* The one measure every column on the operator surface is set to, so the nav,
+     the summary and the table share an edge instead of each picking a width. */
+  --measure: 64rem;
+  /* Elevation for the one surface that floats over the page (the token reveal).
+     A token because the shadow colour has to follow the theme, and a hard-coded
+     rgba() cannot. */
+  --shadow: 0 18px 50px rgb(0 0 0 / 35%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --shadow: 0 18px 50px rgb(0 0 0 / 60%);
   }
 }
 
