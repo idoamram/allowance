@@ -207,15 +207,39 @@ describe('buildPlan — honesty rules', () => {
     expect(plan.gaps).toEqual([])
   })
 
-  it('tries Worldchain first and only falls back to Base', async () => {
+  it('tries Hedera, then Worldchain, then Base', async () => {
+    // Hedera leads because it is the only rail a plan can actually settle on while
+    // MAINNET_PAY is false. `APP_URL` is unset here, so the Hedera reference seller
+    // produces no candidate and the search falls through — which is also the behaviour
+    // a cloner gets before they configure their own deployment.
     const asked: string[] = []
     const deps = fakeDeps((_q, network) => {
       asked.push(network)
       return network === 'eip155:8453' ? [candidate({ url: 'https://base.example/a', network })] : []
     })
     const plan = await buildPlan('find me a poem about tuesdays', {}, deps)
-    expect(asked).toEqual(['eip155:480', 'eip155:8453'])
+    expect(asked).toEqual(['hedera:testnet', 'eip155:480', 'eip155:8453'])
     expect(plan.steps[0].rail).toBe('base')
+  })
+
+  it('offers our own Hedera seller when the Bazaar lists nobody on that rail', async () => {
+    // The Bazaar has no Hedera sellers at all, so without this the one rail that can
+    // settle is unreachable from discovery — which is how every Hedera run before now
+    // came to be a hand-built plan rather than a shopped one.
+    const previous = process.env.APP_URL
+    process.env.APP_URL = 'https://example.test'
+    try {
+      const plan = await buildPlan('brief me on network conditions', {}, fakeDeps(() => []))
+      const hedera = plan.steps.filter((s) => s.rail === 'hedera')
+      expect(hedera.length).toBeGreaterThan(0)
+      expect(hedera[0].serviceUrl).toContain('/api/reference-seller/')
+      // Ours, and the plan says so on the row a human reads rather than passing it off
+      // as a stranger found on the Bazaar.
+      expect(hedera[0].serviceName.toLowerCase()).toContain('reference seller')
+    } finally {
+      if (previous === undefined) delete process.env.APP_URL
+      else process.env.APP_URL = previous
+    }
   })
 
   it('falls back to the pinned demo sellers when the Bazaar returns nothing', async () => {
