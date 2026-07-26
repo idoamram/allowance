@@ -323,10 +323,12 @@
   z-index: 50;
   background: rgba(27, 26, 23, 0.72);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   padding: 1rem;
-  overflow-y: auto;
+  /* The panel scrolls itself. If the backdrop scrolled instead, the dismiss control would
+     ride off the bottom on a short viewport — which is the whole failure this guards. */
+  overflow: hidden;
   animation: fade 140ms ease-out;
 }
 
@@ -341,22 +343,48 @@
 .reveal {
   width: 100%;
   max-width: 32rem;
-  margin: auto;
   background: #fffdf7;
   border: 1px solid var(--ink);
   border-radius: 0;
-  padding: 0 1.1rem 1.1rem;
   box-shadow: 0 18px 50px rgba(27, 26, 23, 0.35);
+
+  /* Three parts: torn edge, scrolling middle, pinned foot. dvh not vh — mobile Safari's
+     vh measures the viewport without browser chrome, so a vh-capped panel is always taller
+     than what you can actually see. */
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 2rem);
+  overflow: hidden;
 }
 
 /* The perforation it was torn along. */
 .tear {
+  flex: none;
   height: 0.55rem;
-  margin: 0 -1.1rem 0.9rem;
   background-image: radial-gradient(circle at 50% 100%, var(--manila) 0.16rem, transparent 0.17rem);
   background-size: 0.5rem 0.55rem;
   background-repeat: repeat-x;
   border-bottom: 1px dashed var(--ink-soft);
+}
+
+/* The prose and the token. `min-height: 0` is load-bearing: without it a flex child refuses
+   to shrink below its content and the overflow silently never engages. */
+.revealScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.9rem 1.1rem 1rem;
+}
+
+/* Never scrolls. The only control that dismisses this panel lives here. The shadow reads as
+   content passing underneath, which is the cue that the middle still has more in it. */
+.revealFoot {
+  flex: none;
+  border-top: 1px solid var(--rule);
+  padding: 0.8rem 1.1rem 0.9rem;
+  background: #fffdf7;
+  box-shadow: 0 -10px 14px -10px rgba(27, 26, 23, 0.3);
 }
 
 .counterfoil {
@@ -483,9 +511,7 @@
   align-items: flex-start;
   font-size: 0.82rem;
   line-height: 1.45;
-  margin: 1rem 0 0.75rem;
-  border-top: 1px solid var(--rule);
-  padding-top: 0.9rem;
+  margin: 0 0 0.7rem;
   cursor: pointer;
 }
 
@@ -514,6 +540,27 @@
 .doneBtn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* On a phone the counterfoil arrives as a bottom sheet: full width, pinned to the edge the
+   thumb already rests on, so the foot is the easiest thing on screen to reach rather than
+   the hardest. The torn edge still reads — it is now the edge it was torn from. */
+@media (max-width: 34rem) {
+  .revealBackdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .reveal {
+    max-width: none;
+    border-width: 1px 0 0;
+    border-radius: 10px 10px 0 0;
+    max-height: calc(100dvh - 2.5rem);
+  }
+
+  .revealFoot {
+    padding-bottom: calc(0.9rem + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
