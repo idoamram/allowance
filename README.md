@@ -83,10 +83,26 @@ Exact lines, so nobody has to grep.
 
 | What | Where |
 |---|---|
-| Subgraph manifest (Base USDC) | [`subgraph/subgraph.yaml`](subgraph/subgraph.yaml) |
+| Subgraph manifest (Base USDC) — **deployed and syncing** | [`subgraph/subgraph.yaml`](subgraph/subgraph.yaml) |
 | Claimed-vs-settled reconciliation | [`apps/web/lib/reconcile.ts:75`](apps/web/lib/reconcile.ts#L75) |
+| The rail the panel checks, named once so prose cannot drift from the query | [`apps/web/lib/claimed-vs-settled.ts:36`](apps/web/lib/claimed-vs-settled.ts#L36) |
 | Seller trust from settlement history | [`apps/web/app/api/mcp/seller-trust/route.ts`](apps/web/app/api/mcp/seller-trust/route.ts) |
 | **Substreams indexing skill** (generic, installable) | [`plugin/skills/index-settlements/`](plugin/skills/index-settlements/) |
+
+### The agent's own identity — remote MCP over OAuth
+
+A stdio MCP server is launched by one operator with one agent's key in the environment, which
+is what the spec prescribes for that transport. A *remote* one cannot work that way, so it
+authenticates the human and acts as their delegate.
+
+| What | Where |
+|---|---|
+| Streamable HTTP MCP endpoint, OAuth-protected | [`apps/web/app/api/mcp/http/route.ts`](apps/web/app/api/mcp/http/route.ts) |
+| Same seven tools as stdio — one implementation, two transports | [`packages/mcp/http.ts`](packages/mcp/http.ts) |
+| Token verification: JWKS, issuer, expiry, audience | [`apps/web/lib/oauth/verify.ts`](apps/web/lib/oauth/verify.ts) |
+| Protected-resource metadata (RFC 9728) | [`apps/web/lib/oauth/metadata.ts`](apps/web/lib/oauth/metadata.ts) |
+| The consent screen — where a human reads what they are granting | [`apps/web/app/oauth/consent/page.tsx`](apps/web/app/oauth/consent/page.tsx) |
+| **Revocation that bites at the point of use** | [`apps/web/lib/auth.ts:29`](apps/web/lib/auth.ts#L29) |
 
 ### Who is allowed to do what
 
@@ -123,7 +139,7 @@ the approval capability, which both authenticate before they reach the database.
 | RLS: a signed-in user reads only their own rows | [`supabase/migrations/0004_accounts.sql:37`](supabase/migrations/0004_accounts.sql#L37) |
 | `token_hash` revoked from `authenticated` entirely | [`supabase/migrations/0004_accounts.sql:35`](supabase/migrations/0004_accounts.sql#L35) |
 | Session required for `/console` and `/account` — and nothing else | [`apps/web/middleware.ts:5`](apps/web/middleware.ts#L5) |
-| Magic-link callback exchanges the emailed token for a session | [`apps/web/app/auth/confirm/route.ts:13`](apps/web/app/auth/confirm/route.ts#L13) |
+| Sign-in callback — handles all three credential shapes Supabase emits | [`apps/web/app/auth/confirm/page.tsx:29`](apps/web/app/auth/confirm/page.tsx#L29) |
 | Console reads as the signed-in user, under RLS | [`apps/web/app/console/page.tsx:41`](apps/web/app/console/page.tsx#L41) |
 
 ### The agent surface
@@ -154,9 +170,15 @@ pnpm driver "vet 3 counterparty wallets before I pay them"
 ```
 
 `seed:agent` creates an **unowned** agent and writes its token to `.env.local`. That agent can
-spend, but no signed-in user can see its plans — ownership is what the console scopes by. Once
-`/account` merges, creating the agent there instead is the path to prefer; it issues the same
-`pbt_` token, shown once, and lets you rotate it without touching the database.
+spend, but no signed-in user can see its plans — ownership is what the console scopes by. The
+path to prefer is signing in and creating the agent from the console instead: it issues the
+same `pbt_` token, shows it exactly once, and lets you rotate or revoke it without touching
+the database.
+
+Supabase's built-in SMTP allows only a few sign-in emails an hour, which is fine in normal use
+and awkward during a demo. `pnpm signin:code <email>` prints the same one-time code the email
+would have carried, without sending anything — a local operator script, since it needs the
+service-role key and has no authorization beyond holding it.
 
 Hedera testnet is free, so the whole loop runs on faucet funds. Mainnet purchases stay
 impossible until you set `MAINNET_PAY=true` yourself.
@@ -174,22 +196,52 @@ impossible until you set `MAINNET_PAY=true` yourself.
   by the treasury key.
 - **Demo drift is our own conservative estimate meeting a real seller's real ask.** The ask
   is not staged; the estimate being low is what makes the collision reproducible.
-- **The subgraph claims "since deployment"**, never "this month" — it starts from a recent
-  block so it syncs in minutes.
-- **World step-up has not completed a real proof end to end** at the time of writing; what is
-  verified is documented in [`docs/feedback/world.md`](docs/feedback/world.md).
+- **The subgraph is deployed and syncing, and currently reconciles nothing of ours.** It
+  indexes Base USDC, which is where the Bazaar's sellers are — but every payment we have
+  actually made is on Hedera testnet, because testnet-first is a rule here and `MAINNET_PAY`
+  defaults to false. So the panel is live and correct and shows agreement on zero. That is the
+  rule working, not the panel failing. Counts read "since deployment", never "this month".
+- **The panel named the wrong chain for a day.** The manifest moved to Base when Subgraph
+  Studio dropped WorldChain; the query filter and the user-facing prose lived in other files
+  and did not follow, so it would have reconciled one chain while claiming another. Both are
+  fixed and the chain name now derives from a single constant. Recorded because a verification
+  surface that silently verifies nothing is worse than none — it looks like evidence.
+- **World step-up has not completed a real proof on a real device.** It completes through the
+  simulator, which minted a funded envelope. On a physical phone Selfie Check returns
+  `failed_by_host_app` *before our backend is called* — confirmed by zero log lines against a
+  deployed logger — and `proofOfHuman` asks for an Orb the test identity does not hold. We
+  shipped `deviceLegacy` as a fourth preset so the gate degrades to a weaker real proof rather
+  than to an unreachable button. The full write-up went to the World team.
 - **The console is scoped to the signed-in user, and Postgres is what enforces it.** Browser
   sessions read through the anon key under RLS, so the scoping survives a forgotten `where`.
   Two honest gaps: agents seeded before accounts existed have no `owner_id` and are therefore
   invisible to *every* signed-in user until claimed by an explicit update — the safe direction
   to fail, but a rough edge; and the account model landed on the last night, so it has had far
   less use than the approval path.
-- **The `/login` and `/account` pages are not merged yet.** The session layer is — middleware,
-  RLS, token issue/rotate/revoke — but the screens that drive them are still on
-  `task/a-ui-accounts`. Until they land, sign-in and agent creation are not clickable, and
-  `pnpm seed:agent` is the working path. ⟨VERIFY: delete this bullet once the UI lane merges.⟩
 - **The approval page has no login, on purpose.** It is a capability URL, and that is the
   design, not a gap — see "Who is allowed to do what" above.
+- **The remote MCP's security boundary is verified; its happy path is not, by us.** Against the
+  live deployment: no token → 401 with a well-formed `WWW-Authenticate` and *not* a redirect;
+  a token in the query string → refused; a garbage token → 401; the RFC 9728 document
+  well-formed and resolving to the Supabase issuer. What we have **not** reproduced end to end
+  is the full browser round trip — dynamic client registration, authorize, consent, code,
+  token, authenticated `tools/call`. The session that built it ran that live and reported it;
+  nobody re-ran it afterwards, and the difference between "tested" and "reported tested" is
+  worth the sentence.
+- **Audience binding is not the spec's mechanism, because the mechanism is unavailable.**
+  RFC 8707 asks a resource server to reject tokens not issued for it. Supabase accepts the
+  `resource` parameter and does not reflect it in the token — `aud` is the Postgres role
+  `authenticated`. So the binding rests on a consent grant a human wrote for this exact
+  resource URI, plus a required `client_id` that a session token does not carry. That is the
+  spec's "or otherwise verify" branch, not its default one. The token-claim check is already
+  implemented and starts binding the day Supabase populates it.
+- **Revoking OAuth consent is one-sided.** It revokes ours, not Supabase's, so the next
+  authorize may auto-approve without rendering our consent screen. Found and left unfixed.
+- **Nine bugs were found on the last night by running the product, not by reading it.** Two
+  are worth naming because they were invisible to tests: a plan told a human "worldchain" for
+  sellers that only settle on Base, and revoking an agent's consent left it able to spend for
+  thirty more minutes. Both are fixed. Both argue that the demo path deserves more suspicion
+  than the test suite gives it.
 
 ## Team & AI use
 
