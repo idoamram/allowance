@@ -1000,6 +1000,25 @@
   }
 }
 
+/* The connect-it cards carry a command rather than a bullet list, and they have
+   three children where the two-column rail above expects two. The third wrapped
+   back into the 7rem label column and set itself one word to a line, beside a
+   command that then overflowed its own box.
+
+   So they stack: the label reads as a heading over its command, and the command
+   gets the full measure — which is the point, since it exists to be copied.
+   Declared after the media query so it wins at every width without needing
+   extra specificity. */
+.railStack {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.15rem;
+}
+
+.railStack .railBody {
+  margin-top: 0.1rem;
+  max-width: 46rem;
+}
+
 .railName {
   font-family: var(--font-mono);
   font-size: 0.7rem;
