@@ -220,14 +220,17 @@ impossible until you set `MAINNET_PAY=true` yourself.
   less use than the approval path.
 - **The approval page has no login, on purpose.** It is a capability URL, and that is the
   design, not a gap — see "Who is allowed to do what" above.
-- **The remote MCP's security boundary is verified; its happy path is not, by us.** Against the
-  live deployment: no token → 401 with a well-formed `WWW-Authenticate` and *not* a redirect;
-  a token in the query string → refused; a garbage token → 401; the RFC 9728 document
-  well-formed and resolving to the Supabase issuer. What we have **not** reproduced end to end
-  is the full browser round trip — dynamic client registration, authorize, consent, code,
-  token, authenticated `tools/call`. The session that built it ran that live and reported it;
-  nobody re-ran it afterwards, and the difference between "tested" and "reported tested" is
-  worth the sentence.
+- **The remote MCP is verified end to end, by a client we did not write.** Claude Code was
+  pointed at `https://planbound.xyz/api/mcp/http` with `claude mcp add --transport http`,
+  registered itself through dynamic client registration, sent its human to our consent screen,
+  and came back holding a token our resource server accepted. `quote_task` then ran through it
+  for real: Bazaar discovery, four sellers, live 402 probes, $0.0260 of quotes.
+  Separately, the boundary: no token → 401 with a well-formed `WWW-Authenticate` and *not* a
+  redirect; a token in the query string → refused; a garbage token → 401; the RFC 9728 document
+  well-formed and resolving to the Supabase issuer.
+  Worth stating because it was not true for most of the build: the flow had been run only by
+  the session that wrote it, and "tested" and "reported tested" are different claims. A
+  third-party client closed that gap.
 - **Audience binding is not the spec's mechanism, because the mechanism is unavailable.**
   RFC 8707 asks a resource server to reject tokens not issued for it. Supabase accepts the
   `resource` parameter and does not reflect it in the token — `aud` is the Postgres role
