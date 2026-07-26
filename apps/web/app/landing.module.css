@@ -1129,3 +1129,23 @@
     }
   }
 }
+
+/* A command meant to be copied, so it is set as one: mono, boxed, and allowed
+   to scroll on its own rather than wrapping a URL across three lines or pushing
+   the page sideways at 320px. */
+.cmd {
+  margin: 0.75rem 0 0.65rem;
+  padding: 0.7rem 0.85rem;
+  background: var(--l-ink);
+  color: var(--l-paper);
+  border-radius: 3px;
+  overflow-x: auto;
+  font-size: 0.78rem;
+  line-height: 1.7;
+}
+
+.cmd code {
+  display: block;
+  font-family: var(--font-mono);
+  white-space: pre;
+}

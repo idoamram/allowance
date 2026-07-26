@@ -597,6 +597,49 @@ export default function Home() {
           </div>
         </section>
 
+        {/* ── Connect it ───────────────────────────────────────────────────
+            The one claim on this page a reader can check in thirty seconds
+            without trusting us, so it is written to be pasted rather than
+            admired. Everything above describes what the product does; this is
+            the part where they do it. */}
+        <section className={`${styles.wrap} ${styles.band} ${styles.bandRule}`}>
+          <div className={styles.split}>
+            <div>
+              <p className={styles.eyebrow}>Connect it</p>
+              <h2 className={styles.h2}>Point your agent at it.</h2>
+              <p className={styles.lede}>
+                Seven tools over the Model Context Protocol. Add the remote server and Claude
+                Code registers itself, sends you to our consent screen, and comes back holding a
+                token scoped to one agent &mdash; no key to copy, and nothing that can spend
+                until you approve a plan.
+              </p>
+            </div>
+            <div className={styles.rails}>
+              <div className={styles.rail}>
+                <span className={styles.railName}>Remote, over OAuth</span>
+                <pre className={styles.cmd}>
+                  <code>claude mcp add --transport http planbound https://planbound.xyz/api/mcp/http</code>
+                </pre>
+                <p className={styles.railBody}>
+                  Then <code>/mcp</code> &rarr; authenticate. You approve on a screen that says
+                  exactly what the agent may do, and what it may not.
+                </p>
+              </div>
+              <div className={styles.rail}>
+                <span className={styles.railName}>As a plugin</span>
+                <pre className={styles.cmd}>
+                  <code>claude plugin marketplace add idoamram/planbound</code>
+                  <code>claude plugin install planbound@planbound</code>
+                </pre>
+                <p className={styles.railBody}>
+                  The tools, plus the skills &mdash; including a generic Substreams indexer for
+                  reading settlements straight off a chain.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ── Close ────────────────────────────────────────────────────────── */}
         <section className={`${styles.wrap} ${styles.band} ${styles.bandRule}`}>
           <h2 className={styles.h2}>See a plan, priced and reasoned.</h2>
