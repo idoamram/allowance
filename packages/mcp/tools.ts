@@ -149,6 +149,18 @@ export interface AwaitApprovalInput {
 /**
  * Block until the human decides, or until the timeout. Polls; never waits forever —
  * an unattended agent that hangs on a human is an agent nobody can debug.
+ *
+ * On approval it waits for the envelope too, and that is not an extra convenience —
+ * it closes a real race. The decision route sets the plan to `approved` and only then
+ * mints, because a mint failure must leave an auditable approved-but-unfunded plan
+ * rather than discard the human's decision. Minting is a Hedera account create plus a
+ * scheduled refund plus two HCS messages, so `approved` is observably true for tens of
+ * seconds before there is anything to spend. A caller that returned on status alone
+ * would go straight to a purchase with no envelope behind it — which is exactly what
+ * happened the first time this ran end to end.
+ *
+ * `envelopePending: true` means the mint did not finish inside the timeout. That is not
+ * a failure; it is the caller's cue to poll `get_envelope` rather than to spend.
  */
 export async function awaitApproval(input: AwaitApprovalInput, deps: ToolDeps = liveToolDeps) {
   const cfg = deps.config()
@@ -158,14 +170,21 @@ export async function awaitApproval(input: AwaitApprovalInput, deps: ToolDeps = 
   for (;;) {
     const plan = await getPlan(input.planId, cfg, deps.fetch)
     if (plan.status !== 'pending_approval') {
-      return {
-        status: plan.status,
-        decision: plan.decision,
-        timedOut: false,
-        approvalUrl: approvalUrls.get(input.planId),
-        totalUsd: plan.totalUsd,
-        ceilingUsd: plan.ceilingUsd,
+      // Anything other than approval has no envelope to wait for.
+      const awaitingMint = plan.status === 'approved' && !plan.envelope
+      if (!awaitingMint || deps.now().getTime() + POLL_INTERVAL_MS > deadline) {
+        return {
+          status: plan.status,
+          decision: plan.decision,
+          timedOut: false,
+          ...(awaitingMint ? { envelopePending: true } : {}),
+          approvalUrl: approvalUrls.get(input.planId),
+          totalUsd: plan.totalUsd,
+          ceilingUsd: plan.ceilingUsd,
+        }
       }
+      await deps.sleep(POLL_INTERVAL_MS)
+      continue
     }
     if (deps.now().getTime() + POLL_INTERVAL_MS > deadline) {
       return {
