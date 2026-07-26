@@ -86,6 +86,28 @@ describe('WWW-Authenticate (RFC 9728 §5.1)', () => {
     expect(header.startsWith('Bearer ')).toBe(true)
   })
 
+  it('survives a description written in prose, not ASCII', () => {
+    // Found live: our own copy uses em dashes, and a header value must be a ByteString.
+    // Building the header threw, which turned a clean 401 into a 500 — on the one response
+    // a client with no credentials depends on.
+    const description = 'token rejected — “exp” claim timestamp check failed…'
+    expect(() => wwwAuthenticate(metadataUrl, { error: 'invalid_token', description })).not.toThrow()
+    const res = challengeResponse(metadataUrl, { error: 'invalid_token', description })
+    expect(res.status).toBe(401)
+    expect(res.headers.get('www-authenticate')).toContain('token rejected - \\"exp\\" claim')
+    // The unmangled text still reaches the caller where bytes are not a constraint.
+    expect(res.headers.get('www-authenticate')).not.toContain('—')
+  })
+
+  it('cannot be made to inject a second header', () => {
+    const header = wwwAuthenticate(metadataUrl, {
+      error: 'invalid_token',
+      description: 'bad\r\nX-Injected: yes',
+    })
+    expect(header).not.toContain('\r')
+    expect(header).not.toContain('\n')
+  })
+
   it('never caches a challenge', () => {
     expect(challengeResponse(metadataUrl).headers.get('cache-control')).toBe('no-store')
   })

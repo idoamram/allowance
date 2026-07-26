@@ -18,8 +18,27 @@ const STATUS: Record<OAuthErrorCode, number> = {
   invalid_request: 400,
 }
 
+/**
+ * Header values are ByteStrings: every character has to fit in one byte, and the platform
+ * throws rather than mangling one that does not. Our prose is written with em dashes and
+ * curly quotes, so a description built from it will kill the response — and it would do it
+ * on the *error* path, turning a clean 401 into a 500 exactly when a client is trying to
+ * discover us. The readable text still reaches the caller in the JSON body; the header gets
+ * an ASCII rendering of it.
+ */
+const asciiOnly = (value: string) =>
+  value
+    .replace(/[‐-―]/g, '-')
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/…/g, '...')
+    // Anything still outside printable ASCII (including CR/LF, which would split the
+    // header) is dropped rather than guessed at.
+    .replace(/[^\x20-\x7e]/g, '')
+
 /** `quoted-string` per RFC 9110: backslash and double quote are the only escapes. */
-const quote = (value: string) => `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`
+const quote = (value: string) =>
+  `"${asciiOnly(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`
 
 export interface ChallengeOptions {
   /**
