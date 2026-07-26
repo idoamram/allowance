@@ -14,6 +14,7 @@ import { Sellers } from './sellers'
 import { mintDecisionToken } from './token'
 import { usd } from '@/lib/format'
 import { humanVerifierOrError, DEFAULT_STEP_UP_USD } from '@/lib/verify'
+import { getBinding, verificationRequired } from '@/lib/human-binding'
 import styles from './approval.module.css'
 
 export const dynamic = 'force-dynamic'
@@ -47,6 +48,12 @@ type StepRow = {
   paid_usd: number | string | null
   live_ask_usd: number | string | null
   receipt: { txRef?: string; network?: string; payTo?: string; at?: string } | null
+}
+
+/** The account that owns the agent whose plan this is — whose human, if any, is bound. */
+async function ownerOfAgent(agentId: string): Promise<string | null> {
+  const { data } = await db().from('agents').select('owner_id').eq('id', agentId).maybeSingle()
+  return (data as { owner_id: string | null } | null)?.owner_id ?? null
 }
 
 /** Statuses where money has moved, so the page owes a reconciliation rather than a sentence. */
@@ -147,9 +154,22 @@ export default async function ApprovalPage({
   const fixes = plan.self_check?.fixes ?? []
   const settled = SETTLED_COPY[isExpired && plan.status === 'pending_approval' ? 'expired' : plan.status]
 
-  // Step-up is decided from the plan's own ceiling by whichever verifier this deployment
-  // runs. With the default (`none`) this is always null and the page is unchanged — which
-  // is the point of the seam: World is a registration, not a rewrite.
+  // Step-up asks two different questions and both have to be asked *here*, because this is
+  // the only place that can render the button that answers them.
+  //
+  // The page used to ask only the verifier's own rule — is this ceiling above the step-up
+  // line — while the server action that receives the approval also consults the owner's
+  // enrolled policy. An owner on `always` therefore got a plan under the line with no verify
+  // block on it, pressed approve, and was told to "verify above" by a page with nothing
+  // above. The gate was correct and the page was not, which is the worst way round: the
+  // control worked and looked broken.
+  //
+  // So the same rule runs in both places, from the same function.
+  const owner = await ownerOfAgent(plan.agent_id)
+  const binding = owner ? await getBinding(owner) : null
+  const stepUpLine = Number(process.env.STEP_UP_USD ?? DEFAULT_STEP_UP_USD)
+  const policyRequires = binding !== null && verificationRequired(binding.policy, ceiling, stepUpLine)
+
   const forVerifier = { planId: plan.id, ceilingUsd: ceiling, goal: plan.goal }
   const selected = humanVerifierOrError()
   let stepUp: StepUpRequirement | null = null
@@ -157,10 +177,12 @@ export default async function ApprovalPage({
     // Fails closed for every ceiling: the operator opted into a verifier and it did not
     // load, so we cannot know which plans it would have asked about.
     stepUp = { ceilingLabel: usd(ceiling), thresholdLabel: '', configError: selected.error }
-  } else if (selected.verifier.required(forVerifier)) {
+  } else if (policyRequires || selected.verifier.required(forVerifier)) {
     stepUp = {
       ceilingLabel: usd(ceiling),
-      thresholdLabel: usd(Number(process.env.STEP_UP_USD ?? DEFAULT_STEP_UP_USD)),
+      // Empty when the owner asked for every approval to be verified: there is no line this
+      // ceiling crossed, and naming one would be a reason that is not the real reason.
+      thresholdLabel: binding?.policy === 'always' ? '' : usd(stepUpLine),
     }
   }
 

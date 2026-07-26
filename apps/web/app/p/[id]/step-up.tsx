@@ -77,9 +77,14 @@ export function StepUp({
         Confirm a human is here{' '}
         <span className={`${styles.stamp} ${styles.stampWarn}`}>required</span>
       </p>
+      {/* Two different reasons, and saying the wrong one is worse than saying none. An
+          empty threshold means the owner asked for every approval to be verified — there is
+          no line this ceiling crossed to point at. */}
       <p className={styles.hint}>
-        {ceilingLabel} is above your {thresholdLabel} step-up line. Approving funds the
-        envelope, so this one asks for more than a link.
+        {thresholdLabel
+          ? `${ceilingLabel} is above your ${thresholdLabel} step-up line.`
+          : 'You asked for every approval to be verified.'}{' '}
+        Approving funds the envelope, so this one asks for more than a link.
       </p>
 
       <button
