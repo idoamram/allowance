@@ -52,7 +52,7 @@ These are the decisions AI did not make, and would have got wrong alone:
   recommended the cheap fix — a 20-minute gate on `/console` — and flagged that a full account
   model this late was the kind of scope that eats a submission. Ido chose the full model
   anyway: Supabase magic link, agents owned by a user, per-agent tokens issued and rotatable
-  from `/account`, console scoping enforced by Postgres RLS rather than by application code.
+  by their owner, console scoping enforced by Postgres RLS rather than by application code.
   The agent said plainly that it disagreed and that it thought the deadline risk was real,
   then built what was asked. Recorded here because a disclosure file in which the agent is
   never overruled is not a disclosure file, and because the scope call and the risk call were
