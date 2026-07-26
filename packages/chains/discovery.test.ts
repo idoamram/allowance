@@ -50,6 +50,32 @@ describe('quoteSteps (injected prober — no network)', () => {
     ])
   })
 
+  it("takes the network from the seller's 402, not from the Bazaar's claim", async () => {
+    // The directory said Worldchain; the seller's own 402 offers Base. Trusting the
+    // directory produced a plan that told a human "worldchain" and then failed the rail
+    // check at payment time — after the envelope had already been funded.
+    const listed: Candidate = { ...base('https://a', 0.02), network: 'eip155:480' }
+    const steps = await quoteSteps([listed], {
+      probe: async () => ({
+        amountUsd: 0.05,
+        network: 'eip155:8453',
+        asset: '0x',
+        payTo: '0x',
+      }),
+      isReachable: async () => true,
+    })
+    expect(steps[0]).toMatchObject({ network: 'eip155:8453', source: 'live-402' })
+  })
+
+  it('keeps the listed network for an estimate, where no seller has spoken', async () => {
+    const listed: Candidate = { ...base('https://a', 0.02), network: 'eip155:480' }
+    const steps = await quoteSteps([listed], {
+      probe: async () => null,
+      isReachable: async () => true,
+    })
+    expect(steps[0]).toMatchObject({ network: 'eip155:480', source: 'estimate' })
+  })
+
   it('falls back to the listed price as an estimate when reachable but no 402', async () => {
     const steps = await quoteSteps([base('https://a', 0.02)], {
       probe: async () => null,
