@@ -1,4 +1,5 @@
 import { loadClaimedVsSettled } from '@/lib/claimed-vs-settled'
+import { supabaseServer } from '@/lib/supabase/server'
 import type { ReconRow } from '@/lib/reconcile'
 import { usd } from '@/lib/format'
 import styles from './claimed.module.css'
@@ -33,7 +34,8 @@ function isoDay(seconds: number): string {
 }
 
 export default async function ClaimedVsSettled() {
-  const state = await loadClaimedVsSettled()
+  // The cookie-bound client, so this panel sees only the signed-in human's envelopes.
+  const state = await loadClaimedVsSettled(await supabaseServer())
 
   const body = () => {
     switch (state.kind) {
