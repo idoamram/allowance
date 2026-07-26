@@ -135,6 +135,41 @@ export default async function ConsolePage() {
 
   return (
     <main className={styles.page}>
+      {/* ── identity, before the work ────────────────────────────────────────
+          Shown only while no World ID is bound, and it says two different
+          things depending on whether that is a gap or a fault.
+
+          With a policy set, unbound is a fault: approvals that need a human are
+          being refused right now, and the operator has no way to know that from
+          anywhere else on the page. Under `off` it is an invitation, so it is
+          quieter — nagging someone who has deliberately turned a control off is
+          how a banner becomes wallpaper. */}
+      {!binding.nullifier && (
+        <aside
+          className={binding.policy === 'off' ? styles.notice : styles.noticeUrgent}
+          role={binding.policy === 'off' ? undefined : 'alert'}
+        >
+          <p className={styles.noticeBody}>
+            {binding.policy === 'off' ? (
+              <>
+                <strong>No World ID is bound to this account.</strong> An agent holds the
+                approval link for its own plan. Binding a World ID means an approval has to
+                come from you, not from the agent and not from whoever else has the link.
+              </>
+            ) : (
+              <>
+                <strong>Approvals are being refused.</strong> This account requires a bound
+                World ID and none is enrolled, so any plan that needs a human is turned away
+                rather than waved through.
+              </>
+            )}
+          </p>
+          <a className={styles.noticeCta} href="#human">
+            {binding.policy === 'off' ? 'Bind a World ID' : 'Fix this'} &darr;
+          </a>
+        </aside>
+      )}
+
       {/* ── what needs you, before anything else ─────────────────────────────
           Only when there is a body of work to summarise. With no plans at all
           the summary and the empty state would say the same sentence twice, so
