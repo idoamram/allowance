@@ -1,5 +1,5 @@
 import 'server-only'
-import { db } from './db'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { type Claim, type ReconRow, reconcile } from './reconcile'
 import { indexWindow, settlementsByPayers, subgraphUrl } from './subgraph'
 
@@ -10,6 +10,12 @@ import { indexWindow, settlementsByPayers, subgraphUrl } from './subgraph'
  *
  * Scope is deliberately narrow — Worldchain USDC only. Hedera-rail steps settle on a chain
  * The Graph does not index, so they are excluded rather than silently counted as unsettled.
+ *
+ * The caller supplies the client rather than this module reaching for the service-role one.
+ * That is a security boundary, not a style preference: this panel selects envelope wallet
+ * addresses and plan ids, so under the service-role client it would show one signed-in
+ * human every other human's envelopes. Handed the cookie-bound client, the RLS policies
+ * from migration 0004 scope it to the caller's own plans.
  */
 
 export type PanelState =
@@ -31,10 +37,9 @@ interface StepRow {
  * deployed" and "the chain shows nothing settled" mean opposite things to an approver, and
  * a verification panel that blurs them is worse than no panel.
  */
-export async function loadClaimedVsSettled(): Promise<PanelState> {
+export async function loadClaimedVsSettled(client: SupabaseClient): Promise<PanelState> {
   if (!subgraphUrl()) return { kind: 'not_configured' }
 
-  const client = db()
   const { data: envelopeRows } = await client
     .from('envelopes')
     .select('plan_id, evm_address')
