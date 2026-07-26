@@ -191,3 +191,16 @@
   border-left: 2px solid var(--stop);
   color: var(--stop);
 }
+
+/* The explanation, below the control it explains. Set back and quiet: worth
+   reading once, and worth not re-reading every time someone comes to change a
+   setting. */
+.about {
+  margin-top: 1.75rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--rule);
+}
+
+.about .sub {
+  margin-top: 0;
+}
