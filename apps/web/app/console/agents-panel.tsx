@@ -27,11 +27,7 @@ export function AgentsPanel({ agents }: { agents: OwnedAgent[] }) {
   return (
     <>
       {agents.length === 0 ? (
-        <p className={styles.empty}>
-          You have no agents. Create one below &mdash; you get a token back once, the agent
-          sets it as <code>PLANBOUND_AGENT_TOKEN</code>, and it can start submitting plans for
-          you to approve.
-        </p>
+        <p className={styles.empty}>You have no agents yet.</p>
       ) : (
         <ul className={styles.agentList}>
           {agents.map((agent) => (

@@ -101,48 +101,38 @@ export default async function ConsolePage() {
 
   return (
     <main className={styles.page}>
-      {/* ── what needs you, before anything else ─────────────────────────── */}
-      <section className={styles.hero}>
-        {blocked.length > 0 ? (
-          <Headline
-            figure={blocked.length}
-            tone="stop"
-            lead={`${blocked.length === 1 ? 'plan is' : 'plans are'} blocked on drift.`}
-            body="A step asked more than it quoted, so the co-signer refused and the run stopped there. The diff shows what already settled and the price of each way out."
-            cta={next ? { href: link(next), text: 'Open the drift diff' } : undefined}
-          />
-        ) : waiting.length > 0 ? (
-          <Headline
-            figure={waiting.length}
-            tone="wants"
-            lead={`${waiting.length === 1 ? 'plan is' : 'plans are'} waiting for your approval.`}
-            body="Nothing runs until you approve, and approving is what funds the envelope. Until then the agent holds no money at all."
-            cta={next ? { href: link(next), text: 'Review the oldest' } : undefined}
-          />
-        ) : agents.length === 0 ? (
-          <Headline
-            tone="new"
-            lead="Start by creating an agent."
-            body="An agent belongs to you and holds one bearer token. The token says which agent is asking — it carries no funds and it cannot approve anything on your behalf."
-            cta={{ href: '#agents', text: 'Create an agent' }}
-          />
-        ) : plans.length === 0 ? (
-          <Headline
-            tone="new"
-            lead="Your agent has not submitted a plan yet."
-            body="Give it a task. It shops the task against live sellers, prices every step, and the priced plan lands here for you to approve."
-            cta={{ href: '#agents', text: 'Where to find the token' }}
-          />
-        ) : (
-          <Headline
-            figure={0}
-            tone="clear"
-            lead="plans are waiting on you."
-            body="Every plan your agents submitted has been answered. A new one appears here the moment it is submitted, long before anyone approves it."
-          />
-        )}
+      {/* ── what needs you, before anything else ─────────────────────────────
+          Only when there is a body of work to summarise. With no plans at all
+          the summary and the empty state would say the same sentence twice, so
+          the invitation in the Plans section below carries it alone — and says
+          it in the place the plans will appear. */}
+      {plans.length > 0 && (
+        <section className={styles.hero}>
+          {blocked.length > 0 ? (
+            <Headline
+              figure={blocked.length}
+              tone="stop"
+              lead={`${blocked.length === 1 ? 'plan is' : 'plans are'} blocked on drift.`}
+              body="A step asked more than it quoted, so the co-signer refused and the run stopped there. The diff shows what already settled and the price of each way out."
+              cta={next ? { href: link(next), text: 'Open the drift diff' } : undefined}
+            />
+          ) : waiting.length > 0 ? (
+            <Headline
+              figure={waiting.length}
+              tone="wants"
+              lead={`${waiting.length === 1 ? 'plan is' : 'plans are'} waiting for your approval.`}
+              body="Nothing runs until you approve, and approving is what funds the envelope. Until then the agent holds no money at all."
+              cta={next ? { href: link(next), text: 'Review the oldest' } : undefined}
+            />
+          ) : (
+            <Headline
+              figure={0}
+              tone="clear"
+              lead="plans are waiting on you."
+              body="Every plan your agents submitted has been answered. A new one appears here the moment it is submitted, long before anyone approves it."
+            />
+          )}
 
-        {plans.length > 0 && (
           <dl className={styles.ledger}>
             {ledger.map((item) => (
               <div key={item.label} className={styles.ledgerItem}>
@@ -151,8 +141,8 @@ export default async function ConsolePage() {
               </div>
             ))}
           </dl>
-        )}
-      </section>
+        </section>
+      )}
 
       {/* ── the substance ────────────────────────────────────────────────── */}
       <section id="plans" className={styles.section}>
@@ -249,7 +239,7 @@ function Headline({
   cta,
 }: {
   figure?: number
-  tone: 'wants' | 'stop' | 'clear' | 'new'
+  tone: 'wants' | 'stop' | 'clear'
   lead: string
   body: string
   cta?: { href: string; text: string }
@@ -258,7 +248,6 @@ function Headline({
     wants: styles.headWants,
     stop: styles.headStop,
     clear: styles.headClear,
-    new: styles.headNew,
   }[tone]
 
   return (
@@ -337,7 +326,7 @@ function NoPlansYet({ hasAgent }: { hasAgent: boolean }) {
         </code>
       </pre>
       <a className={styles.cta} href="#agents">
-        Rotate the token if you lost it<span aria-hidden="true"> →</span>
+        Manage agents and tokens<span aria-hidden="true"> →</span>
       </a>
     </div>
   )

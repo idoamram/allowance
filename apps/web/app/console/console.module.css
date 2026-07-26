@@ -37,6 +37,12 @@
   scroll-margin-top: 5.5rem;
 }
 
+/* With no plans there is no summary above, so the first section starts at the
+   page's own top padding rather than adding a second gap to it. */
+.page > .section:first-child {
+  margin-top: 0;
+}
+
 @media (min-width: 46rem) {
   .section {
     margin-top: 4.5rem;
@@ -64,10 +70,6 @@
 
 .headClear {
   border-left-color: var(--ok);
-}
-
-.headNew {
-  border-left-color: var(--accent);
 }
 
 .headline {
