@@ -12,7 +12,7 @@ import {
 import { TokenReveal } from './token-reveal'
 import styles from './account.module.css'
 
-type Reveal = { token: string; agentName: string }
+type Reveal = { token: string; agentName: string; kind: 'created' | 'rotated' }
 
 /**
  * Everything on this page that can mint or destroy a credential.
@@ -31,8 +31,9 @@ export function AgentsPanel({ agents }: { agents: OwnedAgent[] }) {
       <h2 className={styles.sectionTitle}>Agents</h2>
       {agents.length === 0 ? (
         <p className={styles.empty}>
-          No agents yet. Create one above, then put its token in the agent&rsquo;s environment
-          &mdash; that is what lets it submit plans for you to approve.
+          Create your first agent above. You get one token back &mdash; set it as{' '}
+          <code>PLANBOUND_AGENT_TOKEN</code> in the agent&rsquo;s environment and it can start
+          submitting plans for you to approve.
         </p>
       ) : (
         <ul className={styles.agentList}>
@@ -46,7 +47,8 @@ export function AgentsPanel({ agents }: { agents: OwnedAgent[] }) {
         <TokenReveal
           token={reveal.token}
           agentName={reveal.agentName}
-          onDone={() => setReveal(null)}
+          kind={reveal.kind}
+          onClose={() => setReveal(null)}
         />
       )}
     </>
@@ -57,7 +59,9 @@ function CreateAgent({ onToken }: { onToken: (r: Reveal) => void }) {
   const [state, action, pending] = useActionState<TokenState, FormData>(createAgentAction, {})
 
   useEffect(() => {
-    if (state.token) onToken({ token: state.token, agentName: state.agentName ?? 'this agent' })
+    if (state.token) {
+      onToken({ token: state.token, agentName: state.agentName ?? 'this agent', kind: 'created' })
+    }
   }, [state.token, state.agentName, onToken])
 
   return (
@@ -77,7 +81,7 @@ function CreateAgent({ onToken }: { onToken: (r: Reveal) => void }) {
           placeholder="research-buyer"
         />
         <button type="submit" className={styles.btn} disabled={pending}>
-          {pending ? 'Creating…' : 'Create'}
+          {pending ? 'Creating…' : 'Create agent'}
         </button>
       </div>
       <p className={styles.hint}>
@@ -105,7 +109,11 @@ function AgentRow({ agent, onToken }: { agent: OwnedAgent; onToken: (r: Reveal) 
 
   useEffect(() => {
     if (rotateState.token) {
-      onToken({ token: rotateState.token, agentName: rotateState.agentName ?? agent.name })
+      onToken({
+        token: rotateState.token,
+        agentName: rotateState.agentName ?? agent.name,
+        kind: 'rotated',
+      })
       setConfirming(null)
     }
   }, [rotateState.token, rotateState.agentName, agent.name, onToken])
@@ -154,7 +162,7 @@ function AgentRow({ agent, onToken }: { agent: OwnedAgent; onToken: (r: Reveal) 
             className={`${styles.rowBtn} ${styles.rowBtnStop}`}
             onClick={() => setConfirming('delete')}
           >
-            Delete
+            Delete agent
           </button>
         </div>
       )}
@@ -164,12 +172,14 @@ function AgentRow({ agent, onToken }: { agent: OwnedAgent; onToken: (r: Reveal) 
           <input type="hidden" name="agentId" value={agent.id} />
           <input type="hidden" name="agentName" value={agent.name} />
           <p className={styles.confirmText}>
-            Rotating issues a new token and stops the old one working immediately. Any running
-            copy of <b>{agent.name}</b> will start failing until you update its environment.
+            Rotating issues a new token and retires the current one the same instant &mdash;
+            there is no overlap. Any running copy of <b>{agent.name}</b> starts getting 401s
+            and stays down until you put the new token in its environment. The new token is
+            shown once.
           </p>
           <div className={styles.rowActions}>
             <button type="submit" className={styles.rowBtn} disabled={rotating}>
-              {rotating ? 'Rotating…' : 'Rotate it'}
+              {rotating ? 'Rotating…' : 'Rotate token'}
             </button>
             <button
               type="button"
@@ -184,19 +194,32 @@ function AgentRow({ agent, onToken }: { agent: OwnedAgent; onToken: (r: Reveal) 
       )}
 
       {confirming === 'delete' && (
-        <form action={remove} className={styles.confirm}>
+        <form action={remove} className={`${styles.confirm} ${styles.confirmStop}`}>
           <input type="hidden" name="agentId" value={agent.id} />
           <p className={styles.confirmText}>
-            Delete <b>{agent.name}</b>? Its token stops working and it can no longer submit
-            plans. Plans it has already submitted stay on the record.
+            Deleting <b>{agent.name}</b> also deletes{' '}
+            <b className={styles.num}>
+              {agent.planCount} {agent.planCount === 1 ? 'plan' : 'plans'}
+            </b>
+            . Settled ones and their receipts go with it. This is the history of what the agent
+            spent and what you approved, and nothing here can restore it.
           </p>
+          {agent.planCount > 0 && (
+            <p className={styles.confirmText}>
+              The on-chain record survives; the account&rsquo;s copy of it does not.
+            </p>
+          )}
           <div className={styles.rowActions}>
             <button
               type="submit"
               className={`${styles.rowBtn} ${styles.rowBtnStop}`}
               disabled={removing}
             >
-              {removing ? 'Deleting…' : `Delete ${agent.name}`}
+              {removing
+                ? 'Deleting…'
+                : agent.planCount > 0
+                  ? `Delete agent and ${agent.planCount} ${agent.planCount === 1 ? 'plan' : 'plans'}`
+                  : 'Delete agent'}
             </button>
             <button
               type="button"

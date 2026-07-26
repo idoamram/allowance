@@ -153,8 +153,18 @@
 .empty {
   font-size: 0.82rem;
   color: var(--ink-soft);
-  line-height: 1.55;
+  line-height: 1.6;
   margin: 0;
+}
+
+.empty code {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink);
+  background: var(--manila-deep);
+  border-radius: 3px;
+  padding: 0 0.25rem;
+  overflow-wrap: anywhere;
 }
 
 .agentList {
@@ -280,6 +290,12 @@
   margin-top: 0.2rem;
 }
 
+/* Deleting cascades to the agent's plans. The confirm step is the only thing between the
+   click and losing that history, so it is marked as the stop-coloured branch of the page. */
+.confirmStop {
+  border-left-color: var(--stop);
+}
+
 .confirmText {
   font-size: 0.8rem;
   color: var(--ink-soft);
@@ -320,34 +336,59 @@
   }
 }
 
+/* The counterfoil: the stub torn off a numbered document and kept. Square, not rounded —
+   every other surface on this page has a radius, and this one deliberately does not. */
 .reveal {
   width: 100%;
   max-width: 32rem;
   margin: auto;
   background: #fffdf7;
-  border: 2px solid var(--ink);
-  border-radius: 14px;
-  padding: 1.25rem 1.1rem 1.1rem;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  padding: 0 1.1rem 1.1rem;
   box-shadow: 0 18px 50px rgba(27, 26, 23, 0.35);
 }
 
-.revealOnce {
-  display: inline-block;
-  background: var(--stop);
-  color: var(--manila);
-  font-size: 0.66rem;
-  letter-spacing: 0.12em;
+/* The perforation it was torn along. */
+.tear {
+  height: 0.55rem;
+  margin: 0 -1.1rem 0.9rem;
+  background-image: radial-gradient(circle at 50% 100%, var(--manila) 0.16rem, transparent 0.17rem);
+  background-size: 0.5rem 0.55rem;
+  background-repeat: repeat-x;
+  border-bottom: 1px dashed var(--ink-soft);
+}
+
+.counterfoil {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0 0 0.8rem;
+}
+
+.counterfoilAction {
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 700;
-  padding: 0.2rem 0.5rem;
-  border-radius: 2px;
-  margin: 0 0 0.65rem;
+  color: var(--ink);
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 0.1rem;
+}
+
+.counterfoilName {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
 }
 
 .revealTitle {
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   margin: 0;
-  line-height: 1.25;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
 .revealTitle:focus-visible {
@@ -376,16 +417,19 @@
   margin: 0 0 0.3rem;
 }
 
+/* The value at real size — this is the thing the screen exists to hand over, so it is set
+   larger than any body copy on the page and is selectable in one gesture. */
 .tokenBox {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.86rem;
-  line-height: 1.5;
+  font-size: 1.02rem;
+  line-height: 1.65;
+  letter-spacing: 0.01em;
   color: var(--ink);
   background: var(--manila-deep);
-  border: 1px dashed var(--ink-soft);
-  border-radius: 6px;
-  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  padding: 0.8rem 0.85rem;
   overflow-wrap: anywhere;
   user-select: all;
 }
@@ -399,7 +443,7 @@
   background: var(--ink);
   color: var(--manila);
   border: 1px solid var(--ink);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 0.6rem 0;
   cursor: pointer;
   margin-top: 0.6rem;
@@ -462,7 +506,7 @@
   background: transparent;
   color: var(--ink);
   border: 1px solid var(--ink);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 0.55rem 0;
   cursor: pointer;
 }
