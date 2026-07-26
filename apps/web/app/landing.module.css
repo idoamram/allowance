@@ -357,7 +357,9 @@
   font-size: 0.9rem;
   margin-top: 0.9rem;
   background: var(--good);
-  color: #fff;
+  /* The ground, not white: in dark the good green lightens, and white on it
+     would fall under the contrast floor. */
+  color: var(--ground);
 }
 
 .fakeBtnGhost {
