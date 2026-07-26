@@ -136,9 +136,16 @@ async function main() {
   }
 
   // ── the envelope now exists; everything below spends from it and nothing else ────────
-  const env = await getEnvelope({ planId: submitted.planId })
+  // awaitApproval already waited for the mint, but minting is an account create plus a
+  // scheduled refund plus two HCS messages — if it ran long, keep waiting here rather
+  // than reporting a failure for something that is merely still in flight.
+  let env = await getEnvelope({ planId: submitted.planId })
+  for (let i = 0; i < 20 && !('envelope' in env); i++) {
+    await new Promise((r) => setTimeout(r, 3_000))
+    env = await getEnvelope({ planId: submitted.planId })
+  }
   if (!('envelope' in env)) {
-    fatal(`approved, but no envelope was minted: ${env.reason}`)
+    fatal(`approved, but no envelope was minted after 60s: ${env.reason}`)
   }
   const envelope = env.envelope as { hedera_account?: string; funded_usd?: number | string }
   console.log('\n  ── envelope ─────────────────────────────────────────────')
