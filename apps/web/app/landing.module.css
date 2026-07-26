@@ -204,10 +204,14 @@
   border-bottom: 1px solid var(--l-rule);
 }
 
+/* The mark, not the word. The name still carries in the tab title and the footer;
+   this is the one surface where that is a real trade — a first-time visitor meets
+   an abstract glyph rather than a name. Deliberate, and easy to undo. */
 .wordmark {
-  font-weight: 600;
-  font-size: 1.02rem;
-  letter-spacing: -0.02em;
+  display: block;
+  width: 1.15rem;
+  height: 1.15rem;
+  color: var(--l-ink);
 }
 
 .mastNav {

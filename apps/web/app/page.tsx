@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Mark } from './(components)/mark'
 import styles from './landing.module.css'
 
 /**
@@ -177,7 +178,7 @@ export default function Home() {
     <div className={styles.page}>
       <header className={styles.wrap}>
         <div className={styles.masthead}>
-          <span className={styles.wordmark}>PlanBound</span>
+          <Mark className={styles.wordmark} title="PlanBound" />
           <nav className={styles.mastNav}>
             <a href="/console">Console</a>
             <a href="/login">Sign in</a>

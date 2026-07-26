@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { db } from '@/lib/db'
 import { safeEqual } from '@/lib/ids'
 import { DecisionForm, type StepUpRequirement } from './decision-form'
+import { Mark } from '../../(components)/mark'
 import { Countdown } from './countdown'
 import { DriftDiff } from './drift-diff'
 import { Receipts } from './receipts'
@@ -161,7 +162,7 @@ export default async function ApprovalPage({
     <main className={styles.page}>
       <article className={styles.sheet}>
         <header className={styles.masthead}>
-          <span className={styles.brand}>PlanBound</span>
+          <Mark className={styles.brand} title="PlanBound" />
           <span className={styles.planId}>plan {plan.id}</span>
           {/* Live, and in the masthead. The clock is what makes the authority to spend
               temporary, so it belongs where the eye lands rather than three sections down
