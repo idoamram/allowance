@@ -19,7 +19,7 @@
  *     stolen, or simply pasted by a confused operator — from being usable as an agent
  *     credential.
  */
-import { createRemoteJWKSet, jwtVerify, type JWTPayload } from 'jose'
+import { createRemoteJWKSet, jwtVerify, type JWTPayload, type JWTVerifyGetKey } from 'jose'
 import { authServerMetadata, canonicalResource, issuer } from './config'
 import type { OAuthErrorCode } from './errors'
 
@@ -83,11 +83,23 @@ export function bearerToken(req: Request): string | null {
   return token.length > 0 ? token : null
 }
 
+/**
+ * Injectable so the security properties can be tested without a network: a test supplies a
+ * local key set and a stub discovery fetch, and exercises the same code path production
+ * runs. Both default to the real thing.
+ */
+export interface VerifyDeps {
+  fetch?: typeof fetch
+  keys?: (jwksUri: string) => JWTVerifyGetKey
+}
+
 export async function verifyAccessToken(
   token: string,
   req?: Request,
-  fetchImpl: typeof fetch = fetch,
+  deps: VerifyDeps = {},
 ): Promise<VerifyResult> {
+  const fetchImpl = deps.fetch ?? fetch
+  const resolveKeys = deps.keys ?? keySet
   const expectedIssuer = issuer()
   const resource = canonicalResource(req)
 
@@ -108,7 +120,7 @@ export async function verifyAccessToken(
 
   let payload: JWTPayload
   try {
-    const verified = await jwtVerify(token, keySet(metadata.jwks_uri), {
+    const verified = await jwtVerify(token, resolveKeys(metadata.jwks_uri), {
       issuer: expectedIssuer,
       algorithms: ALLOWED_ALGS,
       clockTolerance: 5,
