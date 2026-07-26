@@ -52,6 +52,7 @@
   /* The quote band reverses the page, so its highlight has to reverse too:
      a warm light tan on the ink band, the ink accent on the light one. */
   --l-quote-em: #e6b98a;
+  --l-logo-invert: 0;
 
   color-scheme: light;
 
@@ -83,6 +84,7 @@
     --l-ok: #84c79c;
     --l-stop: #ef9a84;
     --l-quote-em: #8a5a2b;
+    --l-logo-invert: 1;
 
     color-scheme: dark;
   }
@@ -101,6 +103,7 @@
   --l-ok: #2f6b46;
   --l-stop: #a33a2a;
   --l-quote-em: #e6b98a;
+  --l-logo-invert: 0;
 
   color-scheme: light;
 }
@@ -117,6 +120,7 @@
   --l-ok: #84c79c;
   --l-stop: #ef9a84;
   --l-quote-em: #8a5a2b;
+  --l-logo-invert: 1;
 
   color-scheme: dark;
 }
@@ -1166,14 +1170,22 @@
   gap: 0.6rem;
 }
 
+/* Every mark in public/logos/ is a single-colour SVG with no `fill` — so each
+   one paints black by default and vanished entirely on the dark ground. The
+   invert is a theme token rather than a media query so that a reader who chose
+   light on a dark machine gets a black mark, which is the direction that
+   usually breaks.
+
+   Black-to-white is exactly right for these files and would be wrong for a
+   colour mark: if one ever lands here, give it its own class rather than
+   widening this rule. */
 .railLogo {
   width: auto;
   height: 1.1rem;
   max-width: 6.5rem;
   object-fit: contain;
-  /* No logo file yet: an empty img must not leave a broken-image glyph on a
-     submission page. */
   min-width: 0;
+  filter: invert(var(--l-logo-invert, 0));
 }
 
 .railPoints {

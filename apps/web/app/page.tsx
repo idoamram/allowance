@@ -142,10 +142,10 @@ const CLOSE = [
  * Bullets rather than prose because this is a checklist a judge scans, not an argument.
  * Every line names a thing that exists and can be opened.
  *
- * `logo` is optional and deliberately only set for the three whose files are in
- * `public/logos/`. x402 and MCP carried paths to SVGs that were never added, so both cards
- * rendered a broken image — an audit of the page's own claims found it. A name set in the
- * card's own type is not a downgrade; a broken image is.
+ * `logo` is optional and set only where the file is really in `public/logos/`. It briefly
+ * pointed at two SVGs that were never added, and both cards rendered a broken image. MCP has
+ * no mark here and shows its name in the card's own type, which is not a downgrade — a broken
+ * image is.
  */
 const BUILT_ON: { name: string; logo?: string; points: string[] }[] = [
   {
@@ -160,6 +160,7 @@ const BUILT_ON: { name: string; logo?: string; points: string[] }[] = [
   },
   {
     name: 'x402',
+    logo: '/logos/x402_logo.svg',
     points: [
       'Sellers discovered live through the Bazaar, never a hardcoded list',
       'Prices are real HTTP 402 quotes, badged live or estimate and never blurred',
@@ -169,7 +170,7 @@ const BUILT_ON: { name: string; logo?: string; points: string[] }[] = [
   },
   {
     name: 'World',
-    logo: '/logos/world.svg',
+    logo: '/logos/world-mono.svg',
     points: [
       'Above a set ceiling, approving demands a proof an agent cannot produce',
       'Enforced server-side, not by disabling a button',
