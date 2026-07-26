@@ -301,6 +301,109 @@
   color: var(--ink-soft);
 }
 
+/* ── Seller history: the third claim ──────────────────────────────────────────
+   The table above carries two claims about each seller, both authored by the
+   seller: it is listed, and it will quote a price. This block is the one it
+   cannot author — what has settled to its payout address, read from an index of
+   the chain. It sits directly under the prices because that is what it qualifies.
+
+   Typeset quieter than the prices it annotates. It is evidence offered to the
+   reader, not a score we are asserting, and a seller with no history has to read
+   as unproven rather than as rejected — so nothing here is ever set in the stop
+   colour. */
+.trust {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.trustResult {
+  display: grid;
+  gap: 0.7rem;
+  animation: land 260ms var(--ease-settle) both;
+}
+
+.trustList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.trustRow {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.trustRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.trustHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+/* Ledger lines on a phone: label left, figure right, so three figures of
+   different label lengths still share an edge to be compared along. */
+.trustFigures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem 1rem;
+  margin: 0;
+}
+
+.trustFigures div {
+  display: grid;
+  gap: 0.2rem;
+  align-content: start;
+}
+
+.trustFigures dt {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  line-height: 1.3;
+}
+
+.trustFigures dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.92rem;
+  letter-spacing: -0.02em;
+}
+
+.trustNote,
+.trustFoot {
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.trustAddr {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trustResult {
+    animation: none;
+  }
+}
+
 /* ── The envelope scale: the signature ────────────────────────────────────── */
 .envelopeFigures {
   display: flex;
