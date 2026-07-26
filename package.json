@@ -15,6 +15,7 @@
     "smoke": "tsx scripts/smoke-api.ts",
     "register:agent": "tsx scripts/register-agent-key.ts",
     "hcs:topic": "tsx scripts/create-hcs-topic.ts",
+    "signin:code": "tsx scripts/signin-code.ts",
     "vercel:config": "tsx scripts/vercel-rootdir.mts"
   },
   "dependencies": {

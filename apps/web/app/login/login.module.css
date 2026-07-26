@@ -8,7 +8,7 @@
 }
 
 .card {
-  background: #fffdf7;
+  background: var(--paper);
   border: 1px solid var(--rule);
   border-radius: 18px;
   padding: 1.5rem 1.25rem 1.35rem;
