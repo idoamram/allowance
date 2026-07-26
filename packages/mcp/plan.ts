@@ -124,7 +124,23 @@ const PLAYBOOKS: Playbook[] = [
     ],
   },
   {
-    match: /\b(market|btc|bitcoin|price|allocat\w*|derivativ\w*|trade|trading)\b/i,
+    /**
+     * Bitcoin, by name. Every category below is a Bitcoin question — the queries say
+     * "bitcoin", and the `buys` lines promise BTC figures — so the playbook may only
+     * claim a goal that asked about Bitcoin.
+     *
+     * It used to also fire on the bare words `market`, `price`, `trade` and `allocate`.
+     * "brief me on ETH and HBAR prices and the headlines" matched on `price`, and the
+     * plan came back priced, live-quoted, and about Bitcoin derivatives flow — with the
+     * confident hand-written `why` copy of a BTC brief attached to it. Every step was
+     * real and none of them bought what was asked for.
+     *
+     * That is the worst failure this product can have. A human glancing at a plan catches
+     * a wrong price; they do not catch a plausible plan answering a different question.
+     * A goal we have no playbook for now falls through to the generic decomposition,
+     * which queries the Bazaar with the goal itself and says out loud that it is generic.
+     */
+    match: /\b(btc|bitcoin|xbt)\b/i,
     categories: [
       {
         pinned: 'market',
