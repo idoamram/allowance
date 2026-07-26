@@ -195,27 +195,49 @@ describe('step-up ticket', () => {
 
   it('authorises exactly the plan it was minted for', () => {
     const ticket = mintStepUpTicket(key, 'pl_a', 'world')
-    expect(verifyStepUpTicket(ticket, key, 'pl_a', 'world')).toBe(true)
-    expect(verifyStepUpTicket(ticket, key, 'pl_b', 'world')).toBe(false)
+    expect(verifyStepUpTicket(ticket, key, 'pl_a', 'world').valid).toBe(true)
+    expect(verifyStepUpTicket(ticket, key, 'pl_b', 'world').valid).toBe(false)
   })
 
   it('is worthless under a different approval key or verifier', () => {
     const ticket = mintStepUpTicket(key, 'pl_a', 'world')
-    expect(verifyStepUpTicket(ticket, 'other-key-not-a-real-one', 'pl_a', 'world')).toBe(false)
-    expect(verifyStepUpTicket(ticket, key, 'pl_a', 'none')).toBe(false)
+    expect(verifyStepUpTicket(ticket, 'other-key-not-a-real-one', 'pl_a', 'world').valid).toBe(false)
+    expect(verifyStepUpTicket(ticket, key, 'pl_a', 'none').valid).toBe(false)
   })
 
   it('expires, so a proof cannot be banked for later', () => {
     const now = Date.now()
-    const ticket = mintStepUpTicket(key, 'pl_a', 'world', now)
-    expect(verifyStepUpTicket(ticket, key, 'pl_a', 'world', now + 9 * 60_000)).toBe(true)
-    expect(verifyStepUpTicket(ticket, key, 'pl_a', 'world', now + 11 * 60_000)).toBe(false)
+    const ticket = mintStepUpTicket(key, 'pl_a', 'world', '', now)
+    expect(verifyStepUpTicket(ticket, key, 'pl_a', 'world', now + 9 * 60_000).valid).toBe(true)
+    expect(verifyStepUpTicket(ticket, key, 'pl_a', 'world', now + 11 * 60_000).valid).toBe(false)
   })
 
   it('rejects garbage without throwing', () => {
-    expect(verifyStepUpTicket('', key, 'pl_a', 'world')).toBe(false)
-    expect(verifyStepUpTicket('nonsense', key, 'pl_a', 'world')).toBe(false)
-    expect(verifyStepUpTicket('9999999999999.', key, 'pl_a', 'world')).toBe(false)
+    expect(verifyStepUpTicket('', key, 'pl_a', 'world').valid).toBe(false)
+    expect(verifyStepUpTicket('nonsense', key, 'pl_a', 'world').valid).toBe(false)
+    expect(verifyStepUpTicket('9999999999999.', key, 'pl_a', 'world').valid).toBe(false)
+  })
+
+  it('carries the nullifier, and the MAC is what vouches for it', () => {
+    // The approve path reads this value to decide *which* human proved the plan. If it were
+    // merely alongside the ticket rather than signed into it, the client would choose it —
+    // and a binding check against a client-chosen identity checks nothing.
+    const ticket = mintStepUpTicket(key, 'pl_a', 'world', '0xnull')
+    expect(verifyStepUpTicket(ticket, key, 'pl_a', 'world')).toMatchObject({
+      valid: true,
+      nullifier: '0xnull',
+    })
+
+    const [exp, , mac] = ticket.split('.')
+    const swapped = `${exp}.${encodeURIComponent('0xsomeone-else')}.${mac}`
+    expect(verifyStepUpTicket(swapped, key, 'pl_a', 'world').valid).toBe(false)
+  })
+
+  it('reports no nullifier when the verifier returned none, rather than inventing one', () => {
+    const ticket = mintStepUpTicket(key, 'pl_a', 'none')
+    const check = verifyStepUpTicket(ticket, key, 'pl_a', 'none')
+    expect(check.valid).toBe(true)
+    expect(check.nullifier).toBeUndefined()
   })
 })
 

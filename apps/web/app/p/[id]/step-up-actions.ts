@@ -84,8 +84,11 @@ export async function completeStepUp(
   const outcome = await verifier.verify({ plan: auth.plan, idkitResult })
   if (!outcome.ok) return { error: outcome.detail }
 
+  // The nullifier is signed into the ticket rather than returned beside it: the approve
+  // path has to know *which* human proved this, and a value the client could substitute
+  // would be worse than not checking at all.
   return {
-    ticket: mintStepUpTicket(auth.approvalKey, planId, verifier.id),
+    ticket: mintStepUpTicket(auth.approvalKey, planId, verifier.id, outcome.nullifier ?? ''),
     signalBound: outcome.signalBound,
   }
 }

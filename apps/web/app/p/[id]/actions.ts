@@ -4,8 +4,9 @@ import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { decisionSchema } from '@planbound/core'
 import { db } from '@/lib/db'
-import { humanVerifier } from '@/lib/verify'
+import { DEFAULT_STEP_UP_USD, humanVerifier } from '@/lib/verify'
 import { verifyStepUpTicket } from '@/lib/verify/ticket'
+import { checkBinding, getBinding, verificationRequired } from '@/lib/human-binding'
 import { verifyDecisionToken } from './token'
 
 export type DecisionState = {
@@ -37,13 +38,34 @@ const field = (form: FormData, name: string): string | undefined => {
  * A misconfigured verifier blocks rather than waves through: policy said this ceiling needs
  * a human factor, and "we could not check" is not "it passed".
  */
-function stepUpGate(
+/** The account that owns the agent whose plan this is — whose human, if any, is bound. */
+async function ownerOfAgent(agentId: string): Promise<string | null> {
+  const { data } = await db().from('agents').select('owner_id').eq('id', agentId).maybeSingle()
+  return (data as { owner_id: string | null } | null)?.owner_id ?? null
+}
+
+/** The same ceiling the World verifier uses, read here so the policy agrees with the gate. */
+const stepUpUsd = (): number => Number(process.env.STEP_UP_USD ?? DEFAULT_STEP_UP_USD)
+
+/**
+ * Two questions, asked in order, and they are not the same question.
+ *
+ *   1. Was a human here at all? Liveness. This is what stops the agent approving its own
+ *      plan — `submit_plan` hands it the approval URL, so nothing else does.
+ *   2. Was it *this account's* human? Continuity, via the World nullifier the ticket
+ *      carries. This is what stops a leaked link being approved by a stranger.
+ *
+ * The second only applies once an owner has enrolled and chosen a policy. An account that
+ * has done neither behaves exactly as before.
+ */
+async function stepUpGate(
   planId: string,
   approvalKey: string,
   ceilingUsd: number,
   goal: string,
+  agentId: string,
   form: FormData,
-): string | undefined {
+): Promise<string | undefined> {
   let verifier
   try {
     verifier = humanVerifier()
@@ -51,11 +73,21 @@ function stepUpGate(
     return `Step-up verification is misconfigured, so nothing can be funded: ${(err as Error).message}`
   }
 
-  if (!verifier.required({ planId, ceilingUsd, goal })) return undefined
+  const owner = await ownerOfAgent(agentId)
+  const binding = owner ? await getBinding(owner) : null
+  const boundHumanWanted =
+    binding !== null && verificationRequired(binding.policy, ceilingUsd, stepUpUsd())
 
-  const ticket = String(form.get('stepUpTicket') ?? '')
-  if (!verifyStepUpTicket(ticket, approvalKey, planId, verifier.id)) {
+  if (!verifier.required({ planId, ceilingUsd, goal }) && !boundHumanWanted) return undefined
+
+  const check = verifyStepUpTicket(String(form.get('stepUpTicket') ?? ''), approvalKey, planId, verifier.id)
+  if (!check.valid) {
     return 'This ceiling needs a human factor. Verify above, then approve — the proof lasts ten minutes.'
+  }
+
+  if (boundHumanWanted && binding) {
+    const bound = checkBinding(binding, check.nullifier)
+    if (!bound.ok) return bound.detail
   }
   return undefined
 }
@@ -75,7 +107,7 @@ export async function submitDecision(
   const supabase = db()
   const { data: plan } = await supabase
     .from('plans')
-    .select('approval_key, goal, ceiling_usd')
+    .select('approval_key, goal, ceiling_usd, agent_id')
     .eq('id', planId)
     .maybeSingle()
 
@@ -88,7 +120,14 @@ export async function submitDecision(
   // anyone who can read the client bundle. Only approval is gated — a rejection funds
   // nothing, so making the human prove themselves to say "no" is pure friction.
   if (form.get('outcome') === 'approved') {
-    const gate = stepUpGate(planId, plan.approval_key, Number(plan.ceiling_usd), plan.goal, form)
+    const gate = await stepUpGate(
+      planId,
+      plan.approval_key,
+      Number(plan.ceiling_usd),
+      plan.goal,
+      plan.agent_id,
+      form,
+    )
     if (gate) return { error: gate }
   }
 
