@@ -591,3 +591,71 @@
   font-size: 0.75rem;
   color: var(--ink-soft);
 }
+
+/* ── identity notice ──────────────────────────────────────────────────────
+   Sits above everything because it is about who may approve, which is prior
+   to what is waiting to be approved. Two tones for two different facts: an
+   invitation when no policy demands a human, and a fault when one does and
+   none is bound — that state is silently refusing real approvals, so it gets
+   the stop colour and an alert role. */
+
+.notice,
+.noticeUrgent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 3px;
+  border: 1px solid var(--rule);
+  border-left-width: 2px;
+  background: var(--paper);
+}
+
+.notice {
+  border-left-color: var(--accent);
+}
+
+.noticeUrgent {
+  border-left-color: var(--stop);
+}
+
+.noticeBody {
+  margin: 0;
+  max-width: 68ch;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.noticeCta {
+  flex: none;
+  /* A real target, not a text link pretending to be a button. */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--manila);
+  background: var(--ink);
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.noticeCta:hover {
+  opacity: 0.88;
+}
+
+@media (max-width: 30rem) {
+  .noticeCta {
+    width: 100%;
+    justify-content: center;
+  }
+}

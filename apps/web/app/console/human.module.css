@@ -8,6 +8,8 @@
    Tokens come from globals.css; nothing here redefines them. */
 
 .panel {
+  /* Clears the sticky nav when the notice's anchor jumps here. */
+  scroll-margin-top: 5.5rem;
   margin-top: 2.5rem;
   border-top: 1px solid var(--rule);
   padding-top: 1.5rem;

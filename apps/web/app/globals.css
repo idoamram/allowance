@@ -192,3 +192,12 @@ a {
 ::selection {
   background: color-mix(in srgb, var(--accent) 28%, transparent);
 }
+
+/* Anchor jumps glide rather than teleport — the console's identity notice points at a
+   section further down, and a jump loses the reader's place. Off under reduced motion,
+   where an instant jump is the accessible behaviour rather than a degraded one. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
