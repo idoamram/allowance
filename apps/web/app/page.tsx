@@ -4,12 +4,14 @@ import styles from './landing.module.css'
 /**
  * The public landing page.
  *
- * Every number and every quoted string on this page exists somewhere else in this
- * repository — the plan card below is the fixture the smoke test submits
- * (`scripts/smoke-api.ts`), the run figures are the ones the README reports, and the
- * two statistics carry their sources inline. Nothing here is illustrative.
+ * Every figure and every quoted string here exists somewhere else in this repository:
+ * the plan card is the fixture the smoke test really submits (`scripts/smoke-api.ts`),
+ * the envelope figures are the run the README reports, the $0.0035 sliver is the fee
+ * float `sweepEnvelope` deliberately leaves behind (`packages/chains/hedera.ts:236`),
+ * and the two statistics carry their sources inline. Nothing on this page is
+ * illustrative, and there is nothing on it we cannot point at.
  *
- * Server component, zero client JavaScript, no external fonts or images: a strict CSP
+ * Server component, zero client JavaScript, no external fonts or images — a strict CSP
  * applies in production and the page has to paint before a judge loses interest.
  */
 
@@ -21,7 +23,7 @@ export const metadata: Metadata = {
 
 const REPO = 'https://github.com/idoamram/planbound'
 
-/** The plan a human actually receives, rendered as the artifact it is. */
+/** The plan a human receives, rendered as the artifact it is. */
 const PLAN = {
   id: 'pln_7f3a91',
   agent: 'vetting.planbound.eth',
@@ -34,27 +36,27 @@ const PLAN = {
       service: 'Wallet Risk X-Ray',
       why: 'A sanctioned counterparty voids the rest of the vetting',
       quote: '$0.05',
-      source: 'live' as const,
     },
     {
       service: 'Market diversity',
       why: 'A thin market means the risk score is not meaningful',
       quote: '$0.02',
-      source: 'live' as const,
     },
   ],
   total: '$0.07',
   ceiling: '$0.12',
 }
 
-const HOW = [
+/** The sequence is load-bearing — shop before pricing, price before funding, fund
+ *  before spending — which is the only reason these carry numbers. */
+const SEQUENCE = [
   {
     title: 'The agent shops the task',
     body: (
       <>
-        It searches the <b>x402 Bazaar</b> — Coinbase&rsquo;s keyless public catalog — and probes
+        It searches the <b>x402 Bazaar</b>, Coinbase&rsquo;s keyless public catalog, and probes
         each candidate for a live HTTP&nbsp;402 quote. A listing is a claim; the probe is the
-        fact. Sellers that sit behind a bot wall never make it into a plan.
+        fact. Sellers sitting behind a bot wall never reach a plan.
       </>
     ),
   },
@@ -72,9 +74,9 @@ const HOW = [
     title: 'One approval funds the envelope',
     body: (
       <>
-        Approving mints a <b>single-use account holding exactly the ceiling</b>, keyed
-        <span className={styles.num}> 1-of-[2-of-2(agent, policy), treasury]</span>. Approval is
-        not consent to a transaction. It is the creation of the budget.
+        Approving mints a <b>single-use account holding exactly the ceiling</b>, keyed{' '}
+        <span className={styles.num}>1-of-[2-of-2(agent, policy), treasury]</span>. Approval is not
+        consent to a transaction. It is the creation of the budget.
       </>
     ),
   },
@@ -83,8 +85,8 @@ const HOW = [
     body: (
       <>
         It pays sellers <b>out of that same account</b>, co-signed step by step against the plan
-        you approved. It cannot exceed the ceiling, because the money is not there to exceed.
-        Whatever it does not spend sweeps back at expiry.
+        you approved. It cannot exceed the ceiling, because the money is not there to exceed. What
+        it does not spend sweeps back at expiry.
       </>
     ),
   },
@@ -96,18 +98,43 @@ const EXITS = [
   { name: 'Abort', body: 'Stop now. The sweep returns the remainder, and you keep what was bought.' },
 ]
 
-const RAILS = [
+/** Drawn to scale against a $0.05 ceiling: 70% / 23% / 7%. */
+const ENVELOPE = [
+  {
+    name: 'Paid',
+    note: 'Two steps, settled from the envelope itself',
+    amount: '$0.0350',
+    pct: 70,
+    swatch: styles.swatchPaid,
+  },
+  {
+    name: 'Swept back',
+    note: 'Returned to the treasury when the plan closed',
+    amount: '$0.0115',
+    pct: 23,
+    swatch: styles.swatchBack,
+  },
+  {
+    name: 'Left behind',
+    note: 'The sliver the sweep leaves so the transfer fee can be paid',
+    amount: '$0.0035',
+    pct: 7,
+    swatch: styles.swatchFee,
+  },
+]
+
+const BUILT_ON = [
   {
     name: 'Hedera',
-    body: 'The envelope account, its 2-of-2 threshold key, the scheduled refund at expiry, and the append-only receipt trail on HCS — plus the purchase itself, so the thing that enforces the cap and the thing that pays are one account.',
+    body: 'The envelope account, its 2-of-2 threshold key, the scheduled refund at expiry, the receipt trail on HCS — and the purchase itself, so the thing that enforces the cap and the thing that pays are one account.',
   },
   {
     name: 'x402',
-    body: 'Discovery, live 402 quoting, and payment — one scheme-pluggable client across Hedera, Base and Worldchain. The gate lives in the only path money leaves by.',
+    body: 'Discovery, live 402 quoting and payment through one scheme-pluggable client across Hedera, Base and Worldchain. The gate sits in the only path money leaves by.',
   },
   {
     name: 'The Graph',
-    body: 'Claimed versus settled. Our database records what the control plane claims; the subgraph records what settled on-chain. The console diffs the two, so you can check us against the chain.',
+    body: 'Claimed against settled. Our database records what the control plane claims; the subgraph records what settled on-chain. The console diffs the two, so you can check us against the chain.',
   },
   {
     name: 'World',
@@ -115,7 +142,7 @@ const RAILS = [
   },
   {
     name: 'ENS',
-    body: 'An agent&rsquo;s name resolves to what it is currently allowed to spend — authority published as text records, verifiable without an API of ours.',
+    body: 'An agent’s name resolves to what it is currently allowed to spend — authority published as text records, verifiable without an API of ours.',
   },
 ]
 
@@ -136,14 +163,15 @@ export default function Home() {
       <main>
         {/* ── hero ───────────────────────────────────────────────────────────── */}
         <section className={`${styles.wrap} ${styles.hero}`}>
-          <div className={styles.heroCopy}>
+          <div>
             <p className={styles.eyebrow}>Spend controls for autonomous agents</p>
             <h1 className={styles.h1}>Your agent asks for a plan, not a payment.</h1>
             <p className={styles.heroLede}>
               It shops the task first — discovers real sellers, collects live quotes — and returns
-              one priced, reasoned plan. <strong>A single approval funds a single-use envelope</strong>{' '}
-              holding exactly the ceiling you approved. The agent then runs unattended inside it and
-              cannot exceed it, because the money is not there to exceed.
+              one priced, reasoned plan.{' '}
+              <strong>A single approval funds a single-use envelope</strong> holding exactly the
+              ceiling you approved. The agent then runs unattended inside it and cannot exceed it,
+              because the money is not there to exceed.
             </p>
             <div className={styles.ctas}>
               <a className={styles.btn} href="/console">
@@ -155,9 +183,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* The artifact. This is the approval page's own card, with the plan our
-              smoke test really submits — not a mock-up of one. */}
-          <div className={styles.artifactFrame}>
+          {/* The artifact — the approval card itself, carrying the plan our smoke
+              test submits, not a mock-up of one. */}
+          <div>
             <p className={styles.artifactLabel}>What the human receives</p>
             <div className={styles.card}>
               <div className={styles.cardHead}>
@@ -216,10 +244,10 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── the two failures ───────────────────────────────────────────────── */}
+        {/* ── the problem ────────────────────────────────────────────────────── */}
         <section className={`${styles.wrap} ${styles.section}`}>
-          <div className={styles.sectionSplit}>
-            <div>
+          <div className={styles.split}>
+            <div className={styles.splitHead}>
               <p className={styles.eyebrow}>The problem</p>
               <h2 className={styles.h2}>Neither of today&rsquo;s answers is consent.</h2>
               <p className={styles.lede}>
@@ -230,7 +258,7 @@ export default function Home() {
             </div>
             <div className={styles.failures}>
               <div className={styles.failure}>
-                <span className={`${styles.stat} ${styles.num}`}>93%</span>
+                <span className={styles.stat}>93%</span>
                 <p className={styles.statCaption}>
                   of Claude Code permission prompts are approved. The popup arrives without the
                   context to judge it, so it gets rubber-stamped. Consent that always says yes
@@ -245,7 +273,7 @@ export default function Home() {
                 </p>
               </div>
               <div className={styles.failure}>
-                <span className={`${styles.stat} ${styles.num}`}>24.7%</span>
+                <span className={styles.stat}>24.7%</span>
                 <p className={styles.statCaption}>
                   of x402 endpoints publish a price at all. No total for a task exists before it
                   runs — the plan is the first moment anyone, human or agent, knows what it costs.
@@ -261,10 +289,10 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── how it works ───────────────────────────────────────────────────── */}
+        {/* ── the sequence ───────────────────────────────────────────────────── */}
         <section className={`${styles.wrap} ${styles.section}`}>
-          <div className={styles.sectionSplit}>
-            <div>
+          <div className={styles.split}>
+            <div className={styles.splitHead}>
               <p className={styles.eyebrow}>How it works</p>
               <h2 className={styles.h2}>Four steps, one of them yours.</h2>
               <p className={styles.lede}>
@@ -273,8 +301,11 @@ export default function Home() {
               </p>
             </div>
             <ol className={styles.steps}>
-              {HOW.map((s) => (
+              {SEQUENCE.map((s, i) => (
                 <li className={styles.step} key={s.title}>
+                  <span className={styles.stepNum} aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
                   <h3 className={styles.stepTitle}>{s.title}</h3>
                   <p className={styles.stepBody}>{s.body}</p>
                 </li>
@@ -296,8 +327,8 @@ export default function Home() {
 
         {/* ── drift ──────────────────────────────────────────────────────────── */}
         <section className={`${styles.wrap} ${styles.section}`}>
-          <div className={styles.sectionSplit}>
-            <div>
+          <div className={styles.split}>
+            <div className={styles.splitHead}>
               <p className={styles.eyebrow}>When reality drifts</p>
               <h2 className={styles.h2}>The agent hits a wall. You get a diff, not a popup.</h2>
               <p className={styles.lede}>
@@ -310,7 +341,7 @@ export default function Home() {
               <p className={styles.blockLine}>
                 In our own run, a step quoted at <span className={styles.num}>$0.01</span> met a
                 real seller asking <span className={styles.num}>$0.05</span>. The gate blocked it{' '}
-                <em>even though the envelope held enough to pay</em> — because the plan the human
+                <em>even though the envelope held enough to pay</em>, because the plan the human
                 approved was not the plan the agent found.
               </p>
               <ul className={styles.exits}>
@@ -325,42 +356,48 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── proof ──────────────────────────────────────────────────────────── */}
-        <section className={`${styles.wrap} ${styles.section}`}>
-          <div className={styles.sectionSplit}>
-            <div>
+        {/* ── the run: the ceiling bar ───────────────────────────────────────── */}
+        <section className={`${styles.wrap} ${styles.section} ${styles.sectionTotal}`}>
+          <div className={styles.split}>
+            <div className={styles.splitHead}>
               <p className={styles.eyebrow}>A real run, end to end</p>
-              <h2 className={styles.h2}>Quoted equals paid. The remainder came back.</h2>
+              <h2 className={styles.h2}>Every cent of the ceiling, accounted for.</h2>
               <p className={styles.lede}>
-                One loop on Hedera testnet: the agent quoted two services, a human approved on
-                their phone, an envelope was minted holding exactly the ceiling, and the agent
-                bought from the seller paying out of that same account.
+                One loop on Hedera testnet: two services quoted, a human approved on their phone, an
+                envelope minted holding exactly the ceiling, and the agent bought from the seller
+                paying out of that same account. Quoted equals paid; the remainder came back.
               </p>
             </div>
-            <div>
-              <div className={styles.ledger}>
-                <div className={styles.ledgerRow}>
-                  <p className={styles.ledgerLabel}>
-                    Funded
-                    <span>The approved ceiling, held in a single-use account</span>
-                  </p>
-                  <span className={styles.ledgerAmt}>$0.0500</span>
-                </div>
-                <div className={styles.ledgerRow}>
-                  <p className={styles.ledgerLabel}>
-                    Paid
-                    <span>Two steps, settled from the envelope itself</span>
-                  </p>
-                  <span className={styles.ledgerAmt}>$0.0350</span>
-                </div>
-                <div className={styles.ledgerRow}>
-                  <p className={styles.ledgerLabel}>
-                    Swept back
-                    <span>Returned to the treasury when the plan closed</span>
-                  </p>
-                  <span className={styles.ledgerAmt}>$0.0115</span>
-                </div>
+            <div className={styles.instrument}>
+              <div className={styles.barHead}>
+                <span>Envelope &mdash; plan closed</span>
+                <span>Funded $0.0500</span>
               </div>
+              <div className={styles.track}>
+                {ENVELOPE.map((seg, i) => (
+                  <div
+                    key={seg.name}
+                    className={
+                      i === 0 ? styles.segPaid : i === 1 ? styles.segBack : styles.segFee
+                    }
+                    style={{ width: `${seg.pct}%` }}
+                  />
+                ))}
+              </div>
+              <p className={styles.ceilingMark}>&#8593; ceiling &mdash; nothing crosses this edge</p>
+
+              <ul className={styles.legend}>
+                {ENVELOPE.map((seg) => (
+                  <li className={styles.legendRow} key={seg.name}>
+                    <p className={styles.legendName}>
+                      <span className={`${styles.swatch} ${seg.swatch}`} aria-hidden="true" />
+                      {seg.name}
+                      <span>{seg.note}</span>
+                    </p>
+                    <span className={styles.legendAmt}>{seg.amount}</span>
+                  </li>
+                ))}
+              </ul>
 
               <div className={styles.honesty}>
                 <p className={styles.honestyTitle}>Stated plainly</p>
@@ -379,7 +416,7 @@ export default function Home() {
                     it impossible.
                   </li>
                   <li>
-                    The full list of what is and isn&rsquo;t proven is in the{' '}
+                    The rest of what is and isn&rsquo;t proven is in the{' '}
                     <a href={`${REPO}#honesty-box`}>honesty box</a>, in the README.
                   </li>
                 </ul>
@@ -388,19 +425,19 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── what it is built on ────────────────────────────────────────────── */}
+        {/* ── built on ───────────────────────────────────────────────────────── */}
         <section className={`${styles.wrap} ${styles.section}`}>
-          <div className={styles.sectionSplit}>
-            <div>
+          <div className={styles.split}>
+            <div className={styles.splitHead}>
               <p className={styles.eyebrow}>Built on</p>
               <h2 className={styles.h2}>Each piece does real work.</h2>
               <p className={styles.lede}>
                 The README points at the exact lines where every one of these lives, so nobody has
-                to grep.
+                to grep for them.
               </p>
             </div>
             <div className={styles.rails}>
-              {RAILS.map((r) => (
+              {BUILT_ON.map((r) => (
                 <div className={styles.rail} key={r.name}>
                   <span className={styles.railName}>{r.name}</span>
                   <p className={styles.railBody}>{r.body}</p>
@@ -414,11 +451,11 @@ export default function Home() {
         <section className={`${styles.wrap} ${styles.close}`}>
           <h2 className={styles.h2}>See a plan, priced and reasoned.</h2>
           <p className={styles.lede}>
-            The console lists real plans with their receipts, and diffs what we claim against what
+            The console lists real plans with their receipts and diffs what we claim against what
             settled on-chain. The agent side is an MCP server and a Claude Code plugin — seven
-            tools, your key never leaves your machine.
+            tools, and your key never leaves your machine.
           </p>
-          <div className={styles.ctas} style={{ marginTop: '1.75rem' }}>
+          <div className={`${styles.ctas} ${styles.closeCtas}`}>
             <a className={styles.btn} href="/console">
               Open the console
             </a>
