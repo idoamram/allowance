@@ -21,6 +21,7 @@ type PlanRow = {
   total_usd: number | string
   ceiling_usd: number | string
   created_at: string
+  expires_at: string
   approval_key: string
 }
 
@@ -73,12 +74,32 @@ export default async function ConsolePage() {
   const [{ data }, agents] = await Promise.all([
     supabase
       .from('plans')
-      .select('id, goal, status, total_usd, ceiling_usd, created_at, approval_key')
+      .select('id, goal, status, total_usd, ceiling_usd, created_at, expires_at, approval_key')
       .order('created_at', { ascending: false })
       .limit(100),
     listAgents(user.id),
   ])
-  const plans = (data ?? []) as PlanRow[]
+  const rows = (data ?? []) as PlanRow[]
+
+  /**
+   * Expiry is derived, never read from `status`.
+   *
+   * A plan carries an `expires_at` and nothing sweeps the table when it passes — there is no
+   * cron here, and the decision route only writes `expired` if somebody happens to answer a
+   * dead plan. So a stored status of `pending_approval` means "nobody answered", which is not
+   * the same as "still answerable", and reading it as the latter is what put four dead plans
+   * under a heading that said they were waiting for this human.
+   *
+   * Deriving it costs one comparison and cannot drift. Writing it would need a job, and a job
+   * that stops running fails silently in exactly this direction.
+   */
+  const now = Date.now()
+  const isDead = (p: PlanRow) => new Date(p.expires_at).getTime() <= now
+  const plans: PlanRow[] = rows.map((p) =>
+    isDead(p) && (p.status === 'pending_approval' || p.status === 'blocked')
+      ? { ...p, status: 'expired' }
+      : p,
+  )
 
   // Counted off the rows already in hand — no second query, and no summed money figure,
   // because a total that quietly mixes committed with quoted would be the one number on
@@ -90,8 +111,18 @@ export default async function ConsolePage() {
   const finished = of('settled', 'rejected', 'aborted', 'expired')
 
   const link = (p: PlanRow) => `/p/${p.id}?k=${p.approval_key}`
-  // Oldest first: the one that has been waiting longest is the one to answer next.
-  const next = [...blocked, ...waiting].sort((a, b) => a.created_at.localeCompare(b.created_at))[0]
+  /**
+   * Soonest to expire, not oldest.
+   *
+   * Oldest-first is ordinary queue discipline and it is wrong for this queue: these are
+   * time-boxed approvals with differing windows, so the oldest is the likeliest to be already
+   * dead — the CTA walked the human straight into one. Ordering by remaining time puts the
+   * plan where delay actually costs something at the top, and a blocked plan outranks an
+   * unanswered one because an agent is already stopped against it.
+   */
+  const next = [...blocked, ...waiting].sort(
+    (a, b) => new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime(),
+  )[0]
 
   const ledger = [
     { label: 'Running', n: running.length },
@@ -122,7 +153,7 @@ export default async function ConsolePage() {
               tone="wants"
               lead={`${waiting.length === 1 ? 'plan is' : 'plans are'} waiting for your approval.`}
               body="Nothing runs until you approve, and approving is what funds the envelope. Until then the agent holds no money at all."
-              cta={next ? { href: link(next), text: 'Review the oldest' } : undefined}
+              cta={next ? { href: link(next), text: 'Review the most urgent' } : undefined}
             />
           ) : (
             <Headline
