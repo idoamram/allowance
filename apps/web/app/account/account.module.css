@@ -1,0 +1,479 @@
+/* Account & agents — same manila/ink stationery as the approval card, one column on a
+   phone and one column with more air on a desktop. Tokens come from globals.css.
+
+   The reveal panel at the bottom of this file is deliberately the loudest thing in the
+   product: it is the only screen where a value exists that cannot be recovered. */
+
+.page {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+/* ── header ──────────────────────────────────────────────────────────────── */
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.mark {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 0.35rem;
+}
+
+.title {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.email {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin: 0.15rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.signOut {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.signOut:hover {
+  border-color: var(--ink-soft);
+  color: var(--ink);
+}
+
+.sub {
+  font-size: 0.84rem;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin: 1rem 0 1.6rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 1rem;
+}
+
+/* ── create ──────────────────────────────────────────────────────────────── */
+.create {
+  background: #fffdf7;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  padding: 1rem 1rem 0.9rem;
+  box-shadow: 0 1px 2px rgba(27, 26, 23, 0.05);
+}
+
+.label {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.createRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.input {
+  flex: 1 1 12rem;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 1rem; /* 16px keeps iOS from zooming the page on focus */
+  color: var(--ink);
+  background: var(--manila);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.btn {
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  background: var(--ink);
+  color: var(--manila);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.5rem 1.1rem;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.hint {
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  margin: 0.6rem 0 0;
+}
+
+.error {
+  font-size: 0.8rem;
+  color: var(--stop);
+  line-height: 1.45;
+  margin: 0.7rem 0 0;
+  border-left: 2px solid var(--stop);
+  padding-left: 0.6rem;
+}
+
+/* ── agent list ──────────────────────────────────────────────────────────── */
+.sectionTitle {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+  margin: 2rem 0 0.6rem;
+}
+
+.empty {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.agentList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.agent {
+  border-top: 1px solid var(--rule);
+  padding: 0.9rem 0;
+}
+
+.agent:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+
+.agentHead {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.agentName {
+  font-weight: 700;
+  font-size: 0.95rem;
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+.stamp {
+  display: inline-block;
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  border: 1px solid var(--rule);
+  border-radius: 99px;
+  padding: 1px 8px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 0.6rem 0 0.75rem;
+}
+
+.facts div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.facts dt {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+.facts dd {
+  margin: 0;
+  font-size: 0.84rem;
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.key {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+/* ── per-agent actions and their confirm step ────────────────────────────── */
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rowBtn {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--ink);
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+}
+
+.rowBtn:hover {
+  background: var(--manila-deep);
+}
+
+.rowBtnStop {
+  border-color: var(--stop);
+  color: var(--stop);
+}
+
+.rowBtnGhost {
+  border-color: var(--rule);
+  color: var(--ink-soft);
+}
+
+.rowBtn:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.confirm {
+  border-left: 2px solid var(--accent);
+  padding-left: 0.75rem;
+  margin-top: 0.2rem;
+}
+
+.confirmText {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: 0 0 0.6rem;
+}
+
+.confirmText b {
+  color: var(--ink);
+  font-family: var(--font-mono);
+}
+
+.footer {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  margin-top: 2rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.8rem;
+}
+
+/* ── the reveal: the one screen a hurried person must not scroll past ─────── */
+.revealBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(27, 26, 23, 0.72);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1rem;
+  overflow-y: auto;
+  animation: fade 140ms ease-out;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.reveal {
+  width: 100%;
+  max-width: 32rem;
+  margin: auto;
+  background: #fffdf7;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  padding: 1.25rem 1.1rem 1.1rem;
+  box-shadow: 0 18px 50px rgba(27, 26, 23, 0.35);
+}
+
+.revealOnce {
+  display: inline-block;
+  background: var(--stop);
+  color: var(--manila);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 2px;
+  margin: 0 0 0.65rem;
+}
+
+.revealTitle {
+  font-size: 1.3rem;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.revealTitle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.revealBody {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin: 0.45rem 0 1rem;
+}
+
+.revealBody b {
+  color: var(--ink);
+  font-family: var(--font-mono);
+}
+
+.revealLabel {
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+  margin: 0 0 0.3rem;
+}
+
+.tokenBox {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--manila-deep);
+  border: 1px dashed var(--ink-soft);
+  border-radius: 6px;
+  padding: 0.7rem 0.75rem;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.copyBtn {
+  display: block;
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  background: var(--ink);
+  color: var(--manila);
+  border: 1px solid var(--ink);
+  border-radius: 8px;
+  padding: 0.6rem 0;
+  cursor: pointer;
+  margin-top: 0.6rem;
+}
+
+.copyGhost {
+  background: transparent;
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.revealManual {
+  font-size: 0.78rem;
+  color: var(--stop);
+  margin: 0.6rem 0 0;
+}
+
+.revealWhere {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin: 0.9rem 0 0;
+}
+
+.revealWhere code {
+  font-family: var(--font-mono);
+  background: var(--manila-deep);
+  border-radius: 3px;
+  padding: 0 0.25rem;
+  overflow-wrap: anywhere;
+}
+
+.revealAck {
+  display: flex;
+  gap: 0.55rem;
+  align-items: flex-start;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin: 1rem 0 0.75rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.9rem;
+  cursor: pointer;
+}
+
+.revealAck input {
+  margin: 0.2rem 0 0;
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: none;
+  accent-color: var(--ink);
+}
+
+.doneBtn {
+  display: block;
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: 8px;
+  padding: 0.55rem 0;
+  cursor: pointer;
+}
+
+.doneBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .revealBackdrop {
+    animation: none;
+  }
+}
