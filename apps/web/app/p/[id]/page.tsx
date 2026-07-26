@@ -163,15 +163,15 @@ export default async function ApprovalPage({
         <header className={styles.masthead}>
           <span className={styles.brand}>PlanBound</span>
           <span className={styles.planId}>plan {plan.id}</span>
-          <span className={`${styles.stamp} ${styles.stampPlain}`}>
-            expires{' '}
-            {expiresAt.toLocaleTimeString('en-GB', {
-              hour: '2-digit',
-              minute: '2-digit',
-              timeZone: 'UTC',
-            })}{' '}
-            UTC
-          </span>
+          {/* Live, and in the masthead. The clock is what makes the authority to spend
+              temporary, so it belongs where the eye lands rather than three sections down
+              beside the envelope. */}
+          <Countdown
+            expiresAt={plan.expires_at}
+            className={styles.stamp}
+            liveClassName={styles.stampPlain}
+            expiredClassName={styles.stampStop}
+          />
         </header>
 
         <h1 className={styles.goal}>&ldquo;{plan.goal}&rdquo;</h1>
@@ -262,7 +262,7 @@ export default async function ApprovalPage({
               <b>{usd(headroom)}</b> drift headroom
             </span>
             <span className={styles.expiry}>
-              <Countdown expiresAt={plan.expires_at} />
+              {isExpired ? 'nothing can be funded from this plan' : `closes ${expiresAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })} UTC`}
             </span>
           </p>
         </section>
