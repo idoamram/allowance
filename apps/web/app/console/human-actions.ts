@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { bindHuman, setPolicy, type VerificationPolicy } from '@/lib/human-binding'
 import { humanVerifier } from '@/lib/verify'
+import { worldPreset } from '@/lib/verify/world'
 import { requireUser } from '@/lib/supabase/server'
 
 /**
@@ -54,7 +55,10 @@ export async function enrolHuman(idkitResult: unknown): Promise<EnrolState> {
     }
   }
 
-  await bindHuman(user.id, outcome.nullifier, verifier.id)
+  // The preset, not the verifier id. `verifier.id` is 'world' for every World preset, which
+  // records nothing — the fact worth keeping is *what was proved*, since deviceLegacy and
+  // selfieCheckLegacy are very different claims about the same person.
+  await bindHuman(user.id, outcome.nullifier, worldPreset() ?? verifier.id)
   revalidatePath('/console')
   return { kind: 'done', preset: verifier.id }
 }

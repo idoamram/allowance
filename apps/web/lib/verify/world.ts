@@ -259,3 +259,16 @@ export function makeWorldVerifier(config: WorldConfig): HumanVerifier {
     },
   }
 }
+
+/**
+ * Which World preset is configured, for recording what a proof actually proved.
+ *
+ * `HumanVerifier.id` is `world` for all of them, which is the right granularity for the
+ * step-up ticket and the wrong one for a stored binding: `deviceLegacy` and
+ * `selfieCheckLegacy` are very different claims about the same person, and a year from now
+ * the difference is the whole story.
+ */
+export function worldPreset(): string | null {
+  const preset = process.env.WORLD_PRESET
+  return preset && WORLD_PRESETS.includes(preset as never) ? preset : null
+}

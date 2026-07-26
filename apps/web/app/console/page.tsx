@@ -286,7 +286,7 @@ export default async function ConsolePage() {
         />
         <AgentsPanel agents={agents} />
 
-        <HumanPanel binding={binding} />
+        <HumanPanel binding={binding} threshold={usd(Number(process.env.STEP_UP_USD ?? 5))} />
       </section>
 
       {/* ── and whether to believe any of it ─────────────────────────────── */}
