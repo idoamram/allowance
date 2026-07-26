@@ -1,0 +1,720 @@
+/* The landing page — the one editorial surface in the product.
+   Manila/ink material from globals.css, laid out with the restraint of a
+   financial document: monochrome ground, hairline rules, generous vertical
+   rhythm, tabular numerals doing the talking.
+
+   Theme is handled locally rather than in globals.css: that file is shared with
+   the console and the approval card, and re-pointing its tokens under them at
+   this hour would silently change pages other sessions own. Everything dark
+   lives on .page and nowhere else. */
+
+.page {
+  --bg: var(--manila);
+  --surface: #fffdf7;
+  --fg: var(--ink);
+  --soft: var(--ink-soft);
+  --line: var(--rule);
+  --line-soft: color-mix(in srgb, var(--rule) 55%, transparent);
+  --brand: var(--accent);
+  --good: var(--ok);
+  --caution: var(--warn);
+  --alarm: var(--stop);
+  --shadow: 0 1px 2px rgba(27, 26, 23, 0.06), 0 10px 30px rgba(27, 26, 23, 0.07);
+  --serif: ui-serif, 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+  .page {
+    --bg: #14130f;
+    --surface: #1c1a15;
+    --fg: #efe8d8;
+    --soft: #a49b88;
+    --line: #35311f;
+    --line-soft: #2a271b;
+    --brand: #c99a63;
+    --good: #6fae87;
+    --caution: #d0a441;
+    --alarm: #d97a63;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.35);
+    color-scheme: dark;
+  }
+}
+
+.wrap {
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* ── masthead ─────────────────────────────────────────────────────────────── */
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.wordmark {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-size: 1rem;
+}
+
+.mastNav {
+  display: flex;
+  gap: 1.1rem;
+  font-size: 0.85rem;
+}
+
+.mastNav a {
+  color: var(--soft);
+  text-decoration: none;
+}
+
+.mastNav a:hover {
+  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── shared type ──────────────────────────────────────────────────────────── */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--soft);
+  margin: 0 0 1rem;
+}
+
+.section {
+  padding: 3.75rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.h2 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 1.65rem;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  margin: 0 0 0.75rem;
+  max-width: 22ch;
+}
+
+.lede {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--soft);
+  max-width: 60ch;
+  margin: 0;
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ── hero ─────────────────────────────────────────────────────────────────── */
+.hero {
+  padding: 3rem 0 3.25rem;
+}
+
+.h1 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(2.1rem, 8.5vw, 3.1rem);
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+  margin: 0 0 1.1rem;
+  max-width: 16ch;
+  text-wrap: balance;
+}
+
+.heroLede {
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--soft);
+  max-width: 52ch;
+  margin: 0 0 1.75rem;
+}
+
+.heroLede strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 2.5rem;
+}
+
+.btn {
+  display: inline-block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.6rem 1.05rem;
+  border-radius: 6px;
+  border: 1px solid var(--fg);
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.btnGhost {
+  background: transparent;
+  color: var(--fg);
+  border-color: var(--line);
+}
+
+.btn:hover {
+  opacity: 0.88;
+}
+
+.btnGhost:hover {
+  opacity: 1;
+  border-color: var(--fg);
+}
+
+/* ── the artifact: a plan card as the human receives it ───────────────────── */
+.artifactFrame {
+  position: relative;
+}
+
+.artifactLabel {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--soft);
+  margin: 0 0 0.6rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1.05rem 1.05rem 1.15rem;
+  box-shadow: var(--shadow);
+  max-width: 30rem;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.planId {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.goal {
+  font-size: 0.95rem;
+  margin: 0.55rem 0 0.3rem;
+}
+
+.agent {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--soft);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.logic {
+  font-size: 0.79rem;
+  line-height: 1.5;
+  color: var(--soft);
+  margin: 0.6rem 0 0.2rem;
+}
+
+.logic b {
+  color: var(--fg);
+}
+
+.fixes {
+  font-size: 0.72rem;
+  color: var(--soft);
+  margin: 0.25rem 0 0.9rem;
+  padding-left: 1.05rem;
+}
+
+.stamp {
+  display: inline-block;
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 1px 7px;
+  white-space: nowrap;
+  color: var(--soft);
+}
+
+.stampGood {
+  color: var(--good);
+  border-color: color-mix(in srgb, var(--good) 40%, var(--line));
+}
+
+.stampWarn {
+  color: var(--caution);
+  border-color: color-mix(in srgb, var(--caution) 40%, var(--line));
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.table td {
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.table td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.service {
+  font-weight: 600;
+}
+
+.why {
+  display: block;
+  font-weight: 400;
+  color: var(--soft);
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.totalRow td {
+  border-bottom: none;
+  border-top: 2px solid var(--fg);
+  font-weight: 700;
+  padding-top: 0.5rem;
+}
+
+.ceilingRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--soft);
+  margin-top: 0.55rem;
+}
+
+.fakeBtn {
+  display: block;
+  text-align: center;
+  border-radius: 8px;
+  padding: 0.6rem 0;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-top: 0.9rem;
+  background: var(--good);
+  color: #fff;
+}
+
+.fakeBtnGhost {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--soft);
+  font-weight: 600;
+  font-size: 0.82rem;
+  margin-top: 0.5rem;
+}
+
+.cardNote {
+  font-size: 0.72rem;
+  color: var(--soft);
+  text-align: center;
+  margin: 0.7rem 0 0;
+  line-height: 1.45;
+}
+
+/* ── the two failures ─────────────────────────────────────────────────────── */
+.failures {
+  display: grid;
+  gap: 2rem;
+  margin-top: 2.25rem;
+}
+
+.failure {
+  border-top: 2px solid var(--fg);
+  padding-top: 0.9rem;
+}
+
+.stat {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(2.4rem, 11vw, 3.4rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.statCaption {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin: 0 0 0.5rem;
+}
+
+.source {
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--soft);
+  margin: 0;
+}
+
+.source a {
+  color: inherit;
+}
+
+/* ── how it works ─────────────────────────────────────────────────────────── */
+.steps {
+  list-style: none;
+  margin: 2.25rem 0 0;
+  padding: 0;
+  counter-reset: pbstep;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr;
+  gap: 0.35rem 0.9rem;
+  padding: 1.15rem 0;
+  border-top: 1px solid var(--line-soft);
+  counter-increment: pbstep;
+}
+
+.step:first-child {
+  border-top: 0;
+}
+
+.step::before {
+  content: counter(pbstep, decimal-leading-zero);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--soft);
+  padding-top: 0.15rem;
+}
+
+.stepTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.stepBody {
+  grid-column: 2;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--soft);
+  margin: 0.25rem 0 0;
+  max-width: 56ch;
+}
+
+.stepBody b {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+/* ── the sentence ─────────────────────────────────────────────────────────── */
+.quoteBand {
+  padding: 3.5rem 0;
+  border-top: 1px solid var(--line);
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.quote {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(1.35rem, 5.4vw, 2rem);
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  max-width: 26ch;
+  text-wrap: balance;
+}
+
+.quote em {
+  font-style: normal;
+  border-bottom: 2px solid currentColor;
+  padding-bottom: 1px;
+}
+
+.quoteWho {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.65;
+  margin-top: 1.25rem;
+  font-weight: 400;
+}
+
+/* ── drift ────────────────────────────────────────────────────────────────── */
+.exits {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  list-style: none;
+  padding: 0;
+}
+
+.exit {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.85rem 0.95rem;
+  background: var(--surface);
+}
+
+.exitName {
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin: 0 0 0.2rem;
+}
+
+.exitBody {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--soft);
+  margin: 0;
+}
+
+.blockLine {
+  margin-top: 2rem;
+  border-left: 2px solid var(--alarm);
+  padding: 0.1rem 0 0.1rem 0.9rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 54ch;
+}
+
+.blockLine .num {
+  font-weight: 700;
+}
+
+/* ── the run ──────────────────────────────────────────────────────────────── */
+.ledger {
+  display: grid;
+  gap: 0;
+  margin: 2.25rem 0 0;
+  border-top: 2px solid var(--fg);
+}
+
+.ledgerRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.ledgerLabel {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.ledgerLabel span {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--soft);
+  margin-top: 0.15rem;
+  max-width: 34ch;
+}
+
+.ledgerAmt {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.5rem;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+
+.honesty {
+  margin-top: 2rem;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 0.95rem 1rem;
+}
+
+.honestyTitle {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--soft);
+  margin: 0 0 0.5rem;
+}
+
+.honestyList {
+  margin: 0;
+  padding-left: 1.05rem;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: var(--soft);
+}
+
+.honestyList li + li {
+  margin-top: 0.35rem;
+}
+
+/* ── build ────────────────────────────────────────────────────────────────── */
+.rails {
+  display: grid;
+  gap: 0;
+  margin-top: 2rem;
+  border-top: 1px solid var(--line-soft);
+}
+
+.rail {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  gap: 0.9rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.railName {
+  font-weight: 700;
+}
+
+.railBody {
+  color: var(--soft);
+  margin: 0;
+}
+
+/* ── close ────────────────────────────────────────────────────────────────── */
+.close {
+  padding: 3.5rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.footer {
+  border-top: 1px solid var(--line);
+  padding: 1.6rem 0 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.25rem;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--soft);
+}
+
+.footerNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1rem;
+}
+
+.footerNav a {
+  color: var(--soft);
+}
+
+/* ── wider viewports ──────────────────────────────────────────────────────── */
+@media (min-width: 48rem) {
+  .wrap {
+    padding: 0 2rem;
+  }
+
+  .section,
+  .quoteBand,
+  .close {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+  }
+
+  .hero {
+    padding: 4.5rem 0 4.5rem;
+  }
+
+  .failures {
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+  }
+
+  .exits {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .h2 {
+    font-size: 2rem;
+  }
+
+  .step {
+    grid-template-columns: 3rem 1fr;
+  }
+}
+
+@media (min-width: 64rem) {
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 30rem;
+    gap: 3.5rem;
+    align-items: start;
+    padding: 5.5rem 0 5rem;
+  }
+
+  .heroCopy {
+    padding-top: 0.5rem;
+  }
+
+  .ctas {
+    margin-bottom: 0;
+  }
+
+  .h1 {
+    font-size: 3.4rem;
+  }
+
+  .sectionSplit {
+    display: grid;
+    grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+    gap: 3.5rem;
+  }
+
+  .sectionSplit > :first-child {
+    position: sticky;
+    top: 2.5rem;
+  }
+
+  .steps,
+  .failures,
+  .exits,
+  .ledger,
+  .rails {
+    margin-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
