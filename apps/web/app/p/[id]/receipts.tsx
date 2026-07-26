@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { hashscan } from '@planbound/chains/hedera'
 import { usd } from '@/lib/format'
 import styles from './approval.module.css'
@@ -32,10 +33,12 @@ export function Receipts({
 }) {
   const quoted = steps.reduce((s, x) => s + x.quoteUsd, 0)
   const paid = steps.reduce((s, x) => s + (x.paidUsd ?? 0), 0)
+  // The envelope scale one last time: what was actually taken out of what was put in.
+  const fillPct = fundedUsd && fundedUsd > 0 ? Math.min(100, (paid / fundedUsd) * 100) : 0
 
   return (
-    <section className={styles.receipts}>
-      <h2 className={styles.receiptsTitle}>Receipts</h2>
+    <section className={`${styles.block} ${styles.receipts}`}>
+      <p className={styles.eyebrow}>Receipts</p>
 
       <ol className={styles.receiptList}>
         {steps.map((s) => (
@@ -87,6 +90,20 @@ export function Receipts({
           <dd>{sweptUsd == null ? <span className={styles.driftPending}>at expiry</span> : usd(sweptUsd)}</dd>
         </div>
       </dl>
+
+      {fundedUsd != null && fundedUsd > 0 && (
+        <div className={styles.driftScale}>
+          <span className={styles.envelopeLabel}>
+            Paid against the {usd(fundedUsd)} funded
+          </span>
+          <div className={styles.scale}>
+            <div
+              className={styles.scaleFill}
+              style={{ '--fill': `${fillPct.toFixed(1)}%` } as CSSProperties}
+            />
+          </div>
+        </div>
+      )}
 
       <p className={styles.receiptsFoot}>
         {fundedUsd != null && <>Funded {usd(fundedUsd)}. </>}

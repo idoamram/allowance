@@ -72,7 +72,8 @@ export default async function ClaimedVsSettled() {
           )
         }
         return (
-          <table className={styles.table}>
+          <div className={styles.scroller}>
+            <table className={styles.table}>
             <thead>
               <tr>
                 <th>Step</th>
@@ -125,7 +126,8 @@ export default async function ClaimedVsSettled() {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         )
     }
   }
