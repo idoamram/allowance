@@ -294,12 +294,18 @@
 
 /* ── The scale: the page's one figure, seen four times ────────────────────── */
 
+/* `clip`, not `hidden`, and the distinction is load-bearing: `overflow: hidden`
+   makes this box a scroll container, and a `view()` timeline resolves against
+   the nearest scrolling ancestor — so every bar inside one measured itself
+   against a 14px-tall scrollport and sat pinned at full. `clip` cuts the
+   segments to the bar without creating a scroller, and the timeline resolves
+   against the page where it belongs. */
 .scale {
   position: relative;
   height: 0.85rem;
   border: 1px solid var(--l-ink);
   border-radius: 2px;
-  overflow: hidden;
+  overflow: clip;
   background: var(--l-hatch);
 }
 
@@ -357,7 +363,7 @@
 .scaleStop {
   position: absolute;
   inset-block: -1px;
-  width: 2px;
+  width: 3px;
   background: var(--l-ink);
 }
 
@@ -639,12 +645,14 @@
   border-color: var(--l-accent);
 }
 
-/* The span that runs with nobody watching. */
+/* The span that runs with nobody watching. It has to read as one continuous
+   band rather than three tinted boxes, so each item's tint reaches exactly
+   half the row gap in both directions and the tints meet. No radius, for the
+   same reason: a rounded edge inside the band would read as a seam. */
 .flowBound {
   background: var(--l-manila-deep);
-  margin-inline: -0.55rem;
-  padding: 0.05rem 0.55rem 0.3rem;
-  border-radius: 2px;
+  margin: -0.575rem -0.55rem;
+  padding: 0.575rem 0.55rem;
 }
 
 .flowName {
@@ -681,9 +689,10 @@
     top: -1.6rem;
   }
 
+  /* Laid out in columns, the band closes across the 1rem column gap instead. */
   .flowBound {
-    margin-inline: 0;
-    padding: 0 0.55rem 0.5rem;
+    margin: 0 -0.5rem;
+    padding: 0 0.5rem 0.5rem;
   }
 }
 

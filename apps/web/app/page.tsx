@@ -517,6 +517,14 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
+                {/* The three parts do not sum to what was funded by accident —
+                    they sum to it exactly, which is the claim. */}
+                <p className={styles.scaleFoot}>
+                  <span>Paid + swept + float</span>
+                  <span>
+                    <b>$0.0500</b> — the whole ceiling, nothing unaccounted
+                  </span>
+                </p>
                 <ul className={styles.ledger}>
                   {CLOSE.map((seg) => (
                     <li className={styles.ledgerRow} key={seg.name}>
