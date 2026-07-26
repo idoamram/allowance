@@ -39,14 +39,23 @@ export async function agentFromRequest(req: Request): Promise<Agent | null> {
  * resolve to the same `Agent`, so every existing route is unchanged: it still asks "which
  * agent is this" and gets one answer.
  *
- * Expiry is enforced in the query. A delegation past its `expires_at` matches nothing.
+ * Two conditions, both enforced in the query rather than in JavaScript, because this
+ * function guards every route money leaves by:
+ *
+ *  - **not expired.** A delegation past its `expires_at` matches nothing.
+ *  - **its consent is still live.** Revocation writes `oauth_grants.revoked_at`; it does
+ *    not delete the delegation rows already minted under that grant. Without this join a
+ *    revoked consent would keep working for the remainder of the delegation's 30-minute
+ *    life — the human would have withdrawn permission and the agent would keep spending.
+ *    Revocation has to be immediate at the point of use, or it is not revocation.
  */
 async function delegatedAgent(hash: string): Promise<Agent | null> {
   const { data } = await db()
     .from('agent_delegations')
-    .select('agents!inner(id, name)')
+    .select('agents!inner(id, name), oauth_grants!inner(revoked_at)')
     .eq('token_hash', hash)
     .gt('expires_at', new Date().toISOString())
+    .is('oauth_grants.revoked_at', null)
     .maybeSingle()
 
   const agent = (data as { agents?: Agent } | null)?.agents
