@@ -146,8 +146,12 @@ const CLOSE = [
  * pointed at two SVGs that were never added, and both cards rendered a broken image. MCP has
  * no mark here and shows its name in the card's own type, which is not a downgrade — a broken
  * image is.
+ *
+ * `wordmark` says the file already spells the name. Those cards drop the typeset name rather
+ * than printing it twice side by side; the name moves onto the image's alt text, so what a
+ * screen reader hears is unchanged either way.
  */
-const BUILT_ON: { name: string; logo?: string; points: string[] }[] = [
+const BUILT_ON: { name: string; logo?: string; wordmark?: boolean; points: string[] }[] = [
   {
     name: 'Hedera',
     logo: '/logos/hedera.svg',
@@ -161,6 +165,7 @@ const BUILT_ON: { name: string; logo?: string; points: string[] }[] = [
   {
     name: 'x402',
     logo: '/logos/x402_logo.svg',
+    wordmark: true,
     points: [
       'Sellers discovered live through the Bazaar, never a hardcoded list',
       'Prices are real HTTP 402 quotes, badged live or estimate and never blurred',
@@ -171,6 +176,7 @@ const BUILT_ON: { name: string; logo?: string; points: string[] }[] = [
   {
     name: 'World',
     logo: '/logos/world-mono.svg',
+    wordmark: true,
     points: [
       'Above a set ceiling, approving demands a proof an agent cannot produce',
       'Enforced server-side, not by disabling a button',
@@ -606,9 +612,14 @@ export default function Home() {
                   <div className={styles.railHead}>
                     {r.logo && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img className={styles.railLogo} src={r.logo} alt="" aria-hidden="true" />
+                      <img
+                        className={styles.railLogo}
+                        src={r.logo}
+                        alt={r.wordmark ? r.name : ''}
+                        aria-hidden={r.wordmark ? undefined : true}
+                      />
                     )}
-                    <span className={styles.railName}>{r.name}</span>
+                    {!r.wordmark && <span className={styles.railName}>{r.name}</span>}
                   </div>
                   <ul className={styles.railPoints}>
                     {r.points.map((point) => (
@@ -638,7 +649,7 @@ export default function Home() {
               </p>
             </div>
             <div className={styles.rails}>
-              <div className={styles.rail}>
+              <div className={`${styles.rail} ${styles.railStack}`}>
                 <span className={styles.railName}>Remote, over OAuth</span>
                 <pre className={styles.cmd}>
                   <code>claude mcp add --transport http planbound https://planbound.xyz/api/mcp/http</code>
@@ -648,7 +659,7 @@ export default function Home() {
                   exactly what the agent may do, and what it may not.
                 </p>
               </div>
-              <div className={styles.rail}>
+              <div className={`${styles.rail} ${styles.railStack}`}>
                 <span className={styles.railName}>As a plugin</span>
                 <pre className={styles.cmd}>
                   <code>claude plugin marketplace add idoamram/planbound</code>
