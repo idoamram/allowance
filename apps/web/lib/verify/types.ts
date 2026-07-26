@@ -54,7 +54,12 @@ export type Challenge =
     }
 
 /** The presets we accept from env. Names match `@worldcoin/idkit`'s exported factories. */
-export const WORLD_PRESETS = ['proofOfHuman', 'selfieCheckLegacy', 'passport'] as const
+export const WORLD_PRESETS = [
+  'proofOfHuman',
+  'selfieCheckLegacy',
+  'passport',
+  'deviceLegacy',
+] as const
 export type WorldPreset = (typeof WORLD_PRESETS)[number]
 
 /** What comes back from the client after the human finishes in World App. */
