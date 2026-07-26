@@ -91,11 +91,24 @@ a {
      A token because the shadow colour has to follow the theme, and a hard-coded
      rgba() cannot. */
   --shadow: 0 18px 50px rgb(0 0 0 / 35%);
+
+  /* Fill colours for the two state chips that are solid rather than outlined.
+     `--warn` is tuned to be read *as* text on the page ground, where 4.12:1 is
+     acceptable for the large figures it is used on. Reversed out — ground
+     colour on a --warn fill — that same 4.12 lands under AA for a 10px chip,
+     so the fill is its own darker value: 5.70:1 in light. `--stop` reversed is
+     already 5.72, so it gets a token only for symmetry. */
+  --warn-fill: #7d560e;
+  --stop-fill: #a33a2a;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --shadow: 0 18px 50px rgb(0 0 0 / 60%);
+    /* Reversed on the dark ground the accents are already the light half of the
+       pair: 9.66 and 8.52 against #14130f. No separate value needed. */
+    --warn-fill: #e2b45a;
+    --stop-fill: #ef9a84;
   }
 }
 

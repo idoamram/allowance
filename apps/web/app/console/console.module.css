@@ -29,9 +29,12 @@
   }
 }
 
-/* Rhythm lives on exactly one class, so sections cannot drift apart. */
+/* Rhythm lives on exactly one class, so sections cannot drift apart. The
+   scroll margin is the sticky header's business: without it a jump to #agents
+   parks the heading underneath the bar. */
 .section {
   margin-top: 3rem;
+  scroll-margin-top: 5.5rem;
 }
 
 @media (min-width: 46rem) {
@@ -203,9 +206,15 @@
 }
 
 /* ── the plans table ──────────────────────────────────────────────────────── */
+/* `separate`, not `collapse`, and the reason is the whole-row click target:
+   under a collapsed border model Chrome does not establish a containing block
+   on `tr`, so the stretched link below covers nothing and clicking a row does
+   nothing. Verified by clicking the middle of a row, not by reading a spec.
+   Each cell draws its own top border, which reads as one continuous rule. */
 .table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .table th {
@@ -325,14 +334,14 @@
    the filled ones are findable at a glance down a column of eighteen rows. */
 .pillWants {
   color: var(--manila);
-  background: var(--warn);
-  border-color: var(--warn);
+  background: var(--warn-fill);
+  border-color: var(--warn-fill);
 }
 
 .pillStop {
   color: var(--manila);
-  background: var(--stop);
-  border-color: var(--stop);
+  background: var(--stop-fill);
+  border-color: var(--stop-fill);
 }
 
 .pillLive {
@@ -397,6 +406,13 @@
   .table td {
     border-top: 0;
     padding: 0;
+  }
+
+  /* The section heading already draws a rule. Without this the first row adds a
+     second one 30px under it, which reads as an empty row rather than an edge. */
+  .table tbody tr:first-child {
+    border-top: 0;
+    padding-top: 0;
   }
 
   .table tbody tr.rowWants td:first-child,

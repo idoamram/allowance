@@ -137,8 +137,8 @@ export default async function ConsolePage() {
           <Headline
             figure={0}
             tone="clear"
-            lead="Nothing is waiting on you."
-            body="Every plan your agents submitted has been answered. New ones appear here the moment they are submitted, long before anyone approves them."
+            lead="plans are waiting on you."
+            body="Every plan your agents submitted has been answered. A new one appears here the moment it is submitted, long before anyone approves it."
           />
         )}
 
