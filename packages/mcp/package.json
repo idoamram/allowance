@@ -13,5 +13,10 @@
     "@planbound/core": "workspace:*",
     "dotenv": "^16.4.5",
     "zod": "^3.23.8"
+  },
+  "exports": {
+    ".": "./server.ts",
+    "./http": "./http.ts",
+    "./tools": "./tools.ts"
   }
 }

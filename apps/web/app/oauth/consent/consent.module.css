@@ -1,0 +1,180 @@
+/* The consent card. Same manila/ink identity as the approval page; tokens come from
+   globals.css and nothing here redefines them. Deliberately narrow: this is read on a
+   phone, in the middle of connecting something, and the two lists are the whole point. */
+
+.page {
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.card {
+  background: #fffdf7;
+  border: 1px solid var(--rule);
+  border-radius: 18px;
+  padding: 1.2rem 1.2rem 1rem;
+  box-shadow: 0 1px 2px rgba(27, 26, 23, 0.06), 0 8px 24px rgba(27, 26, 23, 0.06);
+}
+
+.eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.title {
+  margin: 0 0 0.9rem;
+  font-size: 1.15rem;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.h2 {
+  margin: 1.1rem 0 0.4rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.body {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+}
+
+.facts {
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  background: var(--manila);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+}
+
+.facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.facts dt {
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.facts dd {
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.can,
+.cannot {
+  margin: 0;
+  padding-left: 1.05rem;
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+}
+
+.can li::marker {
+  color: var(--ok);
+}
+
+.cannot li::marker {
+  color: var(--stop);
+}
+
+.form {
+  margin-top: 1.3rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.9rem;
+}
+
+.acting {
+  margin: 0 0 0.8rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.9rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.picker select {
+  flex: 1;
+  max-width: 60%;
+  font: inherit;
+  font-family: var(--font-mono);
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.warn {
+  margin: 0 0 0.9rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--warn);
+  border-radius: 10px;
+  background: var(--manila);
+  font-size: 0.85rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.approve,
+.deny {
+  flex: 1;
+  font: inherit;
+  font-weight: 600;
+  padding: 0.65rem 0.8rem;
+  border-radius: 12px;
+  cursor: pointer;
+  border: 1px solid var(--rule);
+}
+
+.approve {
+  background: var(--ink);
+  color: var(--manila);
+  border-color: var(--ink);
+}
+
+.approve:disabled {
+  background: var(--manila-deep);
+  color: var(--ink-soft);
+  border-color: var(--rule);
+  cursor: not-allowed;
+}
+
+.deny {
+  background: #fff;
+  color: var(--ink);
+}
+
+.foot {
+  margin: 0.9rem 0 0;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}

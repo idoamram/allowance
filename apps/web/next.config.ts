@@ -7,7 +7,7 @@ config({ path: '../../.env.local' })
 
 const nextConfig: NextConfig = {
   // Workspace packages ship TypeScript source, not build output — Next compiles them.
-  transpilePackages: ['@planbound/core', '@planbound/chains'],
+  transpilePackages: ['@planbound/core', '@planbound/chains', '@planbound/mcp'],
 }
 
 export default nextConfig

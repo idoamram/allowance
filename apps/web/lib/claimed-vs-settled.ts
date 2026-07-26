@@ -5,11 +5,21 @@ import { indexWindow, settlementsByPayers, subgraphUrl } from './subgraph'
 
 /**
  * Reads both sides of the claimed-vs-settled diff: our own `steps` rows, and the USDC
- * settlements The Graph indexed from Worldchain consensus. The matching lives in
- * `reconcile.ts`; this file is only the IO around it.
+ * settlements The Graph indexed from consensus. The matching lives in `reconcile.ts`; this
+ * file is only the IO around it.
  *
- * Scope is deliberately narrow — Worldchain USDC only. Hedera-rail steps settle on a chain
- * The Graph does not index, so they are excluded rather than silently counted as unsettled.
+ * **The rail here must match the subgraph's manifest.** `subgraph/subgraph.yaml` indexes
+ * Base USDC, so this reads Base-rail steps. It read `worldchain` until 2026-07-26, left
+ * behind when Subgraph Studio dropped WorldChain support and the manifest was repointed to
+ * Base in #31 — so the panel compared Worldchain claims against Base settlements, matched
+ * nothing by construction, and would have reported every honest payment as "not on chain".
+ *
+ * That failure mode is worse here than anywhere else in the app: this is the panel whose
+ * whole purpose is letting someone check us without trusting us. A verification surface
+ * that silently verifies nothing is more dangerous than no verification surface.
+ *
+ * Hedera-rail steps stay excluded rather than counted as unsettled — The Graph does not
+ * index Hedera, so their absence from the index is not evidence of anything.
  *
  * The caller supplies the client rather than this module reaching for the service-role one.
  * That is a security boundary, not a style preference: this panel selects envelope wallet
@@ -17,6 +27,13 @@ import { indexWindow, settlementsByPayers, subgraphUrl } from './subgraph'
  * human every other human's envelopes. Handed the cookie-bound client, the RLS policies
  * from migration 0004 scope it to the caller's own plans.
  */
+
+/**
+ * The rail the deployed subgraph indexes. Named once and exported so the panel's copy can
+ * read it rather than hardcode a chain name a second time — the last drift between those
+ * two places went unnoticed because they were edited in different PRs.
+ */
+export const INDEXED_RAIL = 'base' as const
 
 export type PanelState =
   | { kind: 'not_configured' }
@@ -55,7 +72,9 @@ export async function loadClaimedVsSettled(client: SupabaseClient): Promise<Pane
   const { data: stepRows } = await client
     .from('steps')
     .select('plan_id, idx, service_name, paid_usd, receipt')
-    .eq('rail', 'worldchain')
+    // Must equal the network in subgraph/subgraph.yaml. See the note at the top of this
+    // file: a mismatch here does not error, it silently reconciles nothing.
+    .eq('rail', INDEXED_RAIL)
     .eq('status', 'paid')
     .in('plan_id', [...walletByPlan.keys()])
 
