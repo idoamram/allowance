@@ -18,6 +18,17 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 /**
+ * `await_approval` long-polls, and a human deciding whether to fund something is measured in
+ * minutes, not seconds. Its own default is 600s; without this the platform's shorter function
+ * limit ended the request first and the agent reported a timeout at roughly four minutes —
+ * correctly reading it as "nobody has looked yet", but far sooner than it needed to.
+ *
+ * This raises the ceiling to the platform maximum. It does not make the tool wait longer than
+ * its own `timeoutSec`, and every other tool here returns in well under a second.
+ */
+export const maxDuration = 800
+
+/**
  * The remote MCP transport: Streamable HTTP, OAuth-protected, same seven tools.
  *
  * The stdio server in `packages/mcp/server.ts` is untouched and remains the demo path. This
