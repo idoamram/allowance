@@ -160,7 +160,7 @@ const BUILT_ON = [
   },
   {
     name: 'The Graph',
-    body: 'The settlement subgraph is deployed and syncing, so claimed-against-settled reconciliation runs against Base consensus rather than against our own database. The console shows the diff.',
+    body: 'The settlement subgraph is deployed and syncing from block 49,111,858 with no indexing errors, so claimed-against-settled reconciliation runs against Base consensus rather than against our own database. The console shows the diff, and it is live rather than aspirational.',
   },
   {
     name: 'World',
