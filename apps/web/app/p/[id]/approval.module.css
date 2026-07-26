@@ -69,12 +69,15 @@
   border-bottom: 1px solid var(--ink);
 }
 
+/* The mark, not the word. This sheet is a priced document someone commits money
+   from — the name belongs in the tab title, and the space belongs to the plan id
+   and the clock. `currentColor` so it inverts with the theme. */
 .brand {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  font-weight: 600;
+  display: block;
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: none;
+  color: var(--ink);
 }
 
 .planId {
