@@ -106,6 +106,15 @@ export interface QuoteDeps {
 /**
  * Turn candidates into priced steps: probe each for a live 402 quote, fall back to
  * the Bazaar-listed price as an estimate, drop what's dead or priceless (logged).
+ *
+ * A live 402 overrides the Bazaar's `network` as well as its price. The directory says
+ * what a seller *claims* to accept; the 402 is the seller answering for itself, right
+ * now. Where they disagree the 402 wins — trusting the directory produced plans that
+ * told a human "worldchain" for sellers that only settle on Base, and the payment failed
+ * at the rail check after the envelope was already funded.
+ *
+ * The price and the rail come from the same response for the same reason: a quote is
+ * only meaningful together with the chain it settles on.
  */
 export async function quoteSteps(
   candidates: Candidate[],
@@ -114,7 +123,14 @@ export async function quoteSteps(
   const quoted = await Promise.all(
     candidates.map(async (c): Promise<QuotedStep | null> => {
       const quote = await deps.probe(c.url)
-      if (quote) return { ...c, quoteUsd: quote.amountUsd, source: 'live-402' }
+      if (quote) {
+        if (quote.network !== c.network) {
+          console.warn(
+            `[discovery] ${c.url}: Bazaar says ${c.network}, seller's 402 says ${quote.network} — using the seller's`,
+          )
+        }
+        return { ...c, network: quote.network, quoteUsd: quote.amountUsd, source: 'live-402' }
+      }
       if (c.priceUsd !== null && (await deps.isReachable(c.url)))
         return { ...c, quoteUsd: c.priceUsd, source: 'estimate' }
       console.warn(`[discovery] dropped ${c.url} (dead or priceless)`)

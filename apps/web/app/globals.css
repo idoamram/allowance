@@ -30,3 +30,43 @@ body {
 a {
   color: var(--accent);
 }
+
+/* ── Additions from the in-app UI pass (approval page + console) ──────────────
+   Append-only: nothing above is redefined or reordered. Two things land here
+   because they belong to the whole app rather than to one route — the sheet
+   colour the priced document is printed on, and the dark rendering of the same
+   identity. Dark inverts the ground and lifts the accents to keep them legible
+   on it; every token name is unchanged, so any surface built on the tokens
+   follows without a second theme system to maintain. */
+
+:root {
+  /* The sheet a priced document is printed on — one step off the manila ground. */
+  --paper: #fffdf7;
+  /* Lets form controls, scrollbars and the caret follow the theme. */
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #ece6d8;
+    --ink-soft: #9b9484;
+    --manila: #14130f;
+    --manila-deep: #262319;
+    --paper: #1c1a15;
+    --rule: #3a352a;
+    --accent: #d19a63;
+    --ok: #6cb98a;
+    --warn: #d5a63f;
+    --stop: #e5806a;
+  }
+}
+
+/* Keyboard focus has to survive a redesign that removes most borders. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+}

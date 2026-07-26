@@ -136,11 +136,14 @@ const planBody = (over: Record<string, unknown> = {}) => ({
 describe('await_approval', () => {
   it('polls until the human decides', async () => {
     const statuses = ['pending_approval', 'pending_approval', 'approved']
+    // Minted by the time the human's answer is visible, so this test stays about the
+    // decision poll and not the mint wait — that has its own test below.
     const fetchImpl = vi.fn(async () =>
       json(
         planBody({
           status: statuses.shift() ?? 'approved',
           decision: { outcome: 'approved' },
+          envelope: { plan_id: 'pl_abc', hedera_account: '0.0.1234' },
         }),
       ),
     )
@@ -151,6 +154,44 @@ describe('await_approval', () => {
     expect(result.status).toBe('approved')
     expect(result.timedOut).toBe(false)
     expect(fetchImpl).toHaveBeenCalledTimes(3)
+  })
+
+  it('keeps waiting after approval until the envelope is actually minted', async () => {
+    // The decision route flips status to `approved` and only then mints, so `approved`
+    // is observably true for tens of seconds before there is anything to spend from.
+    // Returning on status alone sends the caller straight into a purchase with no
+    // envelope behind it — which is exactly what happened the first time this ran end
+    // to end against production.
+    const envelope = { plan_id: 'pl_abc', hedera_account: '0.0.9759370', funded_usd: 0.1 }
+    const frames = [
+      { status: 'pending_approval', envelope: null },
+      { status: 'approved', envelope: null },
+      { status: 'approved', envelope: null },
+      { status: 'approved', envelope },
+    ]
+    const fetchImpl = vi.fn(async () =>
+      json(planBody({ ...(frames.shift() ?? { status: 'approved', envelope }), decision: { outcome: 'approved' } })),
+    )
+    const result = await awaitApproval(
+      { planId: 'pl_abc', timeoutSec: 60 },
+      deps(fetchImpl as unknown as ToolDeps['fetch']),
+    )
+    expect(result.status).toBe('approved')
+    expect(result).not.toHaveProperty('envelopePending')
+    expect(fetchImpl).toHaveBeenCalledTimes(4)
+  })
+
+  it('reports envelopePending rather than pretending the mint finished', async () => {
+    // A mint that outlives the timeout is not a failure — it is a cue to poll
+    // get_envelope instead of to spend.
+    const fetchImpl = vi.fn(async () =>
+      json(planBody({ status: 'approved', envelope: null, decision: { outcome: 'approved' } })),
+    )
+    const result = await awaitApproval(
+      { planId: 'pl_abc', timeoutSec: 9 },
+      deps(fetchImpl as unknown as ToolDeps['fetch']),
+    )
+    expect(result).toMatchObject({ status: 'approved', envelopePending: true })
   })
 
   it('times out without hanging, and does not call that a rejection', async () => {

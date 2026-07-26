@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" role="img" aria-label="PlanBound">
+  <!--
+    The bound, and what came back.
+
+    A closed boundary with its bottom-right corner detached and set outside it: the
+    envelope holds exactly the approved ceiling, and the remainder returns.
+
+    Drawn on a 20-unit grid so every edge lands on a whole or half unit. Composed from
+    rectangles rather than a stroked path with a notch, because a stroke scales its width
+    with the viewBox and the separation is the whole idea — it must not close up.
+
+    The gap is 2 units, not the ~0.8 of the original artwork. At a 16px favicon one unit
+    is 0.8 device pixels, so 0.8 units rounds away entirely and the mark reads as a plain
+    square outline with the idea gone. Rendered at 16px and inspected pixel by pixel: 2
+    units is the smallest separation that survives, and at display sizes the difference
+    from the original is barely perceptible. A favicon is its own drawing, not a shrunk
+    logo — this is the one concession that costs nothing large and saves everything small.
+  -->
+  <g fill="currentColor">
+    <rect x="0" y="0" width="20" height="4" />
+    <rect x="0" y="4" width="4" height="16" />
+    <rect x="4" y="16" width="10" height="4" />
+    <rect x="16" y="4" width="4" height="10" />
+    <rect x="16" y="16" width="4" height="4" />
+  </g>
+</svg>

@@ -1,0 +1,839 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   The landing page.
+
+   PALETTE — sampled from globals.css, not re-derived. These are the tokens the
+   approval card already ships with; the landing page is the same material.
+     ground  #f4efe2  --manila       the paper
+     stock   #fffdf7  card face      the artifact sits on lighter stock
+     ink     #1b1a17  --ink          text, rules, buttons
+     soft    #4a4640  --ink-soft     secondary text
+     rule    #d6cbb0  --rule         hairlines
+     seal    #8a5a2b  --accent       links only — never a heading, never a button
+   Semantic --ok / --warn / --stop appear only on the stamps the product uses.
+
+   TYPE — the display face is the monospace, not a serif. This product prints
+   amounts: plan ids, account ids, ceilings and receipts are all already set in
+   mono on the approval card, so mono is this identity's characterful face and a
+   serif would be a costume. Sans carries the prose; mono carries every figure.
+     display   mono 500, clamp(2rem→3.25rem), -0.035em, lh 1.05
+     heading   sans 600, clamp(1.5rem→2rem),  -0.02em
+     lede      sans 400, 1.0625rem / 1.6, soft
+     body      sans 400, 0.9375rem / 1.6
+     eyebrow   sans 600, 0.7rem, 0.16em, uppercase
+     figure    mono tabular, 0.82rem inline → 3.25rem for the statement numerals
+
+   STRUCTURE — sections are divided by a hairline, except where money is being
+   totalled: there the divider is the 2px ink rule the approval card draws above
+   a total. The device means the same thing in both places.
+
+   SIGNATURE — the ceiling bar. One instrument, drawn once, accounting for every
+   cent of a real envelope against a hard right edge the money cannot cross.
+   Everything else on the page is deliberately quiet.
+
+   Theme lives on .page rather than in globals.css: that file is shared with the
+   console and the approval card, and re-pointing its tokens would silently
+   restyle pages other sessions own.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.page {
+  --ground: var(--manila);
+  --stock: #fffdf7;
+  --fg: var(--ink);
+  --soft: var(--ink-soft);
+  --line: var(--rule);
+  --line-soft: color-mix(in srgb, var(--rule) 55%, transparent);
+  --seal: var(--accent);
+  --good: var(--ok);
+  --alarm: var(--stop);
+  --shadow: 0 1px 2px rgba(27, 26, 23, 0.06), 0 10px 30px rgba(27, 26, 23, 0.07);
+
+  background: var(--ground);
+  color: var(--fg);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+  .page {
+    --ground: #17150f;
+    --stock: #201d15;
+    --fg: #ece3d0;
+    --soft: #a1978a;
+    --line: #3a3423;
+    --line-soft: #2b2719;
+    --seal: #c3925c;
+    --good: #6fae87;
+    --alarm: #d97a63;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 30px rgba(0, 0, 0, 0.35);
+    color-scheme: dark;
+  }
+}
+
+.page a:focus-visible {
+  outline: 2px solid var(--seal);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* ── masthead ─────────────────────────────────────────────────────────────── */
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.05rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.wordmark {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
+}
+
+.mastNav {
+  display: flex;
+  gap: 1.1rem;
+  font-size: 0.84rem;
+}
+
+.mastNav a {
+  color: var(--soft);
+  text-decoration: none;
+}
+
+.mastNav a:hover {
+  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── shared type ──────────────────────────────────────────────────────────── */
+.eyebrow {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--soft);
+  margin: 0 0 0.9rem;
+}
+
+.h2 {
+  font-size: clamp(1.5rem, 5.5vw, 2rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.7rem;
+  max-width: 20ch;
+  text-wrap: balance;
+}
+
+.lede {
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--soft);
+  max-width: 56ch;
+  margin: 0;
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Section rhythm. A hairline between arguments; the 2px ink rule — the one the
+   approval card draws above a total — wherever money is being totalled. */
+.section {
+  padding: 3.5rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.sectionTotal {
+  border-top-width: 2px;
+  border-top-color: var(--fg);
+}
+
+/* ── hero ─────────────────────────────────────────────────────────────────── */
+.hero {
+  padding: 2.75rem 0 3rem;
+}
+
+.h1 {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: clamp(2rem, 7.6vw, 3.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  margin: 0 0 1.15rem;
+  max-width: 17ch;
+  text-wrap: balance;
+}
+
+.heroLede {
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--soft);
+  max-width: 50ch;
+  margin: 0 0 1.6rem;
+}
+
+.heroLede strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 2.75rem;
+}
+
+.btn {
+  display: inline-block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.62rem 1.05rem;
+  border-radius: 6px;
+  border: 1px solid var(--fg);
+  background: var(--fg);
+  color: var(--ground);
+}
+
+.btnGhost {
+  background: transparent;
+  color: var(--fg);
+  border-color: var(--line);
+}
+
+.btn:hover {
+  opacity: 0.88;
+}
+
+.btnGhost:hover {
+  opacity: 1;
+  border-color: var(--fg);
+}
+
+/* ── the artifact: the approval card, as the human receives it ────────────── */
+.artifactLabel {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--soft);
+  margin: 0 0 0.6rem;
+}
+
+.card {
+  background: var(--stock);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1.05rem 1.05rem 1.15rem;
+  box-shadow: var(--shadow);
+  max-width: 30rem;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.planId {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.goal {
+  font-size: 0.95rem;
+  margin: 0.55rem 0 0.3rem;
+}
+
+.agent {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--soft);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.logic {
+  font-size: 0.79rem;
+  line-height: 1.5;
+  color: var(--soft);
+  margin: 0.6rem 0 0.2rem;
+}
+
+.logic b {
+  color: var(--fg);
+}
+
+.fixes {
+  font-size: 0.72rem;
+  color: var(--soft);
+  margin: 0.25rem 0 0.9rem;
+  padding-left: 1.05rem;
+}
+
+.stamp {
+  display: inline-block;
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 1px 7px;
+  white-space: nowrap;
+  color: var(--soft);
+}
+
+.stampGood {
+  color: var(--good);
+  border-color: color-mix(in srgb, var(--good) 40%, var(--line));
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.table td {
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.table td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.service {
+  font-weight: 600;
+}
+
+.why {
+  display: block;
+  font-weight: 400;
+  color: var(--soft);
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.totalRow td {
+  border-bottom: none;
+  border-top: 2px solid var(--fg);
+  font-weight: 700;
+  padding-top: 0.5rem;
+}
+
+.ceilingRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--soft);
+  margin-top: 0.55rem;
+}
+
+.fakeBtn {
+  display: block;
+  text-align: center;
+  border-radius: 8px;
+  padding: 0.6rem 0;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-top: 0.9rem;
+  background: var(--good);
+  /* The ground, not white: in dark the good green lightens, and white on it
+     would fall under the contrast floor. */
+  color: var(--ground);
+}
+
+.fakeBtnGhost {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--soft);
+  font-weight: 600;
+  font-size: 0.82rem;
+  margin-top: 0.5rem;
+}
+
+.cardNote {
+  font-size: 0.72rem;
+  color: var(--soft);
+  text-align: center;
+  margin: 0.7rem 0 0;
+  line-height: 1.45;
+}
+
+/* ── the two failures: figures on a statement, not marketing stats ────────── */
+.failures {
+  display: grid;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.failure {
+  border-top: 2px solid var(--fg);
+  padding-top: 0.85rem;
+}
+
+.stat {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(2.5rem, 11vw, 3.25rem);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  display: block;
+  margin-bottom: 0.55rem;
+}
+
+.statCaption {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  margin: 0 0 0.5rem;
+}
+
+.source {
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--soft);
+  margin: 0;
+}
+
+.source a {
+  color: var(--seal);
+}
+
+/* ── the sequence: numbered because the order is load-bearing ─────────────── */
+.steps {
+  list-style: none;
+  margin: 2rem 0 0;
+  padding: 0;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  gap: 0.2rem 0.9rem;
+  padding: 1.1rem 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.step:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.stepNum {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--soft);
+  padding-top: 0.2rem;
+}
+
+.stepTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.stepBody {
+  grid-column: 2;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--soft);
+  margin: 0.25rem 0 0;
+  max-width: 54ch;
+}
+
+.stepBody b {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+/* ── the sentence ─────────────────────────────────────────────────────────── */
+.quoteBand {
+  padding: 3.25rem 0;
+  border-top: 2px solid var(--fg);
+  background: var(--fg);
+  color: var(--ground);
+}
+
+.quote {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: clamp(1.15rem, 4.6vw, 1.75rem);
+  line-height: 1.35;
+  letter-spacing: -0.025em;
+  max-width: 30ch;
+  text-wrap: balance;
+}
+
+.quote em {
+  font-style: normal;
+  border-bottom: 2px solid currentColor;
+  padding-bottom: 2px;
+}
+
+.quoteWho {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-top: 1.4rem;
+}
+
+/* ── drift ────────────────────────────────────────────────────────────────── */
+.blockLine {
+  border-left: 2px solid var(--alarm);
+  padding: 0.1rem 0 0.1rem 0.9rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  max-width: 52ch;
+  margin: 2rem 0 0;
+}
+
+.exits {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1.5rem 0 0;
+  list-style: none;
+  padding: 0;
+}
+
+.exit {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.85rem 0.95rem;
+  background: var(--stock);
+}
+
+.exitName {
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin: 0 0 0.2rem;
+}
+
+.exitBody {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--soft);
+  margin: 0;
+}
+
+/* ── SIGNATURE: the ceiling bar ───────────────────────────────────────────────
+   A real envelope drawn to scale against the ceiling it was funded to. The
+   right edge is the ceiling and nothing crosses it; the three segments account
+   for every cent. Pure CSS, no script, no motion. */
+.instrument {
+  margin: 2rem 0 0;
+}
+
+.barHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--soft);
+  margin-bottom: 0.5rem;
+}
+
+.track {
+  display: flex;
+  height: 3.25rem;
+  border: 1px solid var(--fg);
+  border-right-width: 6px;
+  border-radius: 3px 0 0 3px;
+  overflow: hidden;
+  background: var(--stock);
+}
+
+.segPaid {
+  background: var(--fg);
+}
+
+/* The remainder that came home — hatched, because it was never spent. */
+.segBack {
+  background: repeating-linear-gradient(-45deg, var(--line) 0 2px, transparent 2px 6px);
+  border-left: 1px solid var(--fg);
+}
+
+/* The sliver the sweep leaves behind so the transfer fee can be paid. */
+.segFee {
+  border-left: 1px solid var(--line);
+}
+
+.ceilingMark {
+  display: flex;
+  justify-content: flex-end;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--soft);
+  margin-top: 0.4rem;
+}
+
+.legend {
+  list-style: none;
+  margin: 1.35rem 0 0;
+  padding: 0;
+}
+
+.legendRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.legendRow:first-child {
+  padding-top: 0;
+}
+
+.legendName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.legendNote {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--soft);
+  margin-top: 0.15rem;
+  max-width: 42ch;
+}
+
+.legendAmt {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.5rem;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+
+.swatch {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 1px solid var(--fg);
+  border-radius: 2px;
+  margin-right: 0.45rem;
+}
+
+.swatchPaid {
+  background: var(--fg);
+}
+
+.swatchBack {
+  background: repeating-linear-gradient(-45deg, var(--line) 0 2px, transparent 2px 6px);
+}
+
+.swatchFee {
+  background: var(--stock);
+  border-color: var(--line);
+}
+
+/* ── honesty ──────────────────────────────────────────────────────────────── */
+.honesty {
+  margin-top: 2rem;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 0.95rem 1rem;
+}
+
+.honestyTitle {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--soft);
+  margin: 0 0 0.5rem;
+}
+
+.honestyList {
+  margin: 0;
+  padding-left: 1.05rem;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: var(--soft);
+}
+
+.honestyList li + li {
+  margin-top: 0.35rem;
+}
+
+.honestyList a {
+  color: var(--seal);
+}
+
+/* ── built on ─────────────────────────────────────────────────────────────── */
+.rails {
+  margin-top: 2rem;
+  border-top: 1px solid var(--line-soft);
+}
+
+.rail {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr;
+  gap: 0.9rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.railName {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding-top: 0.1rem;
+}
+
+.railBody {
+  color: var(--soft);
+  margin: 0;
+}
+
+/* ── close + footer ───────────────────────────────────────────────────────── */
+.close {
+  padding: 3.25rem 0 2.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.closeCtas {
+  margin: 1.5rem 0 0;
+}
+
+.footer {
+  border-top: 1px solid var(--line);
+  padding: 1.5rem 0 2.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.25rem;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--soft);
+}
+
+.footerNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1rem;
+}
+
+.footerNav a {
+  color: var(--soft);
+}
+
+/* ── wider viewports ──────────────────────────────────────────────────────── */
+@media (min-width: 48rem) {
+  .wrap {
+    padding: 0 2rem;
+  }
+
+  .section,
+  .quoteBand {
+    padding-top: 4.75rem;
+    padding-bottom: 4.75rem;
+  }
+
+  .close {
+    padding-top: 4.75rem;
+  }
+
+  .hero {
+    padding: 4rem 0;
+  }
+
+  .failures {
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+  }
+
+  .exits {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .track {
+    height: 4rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 29rem;
+    gap: 3.5rem;
+    align-items: start;
+    padding: 5rem 0 4.5rem;
+  }
+
+  .ctas {
+    margin-bottom: 0;
+  }
+
+  .h1 {
+    font-size: 3.25rem;
+  }
+
+  /* The thesis gets the room it earns once there is room to give. */
+  .quote {
+    font-size: 2.1rem;
+    max-width: 34ch;
+  }
+
+  /* The left rail states the argument and stays put; the right column carries
+     the evidence for it. */
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 19rem) minmax(0, 1fr);
+    gap: 4rem;
+  }
+
+  .splitHead {
+    position: sticky;
+    top: 2.5rem;
+  }
+
+  .steps,
+  .failures,
+  .exits,
+  .instrument,
+  .rails,
+  .blockLine {
+    margin-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import type { CSSProperties } from 'react'
 import type { Metadata } from 'next'
 import { db } from '@/lib/db'
 import { safeEqual } from '@/lib/ids'
@@ -151,11 +152,17 @@ export default async function ApprovalPage({
     }
   }
 
+  // Presentation only: the envelope scale reads quoted against ceiling, and the span
+  // between them is the drift headroom the rest of the product is about.
+  const headroom = Math.max(0, ceiling - total)
+  const fillPct = ceiling > 0 ? Math.min(100, (total / ceiling) * 100) : 0
+
   return (
     <main className={styles.page}>
-      <div className={styles.card}>
-        <div className={styles.head}>
-          <span className={styles.planId}>Plan {plan.id}</span>
+      <article className={styles.sheet}>
+        <header className={styles.masthead}>
+          <span className={styles.brand}>PlanBound</span>
+          <span className={styles.planId}>plan {plan.id}</span>
           <span className={`${styles.stamp} ${styles.stampPlain}`}>
             expires{' '}
             {expiresAt.toLocaleTimeString('en-GB', {
@@ -165,68 +172,104 @@ export default async function ApprovalPage({
             })}{' '}
             UTC
           </span>
-        </div>
+        </header>
 
-        <p className={styles.goal}>&ldquo;{plan.goal}&rdquo;</p>
+        <h1 className={styles.goal}>&ldquo;{plan.goal}&rdquo;</h1>
         <p className={styles.agent}>{agent?.ens ?? agent?.name ?? 'unknown agent'}</p>
 
-        <p className={styles.logic}>
-          <b>Logic:</b> {plan.approach}
-          {turns > 0 && (
-            <>
-              {' '}
-              &middot;{' '}
-              <span className={`${styles.stamp} ${styles.stampGood}`}>self-checked &times;{turns}</span>
-            </>
+        <section className={`${styles.block} ${styles.section}`}>
+          <p className={styles.eyebrow}>
+            Approach
+            {turns > 0 && (
+              <span className={`${styles.stamp} ${styles.stampGood}`}>
+                self-checked &times;{turns}
+              </span>
+            )}
+          </p>
+          <p className={styles.logic}>{plan.approach}</p>
+          {fixes.length > 0 && (
+            <ul className={styles.fixes}>
+              {fixes.map((fix, i) => (
+                <li key={i}>{fix}</li>
+              ))}
+            </ul>
           )}
-        </p>
-        {fixes.length > 0 && (
-          <ul className={styles.fixes}>
-            {fixes.map((fix, i) => (
-              <li key={i}>{fix}</li>
-            ))}
-          </ul>
-        )}
+        </section>
 
-        <table className={styles.table}>
-          <tbody>
-            {steps.map((step) => (
-              <tr key={step.idx}>
-                <td>
-                  <span className={styles.service}>{step.service_name}</span>
-                  <span className={styles.why}>{step.why}</span>
-                </td>
-                <td>
-                  <span className={styles.amt}>{usd(Number(step.quote_usd))}</span>{' '}
-                  {step.source === 'live-402' ? (
-                    <span className={`${styles.stamp} ${styles.stampGood}`} title="a live HTTP 402 quote from the seller">
-                      live
+        <section className={`${styles.block} ${styles.section}`}>
+          <p className={styles.eyebrow}>Priced steps</p>
+          <table className={styles.table}>
+            <tbody>
+              {steps.map((step, i) => (
+                <tr key={step.idx}>
+                  <td className={styles.idx}>{String(i + 1).padStart(2, '0')}</td>
+                  <td>
+                    <span className={styles.service}>{step.service_name}</span>
+                    <span className={styles.why}>{step.why}</span>
+                    <span className={styles.rail}>{step.rail}</span>
+                  </td>
+                  <td>
+                    <span className={styles.stepPrice}>{usd(Number(step.quote_usd))}</span>
+                    <span className={styles.stepSource}>
+                      {step.source === 'live-402' ? (
+                        <span
+                          className={`${styles.stamp} ${styles.stampGood}`}
+                          title="a live HTTP 402 quote from the seller"
+                        >
+                          live
+                        </span>
+                      ) : (
+                        <span
+                          className={`${styles.stamp} ${styles.stampWarn}`}
+                          title="no published price — the agent's estimate"
+                        >
+                          est.
+                        </span>
+                      )}
                     </span>
-                  ) : (
-                    <span className={`${styles.stamp} ${styles.stampWarn}`} title="no published price — the agent's estimate">
-                      est.
-                    </span>
-                  )}
-                </td>
+                  </td>
+                </tr>
+              ))}
+              <tr className={styles.totalRow}>
+                <td className={styles.idx} />
+                <td className={styles.totalLabel}>Total quoted</td>
+                <td className={styles.amt}>{usd(total)}</td>
               </tr>
-            ))}
-            <tr className={styles.totalRow}>
-              <td>Total quoted</td>
-              <td className={styles.amt}>{usd(total)}</td>
-            </tr>
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </section>
 
-        <div className={styles.ceiling}>
-          <span>Ceiling (drift headroom)</span>
-          <span className={styles.amt}>{usd(ceiling)}</span>
-        </div>
-        <div className={styles.expiry}>
-          <Countdown expiresAt={plan.expires_at} />
-        </div>
+        <section className={`${styles.block} ${styles.section}`}>
+          <p className={styles.eyebrow}>Envelope</p>
+          <div className={styles.envelopeFigures}>
+            <div>
+              <span className={styles.envelopeLabel}>Total quoted</span>
+              <span className={styles.figure}>{usd(total)}</span>
+            </div>
+            <div className={styles.envelopeCeiling}>
+              <span className={styles.envelopeLabel}>Ceiling</span>
+              <span className={styles.figure}>{usd(ceiling)}</span>
+            </div>
+          </div>
+          <div className={styles.scale}>
+            <div
+              className={styles.scaleFill}
+              style={{ '--fill': `${fillPct.toFixed(1)}%` } as CSSProperties}
+            />
+          </div>
+          <p className={styles.envelopeFoot}>
+            <span>
+              <b>{usd(headroom)}</b> drift headroom
+            </span>
+            <span className={styles.expiry}>
+              <Countdown expiresAt={plan.expires_at} />
+            </span>
+          </p>
+        </section>
 
         {isOpen ? (
-          <>
+          <section className={`${styles.block} ${styles.section}`}>
+            <p className={styles.eyebrow}>Your decision</p>
             <DecisionForm
               planId={plan.id}
               token={mintDecisionToken(plan.approval_key, plan.id)}
@@ -238,7 +281,7 @@ export default async function ApprovalPage({
               Approving funds a single-use envelope with exactly this ceiling &mdash; the agent
               cannot exceed it, and what it does not spend sweeps back at expiry.
             </p>
-          </>
+          </section>
         ) : isBlocked && blockedStep ? (
           // The plan stopped mid-execution because a seller changed its price. This is the
           // second decision the product exists to ask for, and it is priced, not a popup.
@@ -252,7 +295,7 @@ export default async function ApprovalPage({
           />
         ) : (
           <>
-            <div className={styles.settled}>
+            <div className={`${styles.block} ${styles.settled}`}>
               <h2>{settled?.title ?? plan.status}</h2>
               <p>{settled?.body ?? 'This plan is no longer awaiting an answer.'}</p>
             </div>
@@ -267,7 +310,7 @@ export default async function ApprovalPage({
             )}
           </>
         )}
-      </div>
+      </article>
       <p className={styles.footer}>
         PlanBound &middot; this page is rendered from the record, not from the agent.
       </p>

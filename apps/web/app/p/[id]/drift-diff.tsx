@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { driftExits } from '@planbound/core'
 import type { PlanMoneyView, StepStatus } from '@planbound/core'
 import { usd } from '@/lib/format'
@@ -43,8 +44,14 @@ export function DriftDiff({
   const spent = paid.reduce((sum, s) => sum + (s.paidUsd ?? 0), 0)
   const multiple = blocked && blocked.quoteUsd > 0 ? liveAskUsd / blocked.quoteUsd : 0
 
+  // The same envelope scale the approval sheet drew, now answering the only question
+  // the exits turn on: does the new total still fit under the ceiling?
+  const ceiling = money.ceilingUsd
+  const fillPct = ceiling > 0 ? Math.min(100, (exits.newTotalUsd / ceiling) * 100) : 0
+  const overCeiling = exits.topUpUsd > 0
+
   return (
-    <section className={styles.drift}>
+    <section className={`${styles.block} ${styles.drift}`}>
       <div className={styles.driftHead}>
         <span className={styles.driftBadge}>Blocked on drift</span>
         <span className={styles.driftLead}>
@@ -105,6 +112,18 @@ export function DriftDiff({
           </dd>
         </div>
       </dl>
+
+      <div className={styles.driftScale}>
+        <span className={styles.envelopeLabel}>
+          New total against the {usd(ceiling)} ceiling
+        </span>
+        <div className={styles.scale}>
+          <div
+            className={`${styles.scaleFill} ${overCeiling ? styles.scaleOver : ''}`}
+            style={{ '--fill': `${fillPct.toFixed(1)}%` } as CSSProperties}
+          />
+        </div>
+      </div>
 
       <DriftActions
         planId={planId}
