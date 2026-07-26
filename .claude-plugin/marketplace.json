@@ -1,0 +1,32 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "planbound",
+  "description": "Price a spending task before spending anything: shop real x402 sellers, get one human approval, and run inside a bounded single-use envelope the agent cannot exceed.",
+  "owner": {
+    "name": "PlanBound",
+    "url": "https://planbound.xyz"
+  },
+  "plugins": [
+    {
+      "name": "planbound",
+      "description": "An agent that shops a spending task and returns a priced, reasoned plan — one human approval funds a single-use envelope it cannot exceed. Seven MCP tools over stdio or remote OAuth, plus a skill for indexing settlements with Substreams.",
+      "version": "0.1.0",
+      "author": {
+        "name": "PlanBound",
+        "url": "https://planbound.xyz"
+      },
+      "source": "./plugin",
+      "category": "development",
+      "keywords": [
+        "agent-spending",
+        "x402",
+        "hedera",
+        "world-id",
+        "the-graph",
+        "substreams",
+        "mcp",
+        "human-in-the-loop"
+      ]
+    }
+  ]
+}
