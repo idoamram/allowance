@@ -1,0 +1,153 @@
+/* The signed-in app's header.
+   ---------------------------------------------------------------------------
+   One bar, two layouts. Above 46rem it is three columns on a single line. Below
+   it, the identity keeps the top line and the section links take a line of their
+   own — the alternative, letting six items wrap, turns a bar into a paragraph.
+
+   Sticky, because the thing it is navigating is a long table and a nav you have
+   to scroll back up to reach is not navigation. */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--manila);
+  border-bottom: 1px solid var(--rule);
+}
+
+.inner {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0.55rem 1rem;
+  display: grid;
+  grid-template-areas:
+    'mark who'
+    'links links';
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+@media (min-width: 46rem) {
+  .inner {
+    grid-template-areas: 'mark links who';
+    grid-template-columns: auto 1fr auto;
+    padding: 0.6rem 1.5rem;
+    gap: 1.5rem;
+  }
+}
+
+/* ── the mark ─────────────────────────────────────────────────────────────── */
+.mark {
+  grid-area: mark;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ink);
+  text-decoration: none;
+  min-width: 0;
+}
+
+.glyph {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex: none;
+  color: var(--accent);
+}
+
+.wordmark {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── the links ────────────────────────────────────────────────────────────── */
+.links {
+  grid-area: links;
+  display: flex;
+  align-items: baseline;
+  gap: 0.85rem;
+  min-width: 0;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.5rem;
+}
+
+@media (min-width: 46rem) {
+  .links {
+    border-top: 0;
+    padding-top: 0;
+    gap: 1.25rem;
+  }
+}
+
+.links a {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.links a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Where you are, said in form as well as in words: the only item in the row that
+   carries the page's ink and an underscore beneath it. */
+.here {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 0.15rem;
+}
+
+/* Leaving the app is not the same act as moving inside it, so it sits apart. */
+.away {
+  margin-left: auto;
+}
+
+/* ── who, and the way out ─────────────────────────────────────────────────── */
+.who {
+  grid-area: who;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.email {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.signOut {
+  flex: none;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.signOut:hover {
+  border-color: var(--ink-soft);
+  color: var(--ink);
+}

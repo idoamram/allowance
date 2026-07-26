@@ -36,7 +36,7 @@ export async function createAgentAction(_prev: TokenState, form: FormData): Prom
 
   try {
     const { agent, token } = await createAgent(user.id, name)
-    revalidatePath('/account')
+    revalidatePath('/console')
     return { token, agentName: agent.name }
   } catch (e) {
     return { error: reason(e, 'The agent could not be created. Try again.') }
@@ -54,7 +54,7 @@ export async function rotateAgentTokenAction(
 
   try {
     const { token } = await rotateAgentToken(user.id, agentId)
-    revalidatePath('/account')
+    revalidatePath('/console')
     return { token, agentName }
   } catch (e) {
     return { error: reason(e, 'The token could not be rotated. Try again.') }
@@ -68,7 +68,7 @@ export async function deleteAgentAction(_prev: PlainState, form: FormData): Prom
 
   try {
     await deleteAgent(user.id, agentId)
-    revalidatePath('/account')
+    revalidatePath('/console')
     return {}
   } catch (e) {
     return { error: reason(e, 'The agent could not be deleted. Try again.') }

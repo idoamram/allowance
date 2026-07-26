@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import styles from './account.module.css'
+import styles from './agents.module.css'
 
 /** Everything inside the panel that can take focus, in document order. */
 const FOCUSABLE = 'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])'
