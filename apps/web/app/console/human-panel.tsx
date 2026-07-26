@@ -89,33 +89,13 @@ export function HumanPanel({ binding, threshold }: { binding: HumanBinding; thre
         )}
       </p>
 
-      <p className={styles.sub}>
-        When an agent submits a plan it is handed the approval link for that plan. Connecting
-        your World ID means an approval has to come from <em>you</em> &mdash; not the agent,
-        and not anyone else who ends up with the link.
-      </p>
-
-      <p className={styles.note}>
-        We learn nothing about who you are. World gives us one scrambled value that stays the
-        same for you and is different for everyone else &mdash; enough to recognise you again,
-        and nothing more.
-      </p>
-
-      {enrolled ? (
-        <p className={styles.bound}>
-          Connected{binding.boundAt && <> on {binding.boundAt.slice(0, 10)}</>}
-          {binding.preset && <> using <code>{binding.preset}</code></>}. Connecting a different
-          World ID replaces this one &mdash; that is how you get back in if you lose the phone,
-          and it also means anyone who can sign in here could change it.
-        </p>
-      ) : (
-        <button type="button" className={styles.btn} onClick={begin} disabled={busy}>
-          {busy ? 'Preparing…' : 'Connect your World ID'}
-        </button>
-      )}
-
+      {/* The setting comes straight after the status, because between them they answer
+          the entire question a reader brought here: am I protected, and when. The
+          explanation of *why* is worth reading once and belongs after the control, not
+          in front of it — a person returning to change a setting should not have to
+          scroll past three paragraphs they have already read. */}
       <fieldset className={styles.policy} disabled={pending}>
-        <legend className={styles.legend}>Require the bound human</legend>
+        <legend className={styles.legend}>When to ask for it</legend>
         {policies(threshold).map((p) => (
           <label key={p.value} className={styles.option}>
             <input
@@ -136,8 +116,19 @@ export function HumanPanel({ binding, threshold }: { binding: HumanBinding; thre
       {!enrolled && binding.policy !== 'off' && (
         <p className={styles.warn} role="alert">
           No World ID is connected, so plans that need one are being turned away rather than
-          waved through. Connect one above, or choose <strong>Never ask</strong>.
+          waved through. Connect one below, or choose <strong>Never ask</strong>.
         </p>
+      )}
+
+      {enrolled ? (
+        <p className={styles.bound}>
+          Connected{binding.boundAt && <> on {binding.boundAt.slice(0, 10)}</>}
+          {binding.preset && <> using <code>{binding.preset}</code></>}.
+        </p>
+      ) : (
+        <button type="button" className={styles.btn} onClick={begin} disabled={busy}>
+          {busy ? 'Preparing…' : 'Connect your World ID'}
+        </button>
       )}
 
       {error && (
@@ -145,6 +136,27 @@ export function HumanPanel({ binding, threshold }: { binding: HumanBinding; thre
           {error}
         </p>
       )}
+
+      <div className={styles.about}>
+        <p className={styles.sub}>
+          When an agent submits a plan it is handed the approval link for that plan. Connecting
+          your World ID means an approval has to come from <em>you</em> &mdash; not the agent,
+          and not anyone else who ends up with the link.
+        </p>
+
+        <p className={styles.note}>
+          We learn nothing about who you are. World gives us one scrambled value that stays the
+          same for you and is different for everyone else &mdash; enough to recognise you again,
+          and nothing more.
+        </p>
+
+        {enrolled && (
+          <p className={styles.note}>
+            Connecting a different World ID replaces this one. That is how you get back in if
+            you lose the phone, and it also means anyone who can sign in here could change it.
+          </p>
+        )}
+      </div>
 
       {challenge?.kind === 'world' && (
         <IDKitRequestWidget
