@@ -10,6 +10,7 @@ import { Mark } from '../../(components)/mark'
 import { Countdown } from './countdown'
 import { DriftDiff } from './drift-diff'
 import { Receipts } from './receipts'
+import { Sellers } from './sellers'
 import { mintDecisionToken } from './token'
 import { usd } from '@/lib/format'
 import { humanVerifierOrError, DEFAULT_STEP_UP_USD } from '@/lib/verify'
@@ -138,6 +139,10 @@ export default async function ApprovalPage({
   const expiresAt = new Date(plan.expires_at)
   const isExpired = expiresAt <= new Date()
   const isOpen = plan.status === 'pending_approval' && !isExpired
+  // One token for the page, not one per component. Every server action reachable from here
+  // is authorised by the same thing — proof the caller held the approval key — so minting a
+  // second one would only mean two expiry clocks on a page the human reads as one.
+  const decisionToken = mintDecisionToken(plan.approval_key, plan.id)
   const turns = plan.self_check?.turns ?? 0
   const fixes = plan.self_check?.fixes ?? []
   const settled = SETTLED_COPY[isExpired && plan.status === 'pending_approval' ? 'expired' : plan.status]
@@ -244,6 +249,11 @@ export default async function ApprovalPage({
               </tr>
             </tbody>
           </table>
+
+          {/* Only while there is still a decision to make. Once the money has moved, the
+              receipts below are the stronger evidence — they name the transactions this
+              plan itself produced, rather than what strangers paid the seller before. */}
+          {(isOpen || isBlocked) && <Sellers planId={plan.id} token={decisionToken} />}
         </section>
 
         <section className={`${styles.block} ${styles.section}`}>
@@ -279,7 +289,7 @@ export default async function ApprovalPage({
             <p className={styles.eyebrow}>Your decision</p>
             <DecisionForm
               planId={plan.id}
-              token={mintDecisionToken(plan.approval_key, plan.id)}
+              token={decisionToken}
               approveLabel={`Approve ${usd(ceiling)} envelope`}
               steps={steps.map((s) => ({ idx: s.idx, name: s.service_name }))}
               stepUp={stepUp}
@@ -294,7 +304,7 @@ export default async function ApprovalPage({
           // second decision the product exists to ask for, and it is priced, not a popup.
           <DriftDiff
             planId={plan.id}
-            ticket={mintDecisionToken(plan.approval_key, plan.id)}
+            ticket={decisionToken}
             money={money}
             steps={driftSteps}
             blockedIdx={blockedStep.idx}
