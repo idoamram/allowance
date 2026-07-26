@@ -81,3 +81,19 @@ export async function setPolicy(userId: string, policy: Binding['policy']): Prom
     .upsert({ user_id: userId, policy }, { onConflict: 'user_id' })
   if (error) throw new Error(`could not save the setting: ${error.message}`)
 }
+
+/**
+ * Forget the human this account was bound to.
+ *
+ * The policy is deliberately left alone. Disconnecting while a policy still demands a human
+ * leaves the account refusing approvals — which is loud, visible, and recoverable, and is
+ * the right failure. Silently relaxing the policy on their behalf would be the wrong one:
+ * it would turn "I want to change my World ID" into "my spending controls are now off", and
+ * nobody asked for that.
+ */
+export async function unbindHuman(userId: string): Promise<void> {
+  const { error } = await db()
+    .from('human_bindings')
+    .upsert({ user_id: userId, nullifier: null, preset: null, bound_at: null }, { onConflict: 'user_id' })
+  if (error) throw new Error(`could not disconnect: ${error.message}`)
+}

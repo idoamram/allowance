@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { bindHuman, setPolicy, type VerificationPolicy } from '@/lib/human-binding'
+import { bindHuman, setPolicy, unbindHuman, type VerificationPolicy } from '@/lib/human-binding'
 import { humanVerifier } from '@/lib/verify'
 import { worldPreset } from '@/lib/verify/world'
 import { requireUser } from '@/lib/supabase/server'
@@ -92,4 +92,10 @@ export async function startEnrolment(): Promise<EnrolChallenge> {
   } catch (err) {
     return { error: `Could not start verification: ${(err as Error).message}` }
   }
+}
+
+export async function disconnectHuman(): Promise<void> {
+  const user = await requireUser()
+  await unbindHuman(user.id)
+  revalidatePath('/console')
 }

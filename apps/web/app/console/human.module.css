@@ -1,18 +1,35 @@
-/* Who may approve — the account's bound human, and when their presence is required.
+/* Who may approve — one card.
    ---------------------------------------------------------------------------
-   Quiet by construction. This is a setting, not an event, and it sits below the
-   plans that actually want attention. The one loud element is the warning that
-   fires when a policy demands a human nobody has bound: that state refuses real
-   approvals, so it has to look like something that needs fixing.
+   A card rather than prose under a rule, because this is a control sitting in a
+   page of records: it needs an edge to say "this is a thing you operate", not
+   another section you read.
+
+   Everything is quiet except two states: the warning when a policy demands a
+   World ID nobody has connected, which refuses real approvals, and the
+   disconnect confirmation, the only destructive action here.
 
    Tokens come from globals.css; nothing here redefines them. */
 
-.panel {
+.card {
   /* Clears the sticky nav when the notice's anchor jumps here. */
   scroll-margin-top: 5.5rem;
   margin-top: 2.5rem;
-  border-top: 1px solid var(--rule);
-  padding-top: 1.5rem;
+  padding: 1.4rem 1.5rem 1.25rem;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+
+@media (max-width: 30rem) {
+  .card { padding: 1.1rem 1rem 1rem; }
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .eyebrow {
@@ -25,108 +42,41 @@
   font-weight: 600;
 }
 
-/* A real heading. The section used to be titled by a 10px mono label, which is a
-   caption — fine for a column header, not for the block that decides who can
-   spend money. */
 .title {
-  margin: 0.35rem 0 0;
-  font-size: 1.35rem;
+  margin: 0.3rem 0 0;
+  font-size: 1.2rem;
   line-height: 1.25;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
-/* Status as a sentence, not a chip. A 10px pill in the corner was invisible
-   against the only question a reader has here — am I protected or not. */
-.status {
-  display: flex;
-  align-items: baseline;
-  gap: 0.6rem;
-  margin: 0.9rem 0 0;
-  max-width: 62ch;
-  line-height: 1.55;
-}
-
-.dotOn,
-.dotOff {
+.pillOn, .pillOff {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   flex: none;
-  width: 0.6rem;
-  height: 0.6rem;
-  border-radius: 50%;
-  transform: translateY(-0.1em);
-}
-
-.dotOn {
-  background: var(--ok);
-}
-
-.dotOff {
-  background: var(--warn);
-}
-
-.sub {
-  margin: 0.9rem 0 0;
-  max-width: 62ch;
-  line-height: 1.6;
-}
-
-.note {
-  margin: 0.6rem 0 0;
-  max-width: 62ch;
-  font-size: 0.85rem;
-  color: var(--ink-soft);
-  line-height: 1.55;
-}
-
-.bound {
-  margin: 1rem 0 0;
-  max-width: 62ch;
-  font-size: 0.9rem;
-  line-height: 1.55;
-}
-
-.bound code {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid;
+  border-radius: 999px;
   font-family: var(--font-mono);
-  font-size: 0.85em;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
 }
 
-.btn {
-  margin-top: 1rem;
-  min-height: 44px;
-  padding: 0.6rem 1.1rem;
-  font: inherit;
-  font-weight: 600;
-  color: var(--manila);
-  background: var(--ink);
-  border: 1px solid var(--ink);
-  border-radius: 3px;
-  cursor: pointer;
+.pillOn { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, var(--rule)); }
+.pillOff { color: var(--ink-soft); border-color: var(--rule); }
+
+.dotOn, .dotOff { width: 0.45rem; height: 0.45rem; border-radius: 50%; }
+.dotOn { background: var(--ok); }
+.dotOff { background: var(--warn); }
+
+.lede {
+  margin: 0.85rem 0 0;
+  max-width: 58ch;
+  line-height: 1.55;
 }
 
-.btn:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-
-.btn:active:not(:disabled) {
-  transform: translateY(1px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .btn:active:not(:disabled) {
-    transform: none;
-  }
-}
-
-/* ── policy ──────────────────────────────────────────────────────────────── */
-
-.policy {
-  margin: 1.5rem 0 0;
-  border: 0;
-  padding: 0;
-  display: grid;
-  gap: 0.65rem;
-}
+.policy { margin: 1.25rem 0 0; border: 0; padding: 0; }
 
 .legend {
   font-family: var(--font-mono);
@@ -136,71 +86,138 @@
   color: var(--ink-soft);
   font-weight: 600;
   padding: 0;
-  margin-bottom: 0.35rem;
+}
+
+/* Three across on a wide card, stacked on a phone. Side by side they read as one
+   choice with three answers, which is what they are. */
+.options {
+  margin-top: 0.6rem;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 46rem) {
+  .options { grid-template-columns: 1fr; }
 }
 
 .option {
   display: flex;
-  gap: 0.7rem;
+  gap: 0.55rem;
   align-items: flex-start;
-  /* A 44px row, so the whole line is the target rather than the 13px circle. */
+  /* The whole row is the target, not the 13px circle. */
   min-height: 44px;
-  padding: 0.35rem 0;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
   cursor: pointer;
-  max-width: 62ch;
 }
+
+.option:has(input:checked) {
+  border-color: color-mix(in srgb, var(--ink) 55%, var(--rule));
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+.option:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .option input {
-  margin-top: 0.25rem;
+  margin-top: 0.15rem;
   accent-color: var(--ink);
-  min-width: 1rem;
-  min-height: 1rem;
+  min-width: 0.95rem;
+  min-height: 0.95rem;
 }
 
-.option strong {
-  display: block;
-  font-weight: 600;
-}
+.option strong { display: block; font-weight: 600; font-size: 0.92rem; }
 
 .optionDetail {
   display: block;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--ink-soft);
-  line-height: 1.5;
+  line-height: 1.45;
   margin-top: 0.1rem;
 }
 
-/* ── states ──────────────────────────────────────────────────────────────── */
+.actions {
+  margin-top: 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
 
-.warn,
-.error {
+.btn, .btnQuiet, .btnDanger {
+  min-height: 44px;
+  padding: 0 1rem;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 1px solid;
+}
+
+.btn { color: var(--manila); background: var(--ink); border-color: var(--ink); }
+.btnQuiet { color: var(--ink); background: transparent; border-color: var(--rule); }
+.btnDanger {
+  color: var(--stop);
+  background: transparent;
+  border-color: color-mix(in srgb, var(--stop) 55%, var(--rule));
+}
+
+.btn:disabled, .btnQuiet:disabled, .btnDanger:disabled { opacity: 0.55; cursor: default; }
+
+.btn:active:not(:disabled),
+.btnQuiet:active:not(:disabled),
+.btnDanger:active:not(:disabled) { transform: translateY(1px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:active:not(:disabled),
+  .btnQuiet:active:not(:disabled),
+  .btnDanger:active:not(:disabled) { transform: none; }
+}
+
+.since { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-soft); }
+
+.confirmNote {
+  flex-basis: 100%;
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.warn, .error {
   margin: 1rem 0 0;
-  max-width: 62ch;
-  padding-left: 0.8rem;
-  font-size: 0.9rem;
-  line-height: 1.55;
+  max-width: 58ch;
+  padding-left: 0.75rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
 }
 
 /* The only loud thing here: this state refuses real approvals. */
-.warn {
-  border-left: 2px solid var(--warn);
-  color: var(--ink);
-}
+.warn { border-left: 2px solid var(--warn); color: var(--ink); }
+.error { border-left: 2px solid var(--stop); color: var(--stop); }
 
-.error {
-  border-left: 2px solid var(--stop);
-  color: var(--stop);
-}
-
-/* The explanation, below the control it explains. Set back and quiet: worth
-   reading once, and worth not re-reading every time someone comes to change a
-   setting. */
+/* The reasoning, closed by default — worth reading once, worth not re-reading
+   every time somebody comes to change a setting. */
 .about {
-  margin-top: 1.75rem;
-  padding-top: 1.1rem;
+  margin-top: 1.25rem;
   border-top: 1px solid var(--rule);
+  padding-top: 0.9rem;
+  font-size: 0.86rem;
+  color: var(--ink-soft);
 }
 
-.about .sub {
-  margin-top: 0;
+.about summary {
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 0.4rem 0;
 }
+
+.about summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.about p { margin: 0.7rem 0 0; max-width: 62ch; line-height: 1.55; }
