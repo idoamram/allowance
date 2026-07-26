@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { signOutAction } from '@/app/console/actions'
 import { ThemeToggle } from './theme-toggle'
+import { Mark } from './mark'
 import styles from './app-nav.module.css'
 
 /**
@@ -32,17 +33,10 @@ export function AppNav({ email }: { email: string }) {
   return (
     <header className={styles.bar}>
       <div className={styles.inner}>
+        {/* The mark alone. The wordmark beside it said the same thing twice, and this
+            bar is tight at 320px — the name is in the tab title and the page heading. */}
         <Link href="/console" className={styles.mark} aria-label="PlanBound console">
-          <svg className={styles.glyph} viewBox="0 0 20 20" aria-hidden="true">
-            <g fill="currentColor">
-              <rect x="0" y="0" width="20" height="4" />
-              <rect x="0" y="4" width="4" height="16" />
-              <rect x="4" y="16" width="10" height="4" />
-              <rect x="16" y="4" width="4" height="10" />
-              <rect x="16" y="16" width="4" height="4" />
-            </g>
-          </svg>
-          <span className={styles.wordmark}>PlanBound</span>
+          <Mark className={styles.glyph} />
         </Link>
 
         <nav className={styles.links} aria-label="Console sections">

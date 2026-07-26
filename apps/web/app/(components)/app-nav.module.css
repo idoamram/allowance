@@ -55,6 +55,8 @@
   color: var(--accent);
 }
 
+/* Unused since the nav shows the mark alone; kept because the login card and any
+   future surface that wants the name beside the glyph should match this. */
 .wordmark {
   font-family: var(--font-mono);
   font-size: 0.72rem;
