@@ -306,7 +306,17 @@
   white-space: nowrap;
 }
 
-/* Two states want a human. The edge says so before any of the text is read. */
+/* Two states want a human, and they get three redundant signals: a filled pill,
+   a coloured edge, and a tint across the whole row. One is enough to read; three
+   are what make the row findable in peripheral vision down a list of eighteen. */
+.rowWants td {
+  background: color-mix(in srgb, var(--warn) 8%, transparent);
+}
+
+.rowStop td {
+  background: color-mix(in srgb, var(--stop) 9%, transparent);
+}
+
 .rowWants td:first-child {
   box-shadow: inset 3px 0 0 var(--warn);
   padding-left: 0.85rem;
