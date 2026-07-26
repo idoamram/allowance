@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { sendCode, verifyCode, type LoginState } from './actions'
 import styles from './login.module.css'
 
@@ -16,6 +16,82 @@ export function LoginForm() {
   const [verifyState, verify, verifying] = useActionState<LoginState, FormData>(verifyCode, {
     kind: 'idle',
   })
+  const [hasCode, setHasCode] = useState(false)
+
+  /**
+   * Entering a code you already hold must not require sending another email.
+   *
+   * The first version only revealed the code field after a successful send, which put the
+   * escape hatch behind the exact thing that fails: sends are rate limited to a few an
+   * hour, and someone who has burned that allowance is precisely the person holding a code
+   * and no way to use it.
+   */
+  if (hasCode && state.kind !== 'sent') {
+    const notice = verifyState.kind === 'sent' ? verifyState.notice : undefined
+    return (
+      <form action={verify}>
+        <h1 className={styles.title}>Enter your code</h1>
+        <p className={styles.sub}>
+          Type the address you asked for the code with, and the code itself. No new email is
+          sent, so this works even when sending is rate limited.
+        </p>
+
+        <label className={styles.label} htmlFor="code-email">
+          Email address
+        </label>
+        <input
+          id="code-email"
+          name="email"
+          type="email"
+          className={styles.input}
+          autoComplete="email"
+          inputMode="email"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          required
+          defaultValue={state.kind === 'error' ? state.email : ''}
+          placeholder="you@example.com"
+        />
+
+        <label className={styles.label} htmlFor="code-only">
+          Code
+        </label>
+        <input
+          id="code-only"
+          name="code"
+          type="text"
+          className={styles.input}
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          pattern="[0-9]*"
+          maxLength={10}
+          required
+          autoFocus
+          placeholder="123456"
+          style={{ letterSpacing: '0.4em', fontVariantNumeric: 'tabular-nums' }}
+        />
+
+        <button type="submit" className={styles.btn} disabled={verifying}>
+          {verifying ? 'Checking…' : 'Sign in'}
+        </button>
+
+        {notice && (
+          <p className={styles.error} role="alert">
+            {notice}
+          </p>
+        )}
+
+        <button
+          type="button"
+          className={`${styles.btn} ${styles.ghost}`}
+          onClick={() => setHasCode(false)}
+        >
+          Back to email sign-in
+        </button>
+      </form>
+    )
+  }
 
   if (state.kind === 'sent') {
     // A verification failure carries its own notice; otherwise show the send's.
@@ -111,6 +187,14 @@ export function LoginForm() {
           {state.message}
         </p>
       )}
+
+      <button
+        type="button"
+        className={`${styles.btn} ${styles.ghost}`}
+        onClick={() => setHasCode(true)}
+      >
+        I already have a code
+      </button>
     </form>
   )
 }
