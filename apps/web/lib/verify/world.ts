@@ -198,6 +198,12 @@ export function makeWorldVerifier(config: WorldConfig): HumanVerifier {
       }
 
       if (!res.ok || body.success !== true) {
+        // Log World's own reason. The proof itself is never logged — only why it was
+        // refused — because "verification declined" with no code is undebuggable for an
+        // operator and indistinguishable from our own bug.
+        console.error(
+          `[world] verify refused: http=${res.status} code=${body.code ?? 'none'} detail=${body.detail ?? 'none'}`,
+        )
         return {
           ok: false,
           code: body.code ?? `http_${res.status}`,
