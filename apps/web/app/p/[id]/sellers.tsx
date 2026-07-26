@@ -56,8 +56,7 @@ export function Sellers({ planId, token }: { planId: string; token: string }) {
             ))}
           </ul>
           <p className={styles.trustFoot}>
-            Indexed from {state.chain} by a subgraph on The Graph, from the seller&rsquo;s own
-            payout address. Not our record of what we paid &mdash; the chain&rsquo;s.
+            Indexed from {state.chain} by a subgraph on The Graph, from the seller&rsquo;s own payout address. Not our record of what we paid &mdash; the chain&rsquo;s.
           </p>
         </div>
       )}
