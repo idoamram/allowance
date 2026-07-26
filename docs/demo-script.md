@@ -7,11 +7,19 @@ Read the bold lines like you mean them; they are the ones that win this.
 
 ---
 
-**1 · Title card**
+**1 · You, on camera**
 
+*(This is the face clip. Nothing on screen but you — say your name, the product name, then the
+two lines. Fifteen seconds.)*
+
+> I'm Ido. This is PlanBound.
+>
 > Agents that spend money get a funded key, or a permission popup you stop reading.
 >
 > **Neither one is consent.**
+
+*(No camera? Then screen-record `planbound.xyz` — just the top of the page, not scrolling —
+and say the same words over it.)*
 
 ---
 

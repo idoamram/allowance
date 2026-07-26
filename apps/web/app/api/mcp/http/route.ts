@@ -23,10 +23,11 @@ export const dynamic = 'force-dynamic'
  * limit ended the request first and the agent reported a timeout at roughly four minutes —
  * correctly reading it as "nobody has looked yet", but far sooner than it needed to.
  *
- * This raises the ceiling to the platform maximum. It does not make the tool wait longer than
- * its own `timeoutSec`, and every other tool here returns in well under a second.
+ * 300 is the ceiling this plan allows — 800 built fine and then failed at deploy, which is a
+ * plan limit rather than a code error. It does not make the tool wait longer than its own
+ * `timeoutSec`, and every other tool here returns in well under a second.
  */
-export const maxDuration = 800
+export const maxDuration = 300
 
 /**
  * The remote MCP transport: Streamable HTTP, OAuth-protected, same seven tools.
