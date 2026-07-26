@@ -384,7 +384,8 @@ export default function Home() {
                   />
                 ))}
               </div>
-              <p className={styles.ceilingMark}>&#8593; ceiling &mdash; nothing crosses this edge</p>
+              {/* Right-aligned so the arrow sits directly under the ceiling edge. */}
+              <p className={styles.ceilingMark}>ceiling &mdash; nothing crosses this edge &#8593;</p>
 
               <ul className={styles.legend}>
                 {ENVELOPE.map((seg) => (
@@ -392,7 +393,7 @@ export default function Home() {
                     <p className={styles.legendName}>
                       <span className={`${styles.swatch} ${seg.swatch}`} aria-hidden="true" />
                       {seg.name}
-                      <span>{seg.note}</span>
+                      <span className={styles.legendNote}>{seg.note}</span>
                     </p>
                     <span className={styles.legendAmt}>{seg.amount}</span>
                   </li>

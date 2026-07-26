@@ -562,8 +562,8 @@
   display: flex;
   height: 3.25rem;
   border: 1px solid var(--fg);
-  border-right-width: 4px;
-  border-radius: 3px;
+  border-right-width: 6px;
+  border-radius: 3px 0 0 3px;
   overflow: hidden;
   background: var(--stock);
 }
@@ -617,7 +617,7 @@
   margin: 0;
 }
 
-.legendName span {
+.legendNote {
   display: block;
   font-size: 0.8rem;
   font-weight: 400;
@@ -798,6 +798,12 @@
 
   .h1 {
     font-size: 3.25rem;
+  }
+
+  /* The thesis gets the room it earns once there is room to give. */
+  .quote {
+    font-size: 2.1rem;
+    max-width: 34ch;
   }
 
   /* The left rail states the argument and stays put; the right column carries
