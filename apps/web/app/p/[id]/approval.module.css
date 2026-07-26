@@ -1194,3 +1194,20 @@
     transform: none;
   }
 }
+
+/* The way home, for a viewer who has one. Quiet — this sheet is a document
+   someone commits money from, not a page they are browsing. */
+.backLink {
+  color: var(--ink-soft);
+  text-decoration: none;
+  border-bottom: 1px solid var(--rule);
+}
+
+.backLink:hover {
+  color: var(--ink);
+}
+
+.footerSep {
+  margin: 0 0.45rem;
+  color: var(--rule);
+}

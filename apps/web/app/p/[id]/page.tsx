@@ -4,6 +4,8 @@ import type { Metadata } from 'next'
 import { db } from '@/lib/db'
 import { safeEqual } from '@/lib/ids'
 import { DecisionForm, type StepUpRequirement } from './decision-form'
+import Link from 'next/link'
+import { currentUser } from '@/lib/supabase/server'
 import { Mark } from '../../(components)/mark'
 import { Countdown } from './countdown'
 import { DriftDiff } from './drift-diff'
@@ -104,6 +106,10 @@ export default async function ApprovalPage({
       .maybeSingle(),
   ])
   const steps = (stepRows ?? []) as StepRow[]
+
+  // Null for an approver arriving from a link with no account — which is the common case
+  // and the one the capability URL exists to serve.
+  const viewer = await currentUser()
 
   const isBlocked = plan.status === 'blocked'
   const blockedStep = steps.find((s) => s.status === 'blocked')
@@ -313,7 +319,22 @@ export default async function ApprovalPage({
         )}
       </article>
       <p className={styles.footer}>
-        PlanBound &middot; this page is rendered from the record, not from the agent.
+        {/* Only for someone who already has an account.
+            This page is a capability URL — it is routinely opened by a person with no
+            account at all, invited by a link. A "back to console" they cannot reach would
+            walk them into a login wall on a page they were sent to on purpose. Shown when
+            there is a session, absent when there is not. */}
+        {viewer && (
+          <>
+            <Link className={styles.backLink} href="/console">
+              &larr; Back to console
+            </Link>
+            <span className={styles.footerSep} aria-hidden="true">
+              &middot;
+            </span>
+          </>
+        )}
+        This page is rendered from the record, not from the agent.
       </p>
     </main>
   )
