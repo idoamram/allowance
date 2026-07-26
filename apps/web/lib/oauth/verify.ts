@@ -6,18 +6,26 @@
  *  1. **It will not accept a token it cannot tie to this server.** The MCP authorization
  *     spec's hardest requirement is that a resource server reject tokens minted for
  *     somebody else — otherwise a token a user granted to an unrelated app is replayable
- *     here. Supabase's OAuth server issues JWTs whose `aud` is the Postgres role
- *     (`authenticated`), not a resource URI, so the audience is established in two layers:
- *     any resource-shaped `aud` entry present **must** be this server's canonical URI, and
- *     the caller must additionally hold a live consent grant for it (`grants.ts`). The
- *     second layer is what actually binds today; the first is what starts binding the
- *     moment Supabase (or a custom access token hook) puts a resource in the token, with
- *     no code change here.
+ *     here.
+ *
+ *     Verified against the live Supabase OAuth server, 2026-07-26, by running the whole
+ *     flow: the `resource` parameter (RFC 8707) is *accepted* on both the authorization
+ *     and token requests — it does not break the flow — but it is not reflected anywhere
+ *     in the issued token. The access token's claims are `iss, sub, aud, exp, iat, email,
+ *     role, aal, amr, session_id, client_id, scope`, and `aud` is the Postgres role
+ *     `"authenticated"`, not a resource URI.
+ *
+ *     So the audience is established in two layers: any resource-shaped `aud` entry that
+ *     *is* present must be this server's canonical URI, and the caller must additionally
+ *     hold a live consent grant for that URI (`grants.ts`). The second layer is what binds
+ *     today — it is the spec's "or otherwise verify that they are the intended recipient"
+ *     branch, and it is a stronger record than a claim, because a human wrote it. The first
+ *     starts binding the moment a resource appears in the token, with no change here.
  *  2. **It will not accept a token that is not an OAuth token.** A Supabase magic-link
  *     session JWT is signed by the same keys and carries the same issuer. What it does not
- *     carry is `client_id`. Requiring that claim is what stops a browser session cookie —
- *     stolen, or simply pasted by a confused operator — from being usable as an agent
- *     credential.
+ *     carry is `client_id` — confirmed live against both kinds of token. Requiring that
+ *     claim is what stops a browser session cookie, stolen or simply pasted by a confused
+ *     operator, from being usable as an agent credential.
  */
 import { createRemoteJWKSet, jwtVerify, type JWTPayload, type JWTVerifyGetKey } from 'jose'
 import { authServerMetadata, canonicalResource, issuer } from './config'
