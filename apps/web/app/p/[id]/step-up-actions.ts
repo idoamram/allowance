@@ -1,6 +1,7 @@
 'use server'
 
 import { db } from '@/lib/db'
+import { stepUpDecision } from '@/lib/step-up'
 import { humanVerifier } from '@/lib/verify'
 import { mintStepUpTicket } from '@/lib/verify/ticket'
 import type { Challenge, VerifyPlan } from '@/lib/verify'
@@ -22,11 +23,11 @@ export type StepUpState = { ticket?: string; error?: string; signalBound?: boole
 async function authorize(
   planId: string,
   token: string,
-): Promise<{ plan: VerifyPlan; approvalKey: string } | { error: string }> {
+): Promise<{ plan: VerifyPlan; approvalKey: string; agentId: string } | { error: string }> {
   const supabase = db()
   const { data } = await supabase
     .from('plans')
-    .select('id, goal, ceiling_usd, approval_key, status')
+    .select('id, agent_id, goal, ceiling_usd, approval_key, status')
     .eq('id', planId)
     .maybeSingle()
 
@@ -40,6 +41,7 @@ async function authorize(
   return {
     plan: { planId: data.id, goal: data.goal, ceilingUsd: Number(data.ceiling_usd) },
     approvalKey: data.approval_key,
+    agentId: data.agent_id,
   }
 }
 
@@ -55,7 +57,11 @@ export async function startStepUp(planId: string, token: string): Promise<Challe
   if ('error' in auth) return { error: auth.error }
 
   const verifier = humanVerifier()
-  if (!verifier.required(auth.plan)) {
+  // The same question the page asked before it rendered the button, and the gate will ask
+  // again before it accepts the approval. Asking a narrower version here produced the worst
+  // possible screen: a required verify block, above a refusal to start the verification.
+  const { required } = await stepUpDecision(auth.agentId, auth.plan.ceilingUsd)
+  if (!required && !verifier.required(auth.plan)) {
     return { error: 'This plan does not require step-up verification.' }
   }
 
