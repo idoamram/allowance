@@ -98,6 +98,10 @@ Three things to tell the user rather than paper over:
   call, `TYPE_UNKNOWN` when it could not be. Unknown ones are real balance changes whose
   cause is ambiguous — exotic tokens, rebasing, proxies. Say so rather than dropping them
   silently.
+- **A proxy token may report nothing.** The package derives movement from storage diffs, so
+  a token whose balances live behind a proxy can be invisible to it. Base USDC returns zero
+  across windows where 17,000 other balance changes appear — verified, not assumed. Check an
+  unfiltered run before concluding a token is quiet.
 - **Zero results is a result.** A quiet token in a 50-block window returns `[]`. That is not
   a failure; widen `--blocks` before concluding anything.
 
