@@ -152,8 +152,11 @@ export function LoginForm() {
     )
   }
 
+  // Deliberately not `styles.step`: this is the screen the page opens on, and a card that
+  // rises into place on first paint is decoration. The gesture means "the card advanced",
+  // so it belongs only on the two screens that replace this one.
   return (
-    <form action={send} className={styles.step}>
+    <form action={send}>
       <h1 className={styles.title}>Sign in</h1>
       <p className={styles.sub}>
         We email you a sign-in link &mdash; no password to lose. Your account owns the agents
