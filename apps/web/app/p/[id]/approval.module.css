@@ -1,115 +1,245 @@
-/* The approval card. Manila/ink identity from the spec's visualization
-   (plans/product-spec/latest.html, "One decision — on the cost and the logic").
+/* The approval sheet.
+   ---------------------------------------------------------------------------
+   This is a priced financial document, read on a phone, that a person commits
+   money from. So it is typeset as a document and not as an app screen: one flat
+   sheet, hairline rules, micro-labels in mono, and every figure set in tabular
+   numerals. Sections are separated by space and a single rule that runs to the
+   edge — not by nested cards and drop shadows, which would fight the sheet.
+
+   The signature element is the envelope scale (.scale): quoted fills it, the
+   ceiling stops it, and the hatched span between the two is the drift headroom
+   the whole product is about. It appears three times — quoted-vs-ceiling here,
+   spent-vs-new-total under drift, and paid-vs-funded on the receipts — because
+   it is one idea seen at three moments, not three widgets.
+
    Tokens come from globals.css; nothing here redefines them. */
 
+/* ── Page and sheet ───────────────────────────────────────────────────────── */
 .page {
-  max-width: 30rem;
+  max-width: 34rem;
   margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+  padding: 1rem 0.75rem 3rem;
 }
 
-.card {
-  background: #fffdf7;
+.sheet {
+  background: var(--paper);
   border: 1px solid var(--rule);
-  border-radius: 18px;
-  padding: 1.1rem 1.1rem 1rem;
-  box-shadow: 0 1px 2px rgba(27, 26, 23, 0.06), 0 8px 24px rgba(27, 26, 23, 0.06);
+  border-radius: 3px;
+  padding: 1.35rem 1.1rem 1.5rem;
 }
 
-.head {
+@media (min-width: 30rem) {
+  .page {
+    padding: 2.5rem 1.25rem 4rem;
+  }
+
+  .sheet {
+    padding: 2rem 2rem 2.25rem;
+  }
+}
+
+/* Vertical rhythm lives on exactly one class, so a section-specific rule can
+   never silently cancel it. Nothing else in this file sets margin-top on a
+   block-level section. */
+.block {
+  margin-top: 1.6rem;
+}
+
+@media (min-width: 30rem) {
+  .block {
+    margin-top: 2.1rem;
+  }
+}
+
+/* Internal spacing of a labelled section. Kept apart from .block so the rhythm
+   between sections and the rhythm inside one can never cancel each other. */
+.section {
+  display: grid;
+  gap: 0.85rem;
+}
+
+/* ── Masthead ─────────────────────────────────────────────────────────────── */
+.masthead {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: baseline;
-  gap: 0.5rem;
+  gap: 0.35rem 0.75rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--ink);
+}
+
+.brand {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
 }
 
 .planId {
-  font-weight: 700;
-  font-size: 0.95rem;
   font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
 }
 
+/* ── Micro-labels ─────────────────────────────────────────────────────────── */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+  margin: 0;
+}
+
+/* The rule that runs from the label to the edge is the section boundary. It
+   replaces the card that used to do this job. */
+.eyebrow::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--rule);
+}
+
+/* ── The brief ────────────────────────────────────────────────────────────── */
 .goal {
-  font-size: 0.95rem;
-  margin: 0.5rem 0 0.35rem;
+  font-size: 1.3rem;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  margin: 1.1rem 0 0.5rem;
+  text-wrap: balance;
+}
+
+@media (min-width: 30rem) {
+  .goal {
+    font-size: 1.5rem;
+  }
 }
 
 .agent {
-  color: var(--ink-soft);
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .logic {
-  font-size: 0.78rem;
-  color: var(--ink-soft);
-  line-height: 1.5;
-  margin: 0.5rem 0 0.25rem;
-}
-
-.logic b {
-  color: var(--ink);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin: 0;
 }
 
 .fixes {
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   color: var(--ink-soft);
-  margin: 0.2rem 0 0.9rem;
-  padding-left: 1rem;
+  line-height: 1.55;
+  margin: 0.6rem 0 0;
+  padding-left: 0;
+  list-style: none;
 }
 
 .fixes li {
-  margin: 0.1rem 0;
+  padding-left: 1.1rem;
+  position: relative;
+  margin: 0.25rem 0;
 }
 
-/* stamps */
+/* A self-check fix is a correction the agent made to its own plan — marked, not
+   bulleted, because it is evidence rather than a list item. */
+.fixes li::before {
+  content: '↺';
+  position: absolute;
+  left: 0;
+  color: var(--ok);
+}
+
+/* ── Stamps ───────────────────────────────────────────────────────────────── */
 .stamp {
   display: inline-block;
-  font-size: 0.62rem;
-  letter-spacing: 0.05em;
-  text-transform: lowercase;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   border: 1px solid var(--rule);
-  border-radius: 99px;
-  padding: 1px 7px;
+  border-radius: 2px;
+  padding: 0.1rem 0.35rem;
   white-space: nowrap;
+  color: var(--ink-soft);
+  vertical-align: 0.08em;
 }
 
 .stampGood {
   color: var(--ok);
-  border-color: color-mix(in srgb, var(--ok) 40%, var(--rule));
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--rule));
 }
 
 .stampWarn {
   color: var(--warn);
-  border-color: color-mix(in srgb, var(--warn) 40%, var(--rule));
+  border-color: color-mix(in srgb, var(--warn) 45%, var(--rule));
 }
 
 .stampStop {
   color: var(--stop);
-  border-color: color-mix(in srgb, var(--stop) 40%, var(--rule));
+  border-color: color-mix(in srgb, var(--stop) 45%, var(--rule));
 }
 
 .stampPlain {
   color: var(--ink-soft);
 }
 
-/* itemised table */
+/* ── Figures ──────────────────────────────────────────────────────────────── */
+.amt {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.figure {
+  display: block;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(1.5rem, 8vw, 2rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* ── The priced steps ─────────────────────────────────────────────────────── */
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.82rem;
-  margin-top: 0.4rem;
+  font-size: 0.85rem;
 }
 
 .table td {
-  padding: 0.4rem 0;
+  padding: 0.65rem 0;
   border-bottom: 1px solid var(--rule);
-  vertical-align: top;
+  vertical-align: baseline;
 }
 
 .table td:last-child {
   text-align: right;
   white-space: nowrap;
+  padding-left: 0.6rem;
+}
+
+/* The steps run in order and the order is real — the agent executes them top to
+   bottom — so numbering them carries information rather than decorating. */
+.idx {
+  width: 1.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  padding-right: 0.35rem;
 }
 
 .service {
@@ -120,113 +250,229 @@
   display: block;
   font-weight: 400;
   color: var(--ink-soft);
-  font-size: 0.74rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin-top: 0.15rem;
 }
 
-.amt {
+.rail {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  margin-top: 0.3rem;
+}
+
+.stepPrice {
+  display: block;
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+  font-size: 0.95rem;
+  letter-spacing: -0.015em;
+}
+
+.stepSource {
+  display: block;
+  margin-top: 0.25rem;
 }
 
 .totalRow td {
   border-bottom: none;
-  border-top: 2px solid var(--ink);
-  font-weight: 700;
-  padding-top: 0.5rem;
+  border-top: 1px solid var(--ink);
+  font-weight: 600;
+  padding-top: 0.7rem;
 }
 
-.ceiling {
+.totalLabel {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* ── The envelope scale: the signature ────────────────────────────────────── */
+.envelopeFigures {
   display: flex;
   justify-content: space-between;
-  font-size: 0.8rem;
-  color: var(--ink-soft);
-  margin: 0.6rem 0 0.1rem;
+  align-items: flex-end;
+  gap: 1rem;
 }
 
-.expiry {
-  font-size: 0.74rem;
-  color: var(--ink-soft);
+.envelopeCeiling {
   text-align: right;
 }
 
-/* decision */
+.envelopeLabel {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 0.35rem;
+}
+
+/* Quoted is solid; the headroom to the ceiling is hatched, because it is money
+   that is committed but not asked for. The stop at the end is the cap. */
+.scale {
+  position: relative;
+  height: 0.75rem;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  overflow: hidden;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent 0 3px,
+    color-mix(in srgb, var(--accent) 32%, transparent) 3px 4.5px
+  );
+}
+
+.scaleFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--fill, 0%);
+  max-width: 100%;
+  background: var(--ink);
+  transform-origin: left center;
+  /* The one piece of motion on the page: the envelope drawing itself, once. */
+  animation: scaleIn 700ms cubic-bezier(0.22, 0.8, 0.24, 1) both;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Over the ceiling: the bar is full and says so in the stop value, because a
+   full bar alone would read as "on budget". */
+.scaleOver {
+  background: var(--stop);
+}
+
+.driftScale {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.envelopeFoot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.envelopeFoot b {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.expiry {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* ── The decision ─────────────────────────────────────────────────────────── */
 .actions {
-  margin-top: 0.9rem;
+  display: grid;
+  gap: 0.6rem;
 }
 
 .btn {
   display: block;
   width: 100%;
   text-align: center;
-  border-radius: 8px;
-  padding: 0.6rem 0;
-  font-weight: 700;
-  font-size: 0.9rem;
-  font-family: inherit;
+  border-radius: 3px;
+  padding: 0.85rem 0.75rem;
+  font-weight: 600;
+  font-size: 0.92rem;
+  font-family: var(--font-sans);
   border: 1px solid transparent;
   cursor: pointer;
-  margin-top: 0.55rem;
+  margin: 0;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
 }
 
+/* Funding is the strongest act on the page, so it gets the strongest value on
+   it. Green would have made it a routine confirm; ink makes it a signature. */
 .approve {
-  background: var(--ok);
-  color: #fff;
+  background: var(--ink);
+  color: var(--paper);
+  font-variant-numeric: tabular-nums;
+}
+
+.approve:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 88%, var(--accent));
 }
 
 .ghost {
   background: transparent;
   border-color: var(--rule);
   color: var(--ink-soft);
-  font-weight: 600;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
+}
+
+.ghost:hover:not(:disabled) {
+  border-color: var(--ink-soft);
+  color: var(--ink);
 }
 
 .danger {
   background: var(--stop);
-  color: #fff;
+  color: var(--paper);
 }
 
 .btn:disabled {
-  opacity: 0.55;
-  cursor: progress;
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
-/* step-up: the extra factor a large ceiling asks for, in front of the approve button */
+/* ── Step-up: the extra factor a large ceiling asks for ───────────────────── */
 .stepUp {
-  margin-top: 0.8rem;
-  border: 1px dashed var(--rule);
-  border-radius: 10px;
-  padding: 0.7rem 0.75rem 0.75rem;
-  background: var(--manila);
-}
-
-.stepUp .legend {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.stepUp .btn {
-  margin-top: 0.2rem;
-}
-
-.rejectPanel {
-  margin-top: 0.8rem;
-  border-top: 1px solid var(--rule);
-  padding-top: 0.7rem;
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--warn);
+  border-radius: 3px;
+  padding: 0.9rem 1rem 1rem;
+  background: color-mix(in srgb, var(--warn) 6%, transparent);
+  display: grid;
+  gap: 0.55rem;
 }
 
 .legend {
-  font-size: 0.78rem;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 600;
   padding: 0;
-  margin-bottom: 0.1rem;
+  margin: 0;
 }
 
 .hint {
-  font-size: 0.72rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
   color: var(--ink-soft);
-  margin: 0 0 0.5rem;
+  margin: 0;
+}
+
+.rejectPanel {
+  border-top: 1px solid var(--rule);
+  padding-top: 1.1rem;
+  display: grid;
+  gap: 0.6rem;
 }
 
 .targets {
@@ -235,146 +481,376 @@
   gap: 0.4rem;
   border: 0;
   padding: 0;
-  margin: 0 0 0.6rem;
+  margin: 0;
 }
 
 .target {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   border: 1px solid var(--rule);
-  border-radius: 99px;
-  padding: 0.2rem 0.7rem;
+  border-radius: 2px;
+  padding: 0.3rem 0.6rem;
   cursor: pointer;
-  background: var(--manila);
+  background: transparent;
 }
 
 .target input {
   margin-right: 0.35rem;
+  accent-color: var(--accent);
 }
 
 .target:has(input:checked) {
   border-color: var(--accent);
   color: var(--accent);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .label {
   display: block;
-  font-size: 0.74rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--ink-soft);
-  margin-bottom: 0.2rem;
+  margin: 0.2rem 0 -0.25rem;
 }
 
 .select,
 .textarea {
   width: 100%;
   font-family: inherit;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   color: var(--ink);
   background: var(--manila);
   border: 1px solid var(--rule);
-  border-radius: 6px;
-  padding: 0.4rem 0.5rem;
-  margin-bottom: 0.6rem;
+  border-radius: 3px;
+  padding: 0.55rem 0.6rem;
+  margin: 0;
 }
 
 .textarea {
-  min-height: 4.5rem;
+  min-height: 5rem;
   resize: vertical;
+  line-height: 1.5;
 }
 
 .note {
-  font-size: 0.72rem;
+  font-size: 0.76rem;
+  line-height: 1.55;
   color: var(--ink-soft);
-  text-align: center;
-  margin-top: 0.7rem;
+  margin: 0.9rem 0 0;
 }
 
 .error {
-  font-size: 0.78rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
   color: var(--stop);
-  margin-top: 0.6rem;
+  border-left: 3px solid var(--stop);
+  padding-left: 0.7rem;
+  margin: 0;
 }
 
+/* ── Settled: the plan is no longer yours to answer ───────────────────────── */
 .settled {
-  margin-top: 0.9rem;
-  border-top: 1px solid var(--rule);
-  padding-top: 0.8rem;
-  font-size: 0.85rem;
+  border-left: 3px solid var(--rule);
+  padding-left: 0.9rem;
 }
 
 .settled h2 {
-  font-size: 0.95rem;
-  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.3rem;
 }
 
 .settled p {
   margin: 0;
   color: var(--ink-soft);
-  font-size: 0.78rem;
+  font-size: 0.84rem;
+  line-height: 1.55;
 }
 
 .footer {
   text-align: center;
-  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
   color: var(--ink-soft);
-  margin-top: 1rem;
+  margin: 1.25rem 0 0;
 }
 
-/* ── Drift diff: the second decision ─────────────────────────────────────────
-   Deliberately louder than the approval view. The human is being interrupted
-   mid-execution, so what changed and what each way out costs must read first. */
-.drift { border-top: 1px solid var(--rule); margin-top: 1.25rem; padding-top: 1.25rem; }
-.driftHead { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+/* ── Drift: the second decision ───────────────────────────────────────────
+   The human is interrupted mid-execution by a seller that changed its price.
+   This is the moment the product exists for, so it is the loudest thing the
+   sheet ever prints: a stop rule down the whole section, the blocked row
+   struck through, and three exits that each state what they cost. */
+.drift {
+  border-left: 3px solid var(--stop);
+  padding-left: 0.95rem;
+  display: grid;
+  gap: 1.1rem;
+}
+
+.driftHead {
+  display: grid;
+  gap: 0.5rem;
+}
+
 .driftBadge {
-  align-self: flex-start; background: var(--stop); color: var(--manila);
-  font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
-  padding: 0.15rem 0.45rem; border-radius: 2px;
+  justify-self: start;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--paper);
+  background: var(--stop);
+  padding: 0.2rem 0.45rem;
+  border-radius: 2px;
 }
-.driftLead { font-size: 1rem; line-height: 1.45; }
-.driftSteps { list-style: none; margin: 0 0 1rem; padding: 0; }
-.driftStep, .driftStepBlocked {
-  display: grid; grid-template-columns: 1.25rem 1fr auto; gap: 0.5rem;
-  align-items: baseline; padding: 0.45rem 0; border-bottom: 1px dotted var(--rule);
+
+.driftLead {
+  font-size: 1.02rem;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
 }
-.driftStepBlocked { background: color-mix(in srgb, var(--stop) 7%, transparent); }
-.driftMark { color: var(--ok); font-weight: 700; }
-.driftStepBlocked .driftMark { color: var(--stop); }
-.driftBody { display: flex; flex-direction: column; }
-.driftBuys { font-size: 0.8rem; color: var(--ink-soft); }
-.driftPrice { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.driftPending { color: var(--ink-soft); font-size: 0.85rem; }
+
+.driftLead b {
+  color: var(--stop);
+}
+
+.driftSteps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.driftStep,
+.driftStepBlocked {
+  display: grid;
+  grid-template-columns: 1.1rem minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: baseline;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.driftStepBlocked {
+  background: color-mix(in srgb, var(--stop) 8%, transparent);
+  margin: 0 -0.5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  grid-template-columns: 1.1rem minmax(0, 1fr) auto;
+}
+
+.driftMark {
+  font-family: var(--font-mono);
+  color: var(--ok);
+  font-weight: 700;
+}
+
+.driftStepBlocked .driftMark {
+  color: var(--stop);
+}
+
+.driftBody {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.driftBuys {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.driftPrice {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.driftPrice s {
+  color: var(--ink-soft);
+}
+
+.driftStepBlocked .driftPrice b {
+  color: var(--stop);
+}
+
+.driftPending {
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  white-space: normal;
+}
+
+/* Three figures, evenly weighted: the human is choosing between them, so none
+   of the three may be typeset as the recommended one. */
 .driftMoney {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  gap: 0.75rem; margin: 0 0 1.1rem; padding: 0.75rem;
-  background: var(--manila-deep); border-radius: 3px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 0.9rem;
+  margin: 0;
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
 }
-.driftMoney div { display: flex; flex-direction: column; gap: 0.15rem; }
-.driftMoney dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); }
-.driftMoney dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; }
-.driftOver { color: var(--stop); font-weight: 400; font-size: 0.85rem; }
-.driftActions { display: flex; flex-direction: column; gap: 0.5rem; }
-.driftBtn, .driftBtnStop {
-  padding: 0.7rem 1rem; border: 1px solid var(--ink); border-radius: 3px;
-  background: transparent; color: var(--ink); font: inherit; cursor: pointer;
+
+.driftMoney div {
+  display: grid;
+  gap: 0.25rem;
+  align-content: start;
+}
+
+.driftMoney dt {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-soft);
+  line-height: 1.3;
+}
+
+.driftMoney dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.15rem;
+  letter-spacing: -0.025em;
+  font-weight: 500;
+}
+
+.driftOver {
+  display: block;
+  color: var(--stop);
+  font-weight: 400;
+  font-size: 0.72rem;
+  letter-spacing: 0;
+  margin-top: 0.15rem;
+}
+
+.driftActions {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.driftBtn,
+.driftBtnStop {
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
   text-align: left;
+  transition: background-color 120ms ease;
 }
-.driftBtn:hover, .driftBtnStop:hover { background: var(--manila-deep); }
-.driftBtnStop { border-color: var(--stop); color: var(--stop); }
-.driftBtn:disabled, .driftBtnStop:disabled { opacity: 0.5; cursor: progress; }
-.driftError { color: var(--stop); font-size: 0.85rem; }
-.driftFoot { font-size: 0.82rem; color: var(--ink-soft); line-height: 1.5; margin-top: 0.9rem; }
+
+.driftBtn:hover:not(:disabled),
+.driftBtnStop:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.driftBtnStop {
+  border-color: var(--stop);
+  color: var(--stop);
+}
+
+.driftBtn:disabled,
+.driftBtnStop:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.driftError {
+  color: var(--stop);
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.driftFoot {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin: 0;
+}
 
 /* ── Receipts: what a finished plan leaves behind ─────────────────────────── */
-.receipts { border-top: 1px solid var(--rule); margin-top: 1.25rem; padding-top: 1.25rem; }
-.receiptsTitle { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--ink-soft); margin: 0 0 0.75rem; font-weight: 600; }
-.receiptList { list-style: none; margin: 0 0 1rem; padding: 0; }
-.receiptRow { display: flex; justify-content: space-between; gap: 0.75rem;
-  align-items: baseline; padding: 0.45rem 0; border-bottom: 1px dotted var(--rule); }
-.receiptBody { display: flex; flex-direction: column; min-width: 0; }
-.receiptTx { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-soft);
-  overflow-wrap: anywhere; margin-top: 0.15rem; }
-.receiptPrice { font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
-.receiptQuoted { display: block; font-size: 0.75rem; color: var(--ink-soft); font-weight: 400; }
-.receiptsFoot { font-size: 0.8rem; color: var(--ink-soft); line-height: 1.6; }
-.receiptsFoot a { overflow-wrap: anywhere; }
+.receipts {
+  display: grid;
+  gap: 1rem;
+}
+
+.receiptList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.receiptRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.receiptBody {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.receiptTx {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+  margin-top: 0.25rem;
+}
+
+.receiptPrice {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.receiptQuoted {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  font-weight: 400;
+}
+
+.receiptsFoot {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.receiptsFoot a {
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scaleFill {
+    animation: none;
+  }
+
+  .btn,
+  .driftBtn,
+  .driftBtnStop {
+    transition: none;
+  }
+}
