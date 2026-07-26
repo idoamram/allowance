@@ -150,28 +150,67 @@ const CLOSE = [
   },
 ]
 
+/**
+ * What each sponsor's technology actually does here.
+ *
+ * ENS was on this list and has been removed: there is a nullable `agents.ens` column and
+ * nothing else — no resolver, no text record, no name ever resolved. Naming a sponsor we do
+ * not use is the one claim on this page that would have been outright false.
+ *
+ * Bullets rather than prose because this is a checklist a judge scans, not an argument.
+ * Every line names a thing that exists and can be opened.
+ */
 const BUILT_ON = [
   {
     name: 'Hedera',
-    body: 'The envelope account, its 2-of-2 threshold key, the scheduled refund at expiry, the receipt trail on HCS — and the purchase itself, so the thing that enforces the cap and the thing that pays are one account on one chain.',
+    logo: '/logos/hedera.svg',
+    points: [
+      'The envelope is a Hedera account, keyed 1-of-[2-of-2(agent, policy), treasury]',
+      'Keeperless refund scheduled at mint, so an abandoned plan returns itself',
+      'The envelope pays the seller directly — cap and payment, one account, one chain',
+      'Every decision and receipt written to HCS',
+    ],
   },
   {
     name: 'x402',
-    body: 'Discovery, live 402 quoting and payment through one scheme-pluggable client across Hedera, Base and Worldchain. The gate sits in the only path money leaves by.',
-  },
-  {
-    name: 'The Graph',
-    body: 'The settlement subgraph is deployed and syncing from block 49,111,858 with no indexing errors, so claimed-against-settled reconciliation runs against Base consensus rather than against our own database. The console shows the diff, and it is live rather than aspirational.',
+    logo: '/logos/x402.svg',
+    points: [
+      'Sellers discovered live through the Bazaar, never a hardcoded list',
+      'Prices are real HTTP 402 quotes, badged live or estimate and never blurred',
+      'One scheme-pluggable client across Hedera, Base and Worldchain',
+      'The gate sits in the only path money leaves by',
+    ],
   },
   {
     name: 'World',
-    body: 'Identity as step-up: above a set ceiling the approve button asks for a second factor first, enforced server-side rather than in the interface.',
+    logo: '/logos/world.svg',
+    points: [
+      'Above a set ceiling, approving demands a proof an agent cannot produce',
+      'Enforced server-side, not by disabling a button',
+      'The nullifier binds an account to one human, so a leaked link is not enough',
+      'Selfie Check integrated on the beta preset',
+    ],
   },
   {
-    name: 'ENS',
-    body: 'An agent’s name resolves to what it is currently allowed to spend — authority published as text records, verifiable without an API of ours.',
+    name: 'The Graph',
+    logo: '/logos/thegraph.svg',
+    points: [
+      'Subgraph deployed and syncing, no indexing errors',
+      'Claimed-against-settled reconciled against consensus, not our own database',
+      'A Substreams skill anyone can install — no Rust, reaches chains Studio dropped',
+    ],
+  },
+  {
+    name: 'MCP',
+    logo: '/logos/mcp.svg',
+    points: [
+      'Seven tools, two transports, one implementation',
+      'Remote server protected by OAuth 2.1 with our own consent screen',
+      'Installable as a plugin from a published marketplace',
+    ],
   },
 ]
+
 
 export default function Home() {
   return (
@@ -583,15 +622,23 @@ export default function Home() {
               <p className={styles.eyebrow}>Built on</p>
               <h2 className={styles.h2}>Each piece does real work.</h2>
               <p className={styles.lede}>
-                The README points at the exact lines where every one of these lives, so nobody has
-                to grep for them.
+                Not a logo wall. Every line below is something you can open, run, or check
+                against a chain.
               </p>
             </div>
             <div className={styles.rails}>
               {BUILT_ON.map((r) => (
                 <div className={styles.rail} key={r.name}>
-                  <span className={styles.railName}>{r.name}</span>
-                  <p className={styles.railBody}>{r.body}</p>
+                  <div className={styles.railHead}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img className={styles.railLogo} src={r.logo} alt="" aria-hidden="true" />
+                    <span className={styles.railName}>{r.name}</span>
+                  </div>
+                  <ul className={styles.railPoints}>
+                    {r.points.map((point) => (
+                      <li key={point}>{point}</li>
+                    ))}
+                  </ul>
                 </div>
               ))}
             </div>
