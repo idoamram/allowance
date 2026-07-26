@@ -137,20 +137,34 @@ demo.
 
 ## How to record it
 
-**Use QuickTime.** It is already on the Mac and it will not fight you.
+**Press `Cmd + Shift + 5`.** It is built into macOS, it is already installed, and it records
+exactly the region you draw — nothing else on the desktop gets in.
 
-`File → New Screen Recording`. Before you press record:
+Choose **Record Selected Portion** and drag a box around just the terminal, or just the
+browser window. Then, before pressing Record, open **Options**:
 
-1. **Options → Microphone → MacBook Pro Microphone.** Without this you get a silent video. It
-   is the single most common way this goes wrong.
-2. **Options → Show Mouse Clicks.** Judges need to see where you pressed.
-3. Record **one window**, not the whole desktop — drag a box around the terminal, or the
-   browser. Nobody needs your dock or your other tabs.
+1. **Microphone → MacBook Pro Microphone.** It defaults to *None*. This is the single most
+   common way this goes wrong, and you do not find out until you play the file back.
+2. **Show Mouse Clicks → on.** Judges need to see where you pressed.
+
+Stop with the ⏹ in the menu bar. Each take saves to the Desktop as its own file.
+
+**Check this first:** System Settings → Privacy & Security → **Screen Recording** — your
+terminal and your browser both need to be allowed, or you record a black rectangle.
+
+**Faster alternative for the browser takes: Loom.** Its Chrome extension records *Current Tab
+only*, with your camera in the corner and your mic, and hands you a shareable link the second
+you stop — no editing, no export, no upload wait. It cannot capture your terminal, so it is a
+partial answer: `Cmd+Shift+5` for takes 2 and 4, Loom for take 3 if you want it.
+
+Not worth setting up now: OBS (true window-locked capture, but several minutes of
+configuration) and Screen Studio (the best-looking output, paid, and you would be learning it
+cold).
 
 ### Your face
 
-Record takes 1 and 6 with `File → New Movie Recording` — that's the camera. Everything in
-between is screen only, with your voice over it.
+Record takes 1 and 6 with **QuickTime → File → New Movie Recording** — that is the camera.
+Everything in between is screen only, with your voice over it.
 
 **Don't use a floating picture-in-picture bubble.** It covers something on every screen, it's
 fiddly to place, and if it goes wrong you lose the take. A face at the start and end plus clean
