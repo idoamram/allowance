@@ -1,0 +1,133 @@
+/* Sign-in — the same manila/ink stationery as the approval card, one column wide.
+   Tokens come from globals.css; nothing here redefines them. */
+
+.page {
+  max-width: 26rem;
+  margin: 0 auto;
+  padding: 3rem 1rem 4rem;
+}
+
+.card {
+  background: #fffdf7;
+  border: 1px solid var(--rule);
+  border-radius: 18px;
+  padding: 1.5rem 1.25rem 1.35rem;
+  box-shadow: 0 1px 2px rgba(27, 26, 23, 0.06), 0 8px 24px rgba(27, 26, 23, 0.06);
+}
+
+.mark {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 0.9rem;
+}
+
+.title {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.sub {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0.4rem 0 1.2rem;
+}
+
+.label {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.25rem;
+}
+
+.input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 1rem; /* 16px keeps iOS from zooming the whole page on focus */
+  color: var(--ink);
+  background: var(--manila);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.55rem 0.6rem;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  border-radius: 8px;
+  padding: 0.65rem 0;
+  font-weight: 700;
+  font-size: 0.92rem;
+  font-family: inherit;
+  border: 1px solid transparent;
+  background: var(--ink);
+  color: var(--manila);
+  cursor: pointer;
+  margin-top: 0.8rem;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.ghost {
+  background: transparent;
+  border-color: var(--rule);
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
+.error {
+  font-size: 0.8rem;
+  color: var(--stop);
+  line-height: 1.45;
+  margin: 0.75rem 0 0;
+  border-left: 2px solid var(--stop);
+  padding-left: 0.6rem;
+}
+
+.note {
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: 0.9rem 0 0;
+}
+
+/* The sent state: a stamped receipt, not a toast that disappears. */
+.sent {
+  text-align: left;
+}
+
+.stamp {
+  display: inline-block;
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  border: 1px solid color-mix(in srgb, var(--ok) 40%, var(--rule));
+  color: var(--ok);
+  border-radius: 99px;
+  padding: 1px 8px;
+  margin-bottom: 0.7rem;
+}
+
+.address {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  margin-top: 1.1rem;
+}
