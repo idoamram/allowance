@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import {
   IDKitRequestWidget,
+  deviceLegacy,
   passport,
   proofOfHuman,
   selfieCheckLegacy,
@@ -12,11 +13,20 @@ import type { Challenge, WorldPreset } from '@/lib/verify/types'
 import { completeStepUp, startStepUp } from './step-up-actions'
 import styles from './approval.module.css'
 
-/** Preset name from env → the SDK factory. Adding one is a two-line change. */
+/**
+ * Preset name from env → the SDK factory. Adding one is a two-line change.
+ *
+ * `deviceLegacy` is the only one every World App holder can satisfy unaided: the others
+ * each need a credential the human must first go and acquire — an Orb for `proofOfHuman`,
+ * a passport scan for `passport`, an issued Face credential for `selfieCheckLegacy`. It is
+ * the weakest of the four and is here so the step-up degrades to *some* real proof rather
+ * than to nothing when the strong credential is unavailable.
+ */
 const PRESETS: Record<WorldPreset, (opts: { signal: string }) => Preset> = {
   proofOfHuman,
   selfieCheckLegacy,
   passport,
+  deviceLegacy,
 }
 
 /**
