@@ -342,8 +342,10 @@
   max-width: 100%;
   background: var(--ink);
   transform-origin: left center;
-  /* The one piece of motion on the page: the envelope drawing itself, once. */
-  animation: scaleIn 700ms cubic-bezier(0.22, 0.8, 0.24, 1) both;
+  /* The signature motion of the product: the envelope drawing itself, once. It
+     carries speed and then decelerates into a halt rather than easing out
+     gently, because what it is doing is running up against a limit. */
+  animation: scaleIn 560ms var(--ease-settle) both;
 }
 
 @keyframes scaleIn {
@@ -353,6 +355,123 @@
   to {
     transform: scaleX(1);
   }
+}
+
+/* The ceiling, drawn as a wall rather than implied by the end of the box.
+   The fill stopping short of it is the point of the whole element — quoted is
+   not the limit, the approved ceiling is — and a 1px border shared with three
+   other edges was not saying that. It arrives as the fill lands, so the two
+   read as one event: the envelope fills, and this is what stops it. */
+.scale::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 0 auto;
+  /* Three, not one: shared with the box's own hairline it makes a 4px end-stop
+     against a 12px-tall bar, which is the difference between "the box ends
+     here" and "this is the wall the money stops at". Measured on the sheet at
+     390px — at 2px it was indistinguishable from the other three edges. */
+  width: 3px;
+  background: var(--ink);
+  transform: scaleY(1);
+  animation: ceiling 200ms var(--ease-stamp) 400ms both;
+}
+
+@keyframes ceiling {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* ── Working: the shape of "we cannot say how far along this is" ───────────────
+   One indeterminate device, used at two sizes and nowhere else. It is the same
+   track as the envelope scale, which is the point: while the envelope is being
+   minted, the element that will later show what fits inside it is what moves.
+
+   It never claims a percentage, because nothing on the client can measure one —
+   a bar creeping to 90% and waiting would be a lie about a financial act. */
+.scaleSweep {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 38%;
+  background: var(--ink);
+  animation: sweep 1500ms cubic-bezier(0.55, 0, 0.45, 1) infinite;
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    /* 100/38 — one full traverse of the track, in the sweep's own widths. */
+    transform: translateX(263%);
+  }
+}
+
+/* ── Minting: ten to twenty seconds of consensus, not a hang ───────────────────
+   Approving mints a single-use account, schedules its own refund and writes two
+   records to a public consensus log. That is real work on a real ledger and it
+   takes real time; with a disabled button and the word "Recording…" it read as
+   a broken page. This block replaces the form for the duration.
+
+   What it claims is exactly what it knows: that the request is in flight, and
+   how long it has been. The elapsed figure is measured from the submit. The
+   list of acts is not a progress checklist and deliberately never ticks — the
+   browser cannot observe those steps individually, and a checklist that ticked
+   on a timer would be fiction dressed as telemetry. */
+.minting {
+  display: grid;
+  gap: 0.7rem;
+  border-left: 3px solid var(--ink);
+  padding-left: 0.95rem;
+}
+
+.mintingHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+
+.elapsed {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.mintingActs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  display: grid;
+  gap: 0.2rem;
+}
+
+.mintingActs li {
+  padding-left: 1.05rem;
+  position: relative;
+}
+
+.mintingActs li::before {
+  content: '·';
+  position: absolute;
+  left: 0.2rem;
+  color: var(--ink-soft);
+}
+
+.mintingFoot {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 0;
 }
 
 /* Over the ceiling: the bar is full and says so in the stop value, because a
@@ -474,6 +593,18 @@
   margin: 0;
 }
 
+/* The gate opening. The step-up block has just been replaced by this line, and
+   with it the approve button stopped being disabled — that is the moment worth
+   marking, not the second the verifier took to prepare. The line arrives and
+   the stamp presses on, in that order. */
+.confirmedHint {
+  animation: land 260ms var(--ease-settle) both;
+}
+
+.confirmedHint .stamp {
+  animation: stamp 220ms var(--ease-stamp) 120ms both;
+}
+
 .rejectPanel {
   border-top: 1px solid var(--rule);
   padding-top: 1.1rem;
@@ -556,9 +687,25 @@
 }
 
 /* ── Settled: the plan is no longer yours to answer ───────────────────────── */
+/* When this replaces the minting block it is the end of a twenty-second wait,
+   so it arrives rather than appearing: a short rise into place, once. Server-
+   rendered — an already-settled plan opened cold — it is the same gesture and
+   costs nothing. */
 .settled {
   border-left: 3px solid var(--rule);
   padding-left: 0.9rem;
+  animation: land 300ms var(--ease-settle) both;
+}
+
+@keyframes land {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .settled h2 {
@@ -588,11 +735,36 @@
    This is the moment the product exists for, so it is the loudest thing the
    sheet ever prints: a stop rule down the whole section, the blocked row
    struck through, and three exits that each state what they cost. */
+/* The stop rule is drawn twice: once as a border, which is what a reader with
+   reduced motion or a failed animation sees, and once as an overlay that draws
+   itself down the section from the top. It is the product's argument arriving —
+   a step hit the wall — so it travels fast and stops dead rather than easing
+   in. Nothing under it moves; the rule is the whole gesture. */
 .drift {
   border-left: 3px solid var(--stop);
   padding-left: 0.95rem;
   display: grid;
   gap: 1.1rem;
+  position: relative;
+}
+
+.drift::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 -3px;
+  width: 3px;
+  background: var(--stop);
+  transform-origin: top center;
+  animation: stopRule 300ms var(--ease-stamp) both;
+}
+
+@keyframes stopRule {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
 }
 
 .driftHead {
@@ -600,7 +772,11 @@
   gap: 0.5rem;
 }
 
+/* Pressed on, after the rule has drawn past it. A stamp is the one gesture in
+   this product that is allowed to overshoot, because that is what pressing ink
+   onto paper does — it lands larger and settles. */
 .driftBadge {
+  animation: stamp 220ms var(--ease-stamp) 140ms both;
   justify-self: start;
   font-family: var(--font-mono);
   font-size: 0.62rem;
@@ -611,6 +787,20 @@
   background: var(--stop);
   padding: 0.2rem 0.45rem;
   border-radius: 2px;
+}
+
+@keyframes stamp {
+  from {
+    opacity: 0;
+    transform: scale(1.16);
+  }
+  60% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .driftLead {
@@ -905,14 +1095,99 @@
   overflow-wrap: anywhere;
 }
 
+/* ── Touch (motion pass) ──────────────────────────────────────────────────────
+   This page is opened on a phone, by someone about to commit money, and until
+   now the only acknowledgement a tap got was the browser's blue box arriving
+   late and staying past the finger lifting. Pressed states are immediate and
+   in the app's own values; the tap highlight goes.
+
+   Transform, not padding or colour alone — a button that gives under the press
+   is the cheapest way to say "that registered" on a laggy connection, and it
+   cannot shift the layout around it. */
+.btn,
+.driftBtn,
+.driftBtnStop,
+.target {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.btn {
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease,
+    transform 80ms var(--ease-settle);
+}
+
+.btn:active:not(:disabled),
+.driftBtn:active:not(:disabled),
+.driftBtnStop:active:not(:disabled) {
+  transform: translateY(1px) scale(0.994);
+}
+
+.driftBtn,
+.driftBtnStop {
+  transition: background-color 120ms ease, transform 80ms var(--ease-settle);
+}
+
+.driftBtn:active:not(:disabled),
+.driftBtnStop:active:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+}
+
+/* The objection chips are 28px of visual on a page read with a thumb. The hit
+   area is grown vertically only: they sit 0.4rem apart on one line, so growing
+   them sideways would have each one taking its neighbour's taps. */
+.target {
+  position: relative;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+.target::after {
+  content: '';
+  position: absolute;
+  inset: -8px 0;
+}
+
+.target:active {
+  border-color: var(--ink-soft);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .scaleFill {
+  /* Every fallback here has to be the finished state, not a missing one. The
+     envelope stands filled with its ceiling drawn, the drift rule and its badge
+     are simply there, and the minting block keeps the only thing that was ever
+     load-bearing about it: a counter, in seconds, that says it is still going. */
+  .scaleFill,
+  .settled,
+  .drift::before,
+  .driftBadge,
+  .confirmedHint,
+  .confirmedHint .stamp {
     animation: none;
+  }
+
+  .scale::after {
+    animation: none;
+    transform: scaleY(1);
+  }
+
+  /* The sweep is motion or it is nothing: parked as a static bar it reads as a
+     progress fill that has stopped, which is the one thing this block must
+     never say. The empty envelope track stays — nothing is funded yet, so that
+     is accurate — and the elapsed count carries the "still going". */
+  .scaleSweep {
+    display: none;
   }
 
   .btn,
   .driftBtn,
-  .driftBtnStop {
+  .driftBtnStop,
+  .target {
     transition: none;
+  }
+
+  .btn:active:not(:disabled),
+  .driftBtn:active:not(:disabled),
+  .driftBtnStop:active:not(:disabled) {
+    transform: none;
   }
 }

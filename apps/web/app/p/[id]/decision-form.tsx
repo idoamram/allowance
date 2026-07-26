@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import { submitDecision, type DecisionState } from './actions'
 import { StepUp } from './step-up'
 import styles from './approval.module.css'
@@ -24,6 +24,59 @@ export type StepUpRequirement = {
   configError?: string
 }
 
+/**
+ * What approving actually sets off, while it is happening.
+ *
+ * Approving is not a form post that returns — it mints a single-use account on Hedera,
+ * schedules that account's own refund, and writes two records to a public consensus log.
+ * On testnet that is ten to twenty seconds, and behind a disabled button reading
+ * "Recording…" it was indistinguishable from a page that had died.
+ *
+ * The honesty rule this block is built on: it says only what the browser can know. The
+ * elapsed count is measured from the submit and is real. The three acts are listed because
+ * they are what is in flight, and they deliberately never tick — nothing here can observe
+ * them landing individually, and a checklist ticking on a timer would be a lie about a
+ * financial act told in the most convincing possible form.
+ */
+function Minting() {
+  const [seconds, setSeconds] = useState(0)
+
+  useEffect(() => {
+    const startedAt = Date.now()
+    // Wall clock rather than a counter, so a backgrounded tab on a phone comes back with
+    // the true elapsed time instead of however many ticks the browser felt like running.
+    const id = setInterval(() => setSeconds(Math.floor((Date.now() - startedAt) / 1000)), 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  return (
+    <div className={styles.minting} role="status">
+      <p className={styles.mintingHead}>
+        <b>Funding the envelope</b>
+        <span className={styles.elapsed} aria-hidden="true">
+          {String(seconds).padStart(2, '0')}s
+        </span>
+      </p>
+
+      <div className={styles.scale} aria-hidden="true">
+        <div className={styles.scaleSweep} />
+      </div>
+
+      <ul className={styles.mintingActs}>
+        <li>Minting a single-use account that holds only this plan&rsquo;s money</li>
+        <li>Scheduling its own refund, so the remainder returns with no keeper to trust</li>
+        <li>Writing two records to the consensus log: your approval, and the ceiling</li>
+      </ul>
+
+      <p className={styles.mintingFoot}>
+        Ten to twenty seconds is normal &mdash; that is consensus, not this page hanging. The
+        steps are not ticked off because the browser cannot watch them land; the count is the
+        one thing it knows.
+      </p>
+    </div>
+  )
+}
+
 export function DecisionForm({
   planId,
   token,
@@ -44,6 +97,19 @@ export function DecisionForm({
   )
   const [rejecting, setRejecting] = useState(false)
   const [stepUpTicket, setStepUpTicket] = useState('')
+
+  // Which of the two answers is in flight. Presentation only — the form still submits
+  // exactly what it always did — but the two waits are nothing alike: a rejection writes a
+  // row, an approval mints an account and waits on consensus. Telling them apart is the
+  // difference between "Recording…" and a screen that explains a twenty-second pause.
+  const [approving, setApproving] = useState(false)
+  const wasPending = useRef(false)
+  useEffect(() => {
+    // Clear only on the falling edge. Clearing whenever `pending` is false would fire on
+    // the render between the click and the action starting, and undo the flag immediately.
+    if (wasPending.current && !pending) setApproving(false)
+    wasPending.current = pending
+  }, [pending])
 
   // Rejecting is always available: a "no" funds nothing, so gating it would only buy
   // friction. It is approval — the act that moves money — that has to clear the bar.
@@ -69,7 +135,9 @@ export function DecisionForm({
       <input type="hidden" name="token" value={token} />
       <input type="hidden" name="stepUpTicket" value={stepUpTicket} />
 
-      {!rejecting ? (
+      {pending && approving ? (
+        <Minting />
+      ) : !rejecting ? (
         <>
           {stepUp?.configError ? (
             <p className={styles.error} role="alert">
@@ -89,7 +157,7 @@ export function DecisionForm({
             )
           )}
           {stepUp !== null && stepUpTicket !== '' && (
-            <p className={styles.hint}>
+            <p className={`${styles.hint} ${styles.confirmedHint}`}>
               <span className={`${styles.stamp} ${styles.stampGood}`}>human confirmed</span>{' '}
               Verified for this plan only, for the next ten minutes.
             </p>
@@ -101,8 +169,9 @@ export function DecisionForm({
             value="approved"
             className={`${styles.btn} ${styles.approve}`}
             disabled={pending || blockedByStepUp}
+            onClick={() => setApproving(true)}
           >
-            {pending ? 'Recording…' : approveLabel}
+            {approveLabel}
           </button>
           <button
             type="button"

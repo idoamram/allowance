@@ -51,6 +51,11 @@
 .scroller {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  /* Reaching either end of the evidence must stop there. Without this, the
+     overscroll chains to the document and a sideways flick on the one table
+     that cannot reflow drags the whole page with it — which on iOS is also how
+     you trigger back-navigation by accident. */
+  overscroll-behavior-x: contain;
 }
 
 .table {

@@ -131,3 +131,61 @@
   color: var(--ink-soft);
   margin-top: 1.1rem;
 }
+
+/* ── One card, three steps (motion pass) ──────────────────────────────────────
+   Sign-in is one act in up to three screens, and each one replaces the last
+   inside the same card. Replaced with no transition, the only evidence the tap
+   did anything is that the words are different — on a slow connection people
+   press the button twice. Each step arrives with a short rise, which says the
+   card advanced rather than re-rendered.
+
+   Transform and opacity only: the card is a fixed column and nothing around it
+   moves, so there is no reflow and nothing to jank on a phone. */
+.step {
+  animation: step 240ms var(--ease-settle) both;
+}
+
+@keyframes step {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Touch (motion pass) ──────────────────────────────────────────────────── */
+.btn {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background-color 120ms ease, color 120ms ease, transform 80ms var(--ease-settle);
+  /* 0.65rem of padding on 0.92rem type is a 39px control. This is the first
+     thing anyone taps in the product; it is worth the extra five pixels. */
+  min-height: 2.75rem;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.995);
+  background: color-mix(in srgb, var(--ink) 85%, var(--accent));
+}
+
+.ghost:active:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step {
+    animation: none;
+  }
+
+  .btn {
+    transition: none;
+  }
+
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
+}

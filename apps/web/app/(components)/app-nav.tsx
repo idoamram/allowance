@@ -1,12 +1,14 @@
 import Link from 'next/link'
 import { signOutAction } from '@/app/console/actions'
+import { ThemeToggle } from './theme-toggle'
 import styles from './app-nav.module.css'
 
 /**
  * The signed-in app's one piece of chrome.
  *
- * It carries four things and nothing else: the mark, where you are, the way to everywhere
- * else, and who you are signed in as with the way out. At 320px it stays a single bar —
+ * It carries five things and nothing else: the mark, where you are, the way to everywhere
+ * else, how the app is lit, and who you are signed in as with the way out. At 320px it
+ * stays a single bar —
  * the identity drops to a second line rather than the links wrapping into a stack, because
  * a nav that reflows into a paragraph stops reading as a nav.
  *
@@ -56,6 +58,7 @@ export function AppNav({ email }: { email: string }) {
         </nav>
 
         <div className={styles.who}>
+          <ThemeToggle />
           <span className={styles.email} title={email}>
             {email}
           </span>

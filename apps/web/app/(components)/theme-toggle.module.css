@@ -1,0 +1,97 @@
+/* The theme control.
+   ---------------------------------------------------------------------------
+   Written to be mounted in two different pieces of chrome — the signed-in nav
+   and the landing masthead — so it brings no margins of its own and inherits
+   nothing but the tokens. It is the app's quietest control by design: three
+   mono micro-caps in a hairline frame, at the same weight as the other chrome
+   around it. Which one is selected is said in ink and an accent underscore,
+   the same idiom the nav already uses for "where you are".
+
+   Tokens come from globals.css; nothing here redefines them. */
+
+.group {
+  display: inline-flex;
+  align-items: stretch;
+  flex: none;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  overflow: hidden;
+  /* The browser's own tap flash outlives the tap and is not this app's colour.
+     The pressed state below is faster and says the same thing. */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.option {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 0;
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+  /* Colour only. Nothing here moves, because the control sits in a sticky bar and
+     a bar whose contents animate on every visit is the definition of decoration. */
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+/* The visual chip is 24px tall and the finger is not. The hit area is grown
+   vertically only — the three options are touching horizontally, so widening
+   them would steal each other's taps. */
+.option::after {
+  content: '';
+  position: absolute;
+  inset: -13px 0;
+}
+
+/* On a 320px bar the three words are competing with a wordmark, an address and
+   a way out. Measured there: at the size above the control took 135px of 288
+   and pushed the mark into the toggle. This is the same three words, tightened
+   until the row fits — not a different control, because a preference that
+   changes shape between widths is one more thing to learn. */
+@media (max-width: 46rem) {
+  .option {
+    font-size: 0.55rem;
+    letter-spacing: 0.06em;
+    padding: 0.28rem 0.4rem;
+  }
+}
+
+/* At 320 the row is exactly full and the mark and the control end up touching.
+   Tightened once more rather than swapped for a menu: all three states staying
+   visible is the reason to prefer this control at all, and 8.3px mono caps is
+   the register the rest of the product already labels things in. The 44px
+   target below is unaffected — it was never the visible chip. */
+@media (max-width: 30rem) {
+  .option {
+    font-size: 0.52rem;
+    letter-spacing: 0.04em;
+    padding: 0.28rem 0.3rem;
+  }
+}
+
+.option:hover {
+  color: var(--ink);
+}
+
+.option:active {
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.option[aria-pressed='true'] {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+/* The ring belongs on the option, and it must not be clipped by the pill's
+   `overflow: hidden` — so it is drawn inside the box rather than outside it. */
+.option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 999px;
+}

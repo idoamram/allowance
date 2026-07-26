@@ -112,6 +112,77 @@ a {
   }
 }
 
+/* ── An explicit theme choice (theme toggle) ──────────────────────────────────
+   Everything above stays exactly as it is: `:root` is the light identity and
+   the `prefers-color-scheme` blocks are the measured dark re-valuing. Those two
+   answer "what does this device want". These two answer "what did the reader
+   ask for", which has to win over the device in *both* directions — the common
+   bug is dark-by-choice working while light-by-choice quietly loses to a system
+   that prefers dark.
+
+   It wins on specificity, not on order: `:root[data-theme='…']` is (0,2,0)
+   against the media blocks' (0,1,0), and a media query adds nothing. So neither
+   block above needed touching, and the values in them did not move.
+
+   The cost is that the dark set appears twice. They are the same measured
+   values — 14.94 ink, 9.64 ink-soft, 2.22 rule against #14130f — and they move
+   together or not at all. If they ever diverge, the block above is the one that
+   was measured.
+
+   No choice at all means no `data-theme` attribute, which is what makes
+   "system" a real state rather than the absence of one. */
+:root[data-theme='light'] {
+  --ink: #1b1a17;
+  --ink-soft: #4a4640;
+  --manila: #f4efe2;
+  --manila-deep: #e8dfc9;
+  --paper: #fffdf7;
+  --rule: #d6cbb0;
+  --accent: #8a5a2b;
+  --ok: #2f6b46;
+  --warn: #9a6a12;
+  --stop: #a33a2a;
+  --shadow: 0 18px 50px rgb(0 0 0 / 35%);
+  --warn-fill: #7d560e;
+  --stop-fill: #a33a2a;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --ink: #f2ede2;
+  --ink-soft: #c2baa9;
+  --manila: #14130f;
+  --manila-deep: #262319;
+  --paper: #1c1a15;
+  --rule: #544d3e;
+  --accent: #e0a978;
+  --ok: #84c79c;
+  --warn: #e2b45a;
+  --stop: #ef9a84;
+  --shadow: 0 18px 50px rgb(0 0 0 / 60%);
+  --warn-fill: #e2b45a;
+  --stop-fill: #ef9a84;
+  color-scheme: dark;
+}
+
+/* ── Motion vocabulary (in-app motion pass) ───────────────────────────────────
+   Two curves, and deliberately only two. This product is a printed financial
+   document and a consensus log, so nothing in it bounces, floats or glows —
+   things arrive against a stop, or they land.
+
+     --ease-settle  carries speed and then decelerates into a halt. The motion
+                    of a bar filling to a ceiling, or a panel arriving.
+     --ease-stamp   near-linear and then stopped dead. For the two moments that
+                    are meant to land rather than glide: the drift rule drawing
+                    down the page, and the blocked badge pressing on.
+
+   Tokens only — nothing here animates anything on its own, so the landing page
+   and any surface built later are untouched until they ask for one by name. */
+:root {
+  --ease-settle: cubic-bezier(0.16, 0.84, 0.44, 1);
+  --ease-stamp: cubic-bezier(0.2, 0, 0, 1);
+}
+
 /* Keyboard focus has to survive a redesign that removes most borders. */
 :focus-visible {
   outline: 2px solid var(--accent);

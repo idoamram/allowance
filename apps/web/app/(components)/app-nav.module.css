@@ -133,6 +133,16 @@
   min-width: 0;
 }
 
+/* Below 30rem the top line carries the mark, the theme control and the way out,
+   and what is left for an address is about two characters — which is not an
+   address, it is a smudge that costs the row its shape. The console states the
+   account in full in its foot, so nothing is lost by leaving it to that. */
+@media (max-width: 30rem) {
+  .email {
+    display: none;
+  }
+}
+
 .signOut {
   flex: none;
   font-family: inherit;
@@ -150,4 +160,51 @@
 .signOut:hover {
   border-color: var(--ink-soft);
   color: var(--ink);
+}
+
+/* ── Touch (motion pass) ──────────────────────────────────────────────────────
+   Everything in this bar is set at chrome size — 0.72rem type with almost no
+   padding — which makes every one of them a 20px target on a surface designed
+   to be used on a phone. The hit areas below are grown with pseudo-elements
+   rather than padding: padding would change the bar's height and the layout
+   above was measured at 320px.
+
+   Growth is vertical only. The links sit 0.85rem apart on one line, so a
+   horizontal expansion would have each one stealing its neighbour's taps. */
+.links a,
+.here,
+.signOut,
+.mark {
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* -13px against 19px of visible link is a 45px target — measured, not assumed;
+   at -12px it came out at 43 and missed. */
+.links a::after,
+.signOut::after,
+.mark::after {
+  content: '';
+  position: absolute;
+  inset: -13px -4px;
+}
+
+/* The mark is two lines of chrome shorter than a link, so it needs one more
+   pixel each way. Its expander and the section links' overlap in the 8px gutter
+   between the two rows; the links are later in the DOM and take the contested
+   band, which is the right way round — those are the targets people aim at. */
+.mark::after {
+  inset: -14px -4px;
+}
+
+/* Pressed, in the app's own colours. The browser's blue flash fires late and
+   outlives the tap; this is immediate and reads as the link taking the press. */
+.links a:active {
+  color: var(--ink);
+}
+
+.signOut:active {
+  border-color: var(--ink);
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
 }
