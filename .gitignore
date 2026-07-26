@@ -12,7 +12,10 @@ operator-key*
 **/keys/
 
 # ---- Dependencies -----------------------------------------------------------
-node_modules/
+# No trailing slash: with one, this matches directories only, and pnpm leaves symlinks
+# named `node_modules` in workspace packages. One of those was committed — a self-
+# referential link to an absolute path on one machine, which breaks install for a cloner.
+node_modules
 .pnp
 .pnp.*
 .yarn/*
