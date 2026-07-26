@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { currentUser } from '@/lib/supabase/server'
 import { LoginForm } from './login-form'
+import { Mark } from '../(components)/mark'
 import styles from './login.module.css'
 
 export const dynamic = 'force-dynamic'
@@ -18,7 +19,7 @@ export default async function LoginPage() {
   return (
     <main className={styles.page}>
       <div className={styles.card}>
-        <p className={styles.mark}>PlanBound</p>
+        <Mark className={styles.mark} title="PlanBound" />
         <LoginForm />
       </div>
       <p className={styles.footer}>

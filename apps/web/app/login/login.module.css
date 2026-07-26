@@ -15,10 +15,12 @@
   box-shadow: 0 1px 2px rgba(27, 26, 23, 0.06), 0 8px 24px rgba(27, 26, 23, 0.06);
 }
 
+/* The mark, not the word. `currentColor` so it inverts with the theme, and set in
+   the muted ink so it stays a signature rather than competing with the heading. */
 .mark {
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  display: block;
+  width: 1.4rem;
+  height: 1.4rem;
   color: var(--ink-soft);
   margin: 0 0 0.9rem;
 }
