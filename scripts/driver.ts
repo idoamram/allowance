@@ -6,10 +6,14 @@
  *   pnpm driver --dry "brief me on BTC market conditions"   # quote only, nothing submitted
  *   pnpm driver --max-step 0.10 --ceiling 1.20 --timeout 300 "…"
  *
- * It does exactly what the MCP tools do, in the same order an agent would: quote the
- * task, submit the plan, print the approval URL, wait for the human, print the outcome.
- * Every plan it runs is real decision data — the learning loop is seeded by using the
+ * It does exactly what the MCP tools do, in the same order an agent would: quote the task,
+ * submit the plan, print the approval URL, wait for the human — then, once approved, read
+ * the envelope, buy each step from inside it, and close the plan so the remainder goes
+ * home. Every plan it runs is real decision data; the learning loop is seeded by using the
  * product to build the product, so this script is the seed drill.
+ *
+ * Drift stops it. If the gate refuses a step, the run halts there and prints the link the
+ * human decides from — continuing would spend against a plan they are reconsidering.
  *
  * It never hangs: the polling wait is bounded, and a missing environment variable is a
  * one-line error rather than a stall.
@@ -17,7 +21,14 @@
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { config as loadEnv } from 'dotenv'
-import { awaitApproval, quoteTask, submitPlan } from '../packages/mcp/tools'
+import {
+  awaitApproval,
+  closePlan,
+  getEnvelope,
+  payAndCall,
+  quoteTask,
+  submitPlan,
+} from '../packages/mcp/tools'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 loadEnv({ path: resolve(repoRoot, '.env.local'), quiet: true } as Parameters<typeof loadEnv>[0])
@@ -118,12 +129,62 @@ async function main() {
   console.log(`\n  status    ${outcome.status}`)
   if (decision?.outcome) console.log(`  decision  ${decision.outcome}`)
   if (decision?.target) console.log(`  objection ${decision.target}: ${decision.reason ?? ''}`)
+
+  if (outcome.status !== 'approved') {
+    console.log('\n  ✗ nothing was funded. The reason above is what the learning loop reads.\n')
+    process.exit(3)
+  }
+
+  // ── the envelope now exists; everything below spends from it and nothing else ────────
+  const env = await getEnvelope({ planId: submitted.planId })
+  if (!('envelope' in env)) {
+    fatal(`approved, but no envelope was minted: ${env.reason}`)
+  }
+  const envelope = env.envelope as { hedera_account?: string; funded_usd?: number | string }
+  console.log('\n  ── envelope ─────────────────────────────────────────────')
+  console.log(`  account   ${envelope.hedera_account ?? '(none)'}`)
+  console.log(`  funded    ${usd(Number(envelope.funded_usd ?? 0))}`)
+
+  console.log('\n  ── executing inside it ──────────────────────────────────')
+  let paidTotal = 0
+  let blocked = false
+
+  // Step index is position in the submitted plan — the same ordering the server stored.
+  for (const [idx, step] of plan.steps.entries()) {
+    const res = await payAndCall({ planId: submitted.planId, stepIdx: idx })
+
+    if (res.status === 'paid') {
+      paidTotal += res.paidUsd
+      console.log(`  ${idx}  ✓ ${step.serviceName.padEnd(30)} ${usd(res.paidUsd)}`)
+      if (res.txRef) console.log(`         ↳ ${res.txRef}`)
+      continue
+    }
+
+    if (res.status === 'blocked') {
+      // The point of the whole product: the wall, and a human who gets a diff rather than
+      // a popup. Stop here — running the remaining steps would spend against a plan the
+      // human is in the middle of reconsidering.
+      blocked = true
+      console.log(`  ${idx}  ✗ ${step.serviceName} — ${res.reason}`)
+      console.log(`         approved ${usd(res.approvedUsd)}, ceiling ${usd(res.maxAllowedUsd)}`)
+      console.log(`         seller now asks ${usd(res.liveAskUsd)}`)
+      console.log(`\n  DECIDE    ${res.diffUrl}\n`)
+      console.log('  Stopped. The envelope still holds the remainder; nothing was overspent.')
+      break
+    }
+
+    console.log(`  ${idx}  · ${step.serviceName} — refused: ${res.reason}`)
+  }
+
+  if (blocked) process.exit(4)
+
+  const closed = await closePlan({ planId: submitted.planId })
+  console.log('\n  ── settled ──────────────────────────────────────────────')
+  console.log(`  paid      ${usd(paidTotal)} of ${usd(Number(envelope.funded_usd ?? 0))} funded`)
+  if (closed.sweptUsd !== undefined) console.log(`  swept     ${usd(Number(closed.sweptUsd))} back`)
   console.log(
-    outcome.status === 'approved'
-      ? '\n  ✓ envelope funding is the next step (T7); execution runs inside it.\n'
-      : '\n  ✗ nothing was funded. The reason above is what the learning loop reads.\n',
+    '\n  ✓ quoted equals paid, and the remainder went home. The envelope is closed.\n',
   )
-  if (outcome.status !== 'approved') process.exit(3)
 }
 
 main().catch((error: unknown) => fatal(error instanceof Error ? error.message : String(error)))

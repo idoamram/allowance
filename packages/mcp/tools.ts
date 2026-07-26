@@ -4,10 +4,10 @@
  * Split this way so the tools are unit-testable without a transport: every dependency
  * that touches the world — HTTP, discovery, the clock, sleeping — arrives in `deps`.
  *
- * Three tools answer `not_implemented` today. That is a deliberate honesty choice over
- * a plausible-looking stub: `pay_and_call`, `get_envelope` and `close_plan` all need
- * money that does not exist until T7/T9/T11 mint, gate and sweep an envelope. An agent
- * that gets `not_implemented` stops; an agent that gets a fake receipt lies to a human.
+ * All seven are wired to real routes. The one thing never faked is a receipt: a step that
+ * did not settle stays pending, and a step the gate refused returns the refusal as data.
+ * An agent that gets a fake receipt lies to a human, which is the failure this whole
+ * surface exists to prevent.
  */
 import { driftExits, gate, totalUsd, type GateResult, type PlanInput, type StepInput } from '@planbound/core'
 import { planInputSchema } from '@planbound/core'
@@ -15,7 +15,9 @@ import { buildPlan, liveDeps, type QuoteDeps, type QuotedPlan } from './plan'
 import {
   configFromEnv,
   getPlan,
+  postClosePlan,
   postPlan,
+  postStepPay,
   type ApiConfig,
   type FetchLike,
   type PlanView,
@@ -52,10 +54,18 @@ const approvalUrls = new Map<string, string>()
 /** Test seam — the map is process-local state, and tests must not inherit each other's. */
 export const _resetApprovalUrls = () => approvalUrls.clear()
 
-const notImplemented = (tool: string, lands: string) => ({
-  status: 'not_implemented' as const,
-  tool,
-  reason: `${tool} needs a funded envelope, which lands in ${lands}. Nothing is faked in the meantime.`,
+/**
+ * No envelope yet is a normal state, not a failure: a plan carries none until a human
+ * approves it, and approval is the act that mints one. Reported as its own status so an
+ * agent waits rather than retrying a purchase that has nothing to draw on.
+ */
+const noEnvelope = (planStatus: string) => ({
+  status: 'no_envelope' as const,
+  planStatus,
+  reason:
+    planStatus === 'pending_approval'
+      ? 'nobody has approved this plan yet — approving is what funds the envelope'
+      : `this plan is ${planStatus} and has no funded envelope`,
 })
 
 // ---------------------------------------------------------------- quote_task
@@ -174,14 +184,12 @@ export async function awaitApproval(input: AwaitApprovalInput, deps: ToolDeps = 
 // -------------------------------------------------------------- get_envelope
 
 /**
- * The envelope row, once T7 mints one. Until then the plan carries no envelope and we
- * say so — a plan with no funded account has no ceiling to report.
+ * The envelope: the account holding exactly what the human approved, and the only funds
+ * this plan can ever draw on. A plan with no funded account has no ceiling to report.
  */
 export async function getEnvelope(input: { planId: string }, deps: ToolDeps = liveToolDeps) {
   const plan = await getPlan(input.planId, deps.config(), deps.fetch)
-  if (!plan.envelope) {
-    return { ...notImplemented('get_envelope', 'T7 (envelope mint)'), planStatus: plan.status }
-  }
+  if (!plan.envelope) return noEnvelope(plan.status)
   return { status: 'ok' as const, planStatus: plan.status, envelope: plan.envelope }
 }
 
@@ -193,9 +201,54 @@ export interface PayAndCallInput {
   params?: Record<string, string | number | boolean>
 }
 
-/** The gated payment path. Implemented in T9 — `POST /api/mcp/steps/pay` does not exist yet. */
-export async function payAndCall(_input: PayAndCallInput, _deps: ToolDeps = liveToolDeps) {
-  return notImplemented('pay_and_call', 'T9 (gated payment path)')
+/**
+ * The gated payment path — the only tool that moves money, and the only one that can be
+ * refused.
+ *
+ * The gate re-probes the seller's live price and compares it against what the human
+ * approved. A block is returned as data, not thrown: `blocked` carries the live ask, the
+ * approved ceiling, what remains, and a link to the diff the human decides from. An agent
+ * that treats that as an error learns nothing from it, and the whole product is the part
+ * where the agent stops and asks.
+ *
+ * Nothing here re-checks the gate client-side. The server decides, because the server is
+ * the side holding the envelope's keys.
+ */
+export async function payAndCall(input: PayAndCallInput, deps: ToolDeps = liveToolDeps) {
+  const res = await postStepPay(input, deps.config(), deps.fetch)
+
+  if (res.paid) {
+    return {
+      status: 'paid' as const,
+      planId: input.planId,
+      stepIdx: input.stepIdx,
+      paidUsd: res.paidUsd,
+      txRef: res.txRef,
+      data: res.data,
+    }
+  }
+
+  if ('gate' in res) {
+    const approvalUrl = approvalUrls.get(input.planId)
+    return {
+      status: 'blocked' as const,
+      planId: input.planId,
+      stepIdx: input.stepIdx,
+      reason: res.gate.reason ?? 'blocked',
+      serviceName: res.serviceName,
+      liveAskUsd: res.gate.liveAskUsd,
+      approvedUsd: res.gate.quoteUsd,
+      maxAllowedUsd: res.gate.maxAllowedUsd,
+      remainingUsd: res.gate.remainingUsd,
+      // Prefer the link that carries the approval key; the server's fallback has none and
+      // would 404 for the human.
+      diffUrl: approvalUrl ? `${approvalUrl}&drift=${input.stepIdx}` : res.diffUrl,
+      handoff:
+        'stop and send the human the diff — this step cannot be paid at the approved ceiling, and re-running this tool will be refused the same way until they decide',
+    }
+  }
+
+  return { status: 'refused' as const, planId: input.planId, stepIdx: input.stepIdx, reason: res.error }
 }
 
 // ------------------------------------------------------------- report_drift
@@ -265,7 +318,17 @@ export async function reportDrift(
 
 // ---------------------------------------------------------------- close_plan
 
-/** Sweep the remainder back and settle the plan. Implemented in T11. */
-export async function closePlan(_input: { planId: string }, _deps: ToolDeps = liveToolDeps) {
-  return notImplemented('close_plan', 'T11 (receipts + sweep)')
+/**
+ * Sweep the remainder home and settle the plan.
+ *
+ * This is what makes the ceiling an envelope rather than a budget: whatever the plan did
+ * not spend goes back, and the account that could spend it stops existing as a spender.
+ * Calling it is not optional politeness — an unswept envelope is funds sitting in an
+ * account whose keys an agent holds.
+ */
+export async function closePlan(input: { planId: string }, deps: ToolDeps = liveToolDeps) {
+  const result = await postClosePlan(input.planId, deps.config(), deps.fetch)
+  // The route's own status wins — it is the side that swept, and reporting 'settled' over
+  // a result that says otherwise would be exactly the fake receipt this file refuses.
+  return { planId: input.planId, ...result }
 }

@@ -48,11 +48,13 @@ describe('stdio server', () => {
       for (const tool of tools) expect(tool.description ?? '').not.toBe('')
 
       // A tool that needs the control plane must fail as a readable error, not a crash.
+      // `pl_nope` does not exist, so the route answers 404 and the tool has to surface
+      // that as text an agent can act on rather than letting it escape as a stack trace.
       const result = (await client.callTool({
         name: 'close_plan',
         arguments: { planId: 'pl_nope' },
       })) as { content: { text: string }[] }
-      expect(result.content[0].text).toMatch(/not_implemented/)
+      expect(result.content[0].text).toMatch(/404|not found/i)
     } finally {
       await client.close()
     }

@@ -180,14 +180,16 @@ describe('await_approval', () => {
   })
 })
 
-describe('tools that need money they do not have yet', () => {
-  it('get_envelope says not_implemented while no envelope has been minted', async () => {
-    const fetchImpl = vi.fn(async () => json(planBody({ status: 'approved' })))
+describe('the tools that move money', () => {
+  it('get_envelope reports no_envelope rather than an error when none is minted', async () => {
+    const fetchImpl = vi.fn(async () => json(planBody({ status: 'pending_approval' })))
     const result = await getEnvelope(
       { planId: 'pl_abc' },
       deps(fetchImpl as unknown as ToolDeps['fetch']),
     )
-    expect(result).toMatchObject({ status: 'not_implemented', planStatus: 'approved' })
+    // Unapproved is a normal state, not a failure — an agent should wait, not retry.
+    expect(result).toMatchObject({ status: 'no_envelope', planStatus: 'pending_approval' })
+    expect((result as { reason: string }).reason).toContain('approv')
   })
 
   it('get_envelope returns the row as soon as one exists', async () => {
@@ -200,16 +202,80 @@ describe('tools that need money they do not have yet', () => {
     expect(result).toMatchObject({ status: 'ok', envelope })
   })
 
-  it('pay_and_call and close_plan refuse rather than fake a receipt', async () => {
-    const d = deps(vi.fn() as unknown as ToolDeps['fetch'])
-    expect(await payAndCall({ planId: 'pl_abc', stepIdx: 0 }, d)).toMatchObject({
-      status: 'not_implemented',
-      tool: 'pay_and_call',
+  it('pay_and_call reports a paid step with its receipt', async () => {
+    const fetchImpl = vi.fn(async () =>
+      json({ data: { score: 12 }, paidUsd: 0.0175, txRef: '0.0.9@1.2' }),
+    )
+    const result = await payAndCall(
+      { planId: 'pl_abc', stepIdx: 1 },
+      deps(fetchImpl as unknown as ToolDeps['fetch']),
+    )
+    expect(result).toMatchObject({
+      status: 'paid',
+      stepIdx: 1,
+      paidUsd: 0.0175,
+      txRef: '0.0.9@1.2',
+      data: { score: 12 },
     })
-    expect(await closePlan({ planId: 'pl_abc' }, d)).toMatchObject({
-      status: 'not_implemented',
-      tool: 'close_plan',
+  })
+
+  it('pay_and_call returns a gate block as data, not as a thrown error', async () => {
+    // The gate answers 409. That response is the most informative thing the payment path
+    // produces, and losing it to an exception would turn the product's central mechanism
+    // into a stack trace.
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            gate: {
+              ok: false,
+              reason: 'drift',
+              liveAskUsd: 0.05,
+              quoteUsd: 0.01,
+              maxAllowedUsd: 0.012,
+              remainingUsd: 0.9,
+            },
+            diffUrl: 'https://example.test/p/pl_abc',
+            serviceName: 'fraud-fusion-score',
+          }),
+          { status: 409, headers: { 'content-type': 'application/json' } },
+        ),
+    )
+    const result = await payAndCall(
+      { planId: 'pl_abc', stepIdx: 0 },
+      deps(fetchImpl as unknown as ToolDeps['fetch']),
+    )
+    expect(result).toMatchObject({
+      status: 'blocked',
+      reason: 'drift',
+      liveAskUsd: 0.05,
+      approvedUsd: 0.01,
+      serviceName: 'fraud-fusion-score',
     })
+  })
+
+  it('pay_and_call reports a state conflict as refused, so the agent does not retry into it', async () => {
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ error: 'step already paid' }), {
+          status: 409,
+          headers: { 'content-type': 'application/json' },
+        }),
+    )
+    const result = await payAndCall(
+      { planId: 'pl_abc', stepIdx: 0 },
+      deps(fetchImpl as unknown as ToolDeps['fetch']),
+    )
+    expect(result).toMatchObject({ status: 'refused', reason: 'step already paid' })
+  })
+
+  it('close_plan reports the swept remainder', async () => {
+    const fetchImpl = vi.fn(async () => json({ status: 'settled', sweptUsd: 0.0115 }))
+    const result = await closePlan(
+      { planId: 'pl_abc' },
+      deps(fetchImpl as unknown as ToolDeps['fetch']),
+    )
+    expect(result).toMatchObject({ status: 'settled', planId: 'pl_abc', sweptUsd: 0.0115 })
   })
 })
 
