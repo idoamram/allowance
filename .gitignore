@@ -12,7 +12,11 @@ operator-key*
 **/keys/
 
 # ---- Dependencies -----------------------------------------------------------
-node_modules/
+# No trailing slash. `node_modules/` matches only a directory, so a *symlink*
+# named node_modules — which is what you get if anyone ever wires a worktree up
+# by hand — sails past it and gets committed. Checking that out replaces a real
+# node_modules with a link, which is how one lands in the repo at all.
+node_modules
 .pnp
 .pnp.*
 .yarn/*
