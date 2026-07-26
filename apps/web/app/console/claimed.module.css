@@ -3,42 +3,46 @@
    (insights panel, receipts) does not collide with it in one file. */
 
 .panel {
-  margin-top: 2.25rem;
   display: grid;
-  gap: 0.9rem;
+  gap: 1.1rem;
 }
 
+/* Matches the section headings on the console page exactly — the rule, the
+   tracking, the size. Two files, one heading, because a verification panel that
+   looks like a different product is a verification panel nobody reads. */
 .head {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 0.5rem 1rem;
+  gap: 0.3rem 1rem;
   flex-wrap: wrap;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 0.5rem;
 }
 
 .title {
   font-family: var(--font-mono);
-  font-size: 0.64rem;
-  letter-spacing: 0.16em;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: var(--ink);
   font-weight: 600;
   margin: 0;
 }
 
 .since {
-  font-size: 0.66rem;
-  letter-spacing: 0.06em;
+  font-size: 0.72rem;
   color: var(--ink-soft);
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 .sub {
   color: var(--ink-soft);
-  font-size: 0.84rem;
-  line-height: 1.55;
+  font-size: 0.92rem;
+  line-height: 1.6;
   margin: 0;
-  max-width: 46rem;
+  max-width: 58ch;
 }
 
 /* The one table on this page that cannot reflow — five columns of evidence only
@@ -130,20 +134,63 @@
   margin-top: 2px;
 }
 
+/* "Nothing has settled yet" — a normal, temporary fact about the operator's own
+   data. Quiet prose on the page ground, no frame: there is nothing to act on. */
 .state {
   color: var(--ink-soft);
-  font-size: 0.84rem;
+  font-size: 0.9rem;
   line-height: 1.6;
-  border: 1px dashed var(--rule);
-  border-radius: 3px;
-  padding: 1.25rem;
   margin: 0;
+  max-width: 58ch;
+}
+
+/* "This is switched off" — a fact about the deployment, not the data. The dashed
+   frame is reserved for exactly this meaning on the console, and it names the
+   thing that is missing in the type an operator would grep for. */
+.offline {
+  border: 1px dashed var(--ink-soft);
+  border-radius: 4px;
+  padding: 1.1rem 1.15rem;
+}
+
+.offlineLabel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 0.5rem;
+}
+
+.offlineLabel code {
+  font-size: 0.68rem;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 400;
+  color: var(--ink-soft);
+  background: var(--manila-deep);
+  border-radius: 3px;
+  padding: 0.1rem 0.35rem;
+  overflow-wrap: anywhere;
+}
+
+.offlineBody {
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 58ch;
 }
 
 .note {
   margin: 0;
-  font-size: 0.72rem;
-  line-height: 1.55;
+  font-size: 0.75rem;
+  line-height: 1.6;
   color: var(--ink-soft);
-  max-width: 46rem;
+  max-width: 58ch;
 }

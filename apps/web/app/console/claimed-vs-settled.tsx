@@ -39,20 +39,33 @@ export default async function ClaimedVsSettled() {
 
   const body = () => {
     switch (state.kind) {
+      // The next two are deployment facts, not states of the operator's data. They are
+      // typeset as such — a dashed frame carrying the name of the thing that is missing —
+      // because "nothing has happened yet" and "this feature is switched off" are opposite
+      // messages, and reading them as the same box is how an operator waits for rows that
+      // are never coming.
       case 'not_configured':
         return (
-          <p className={styles.state}>
-            The settlement subgraph is not connected &mdash; <code>SUBGRAPH_URL</code> is unset,
-            so there is nothing to check our records against. This panel stays empty rather
-            than showing our own numbers back to you and calling it verification.
-          </p>
+          <div className={styles.offline}>
+            <p className={styles.offlineLabel}>
+              Not configured<code>SUBGRAPH_URL</code>
+            </p>
+            <p className={styles.offlineBody}>
+              No settlement subgraph is connected, so there is nothing to check our records
+              against. The panel stays empty rather than showing our own numbers back to you
+              and calling it verification.
+            </p>
+          </div>
         )
       case 'unreachable':
         return (
-          <p className={styles.state}>
-            The subgraph did not answer. Nothing is shown: a verification panel that falls
-            back to our own database is not a verification panel.
-          </p>
+          <div className={styles.offline}>
+            <p className={styles.offlineLabel}>Subgraph unreachable</p>
+            <p className={styles.offlineBody}>
+              The subgraph did not answer. Nothing is shown: a verification panel that falls
+              back to our own database is not a verification panel.
+            </p>
+          </div>
         )
       case 'no_wallets':
         return (
@@ -133,12 +146,12 @@ export default async function ClaimedVsSettled() {
   }
 
   return (
-    <section className={styles.panel}>
+    <div className={styles.panel}>
       <div className={styles.head}>
-        <h2 className={styles.title}>Claimed vs settled</h2>
+        <h2 className={styles.title}>Does the chain agree</h2>
         {state.kind === 'ready' && state.indexedSinceTimestamp && (
           <span className={styles.since}>
-            settled since deployment &mdash; indexing from {isoDay(state.indexedSinceTimestamp)} UTC
+            indexing from {isoDay(state.indexedSinceTimestamp)} UTC
           </span>
         )}
       </div>
@@ -153,6 +166,6 @@ export default async function ClaimedVsSettled() {
         so they are left out rather than counted as unsettled. Counts cover the period since
         this subgraph was deployed, never lifetime history.
       </p>
-    </section>
+    </div>
   )
 }

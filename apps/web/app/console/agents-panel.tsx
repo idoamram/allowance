@@ -10,7 +10,7 @@ import {
   type PlainState,
 } from './actions'
 import { TokenReveal } from './token-reveal'
-import styles from './account.module.css'
+import styles from './agents.module.css'
 
 type Reveal = { token: string; agentName: string; kind: 'created' | 'rotated' }
 
@@ -26,15 +26,8 @@ export function AgentsPanel({ agents }: { agents: OwnedAgent[] }) {
 
   return (
     <>
-      <CreateAgent onToken={setReveal} />
-
-      <h2 className={styles.sectionTitle}>Agents</h2>
       {agents.length === 0 ? (
-        <p className={styles.empty}>
-          Create your first agent above. You get one token back &mdash; set it as{' '}
-          <code>PLANBOUND_AGENT_TOKEN</code> in the agent&rsquo;s environment and it can start
-          submitting plans for you to approve.
-        </p>
+        <p className={styles.empty}>You have no agents yet.</p>
       ) : (
         <ul className={styles.agentList}>
           {agents.map((agent) => (
@@ -42,6 +35,9 @@ export function AgentsPanel({ agents }: { agents: OwnedAgent[] }) {
           ))}
         </ul>
       )}
+
+      <CreateAgent onToken={setReveal} />
+
 
       {reveal && (
         <TokenReveal
@@ -85,7 +81,8 @@ function CreateAgent({ onToken }: { onToken: (r: Reveal) => void }) {
         </button>
       </div>
       <p className={styles.hint}>
-        Creating an agent issues one bearer token, shown once and never again.
+        Creating an agent issues one bearer token, shown once and never again. It says which
+        agent is asking; it holds no funds and cannot approve a plan.
       </p>
       {state.error && (
         <p className={styles.error} role="alert">
