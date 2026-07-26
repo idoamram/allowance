@@ -5,6 +5,8 @@ import { listAgents } from '@/lib/accounts'
 import { requireUser, supabaseServer } from '@/lib/supabase/server'
 import ClaimedVsSettled from './claimed-vs-settled'
 import { AgentsPanel } from './agents-panel'
+import { HumanPanel } from './human-panel'
+import { getBinding } from '@/lib/human-binding'
 import styles from './console.module.css'
 
 export const dynamic = 'force-dynamic'
@@ -71,13 +73,14 @@ export default async function ConsolePage() {
   const user = await requireUser()
   const supabase = await supabaseServer()
 
-  const [{ data }, agents] = await Promise.all([
+  const [{ data }, agents, binding] = await Promise.all([
     supabase
       .from('plans')
       .select('id, goal, status, total_usd, ceiling_usd, created_at, expires_at, approval_key')
       .order('created_at', { ascending: false })
       .limit(100),
     listAgents(user.id),
+    getBinding(user.id),
   ])
   const rows = (data ?? []) as PlanRow[]
 
@@ -247,6 +250,8 @@ export default async function ConsolePage() {
           note="One token each, shown once when it is issued"
         />
         <AgentsPanel agents={agents} />
+
+        <HumanPanel binding={binding} />
       </section>
 
       {/* ── and whether to believe any of it ─────────────────────────────── */}

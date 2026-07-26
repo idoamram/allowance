@@ -1,0 +1,181 @@
+/* Who may approve — the account's bound human, and when their presence is required.
+   ---------------------------------------------------------------------------
+   Quiet by construction. This is a setting, not an event, and it sits below the
+   plans that actually want attention. The one loud element is the warning that
+   fires when a policy demands a human nobody has bound: that state refuses real
+   approvals, so it has to look like something that needs fixing.
+
+   Tokens come from globals.css; nothing here redefines them. */
+
+.panel {
+  margin-top: 2.5rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 1.5rem;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 0.62rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+  margin: 0;
+}
+
+.stampOn,
+.stampOff {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid;
+  border-radius: 2px;
+}
+
+.stampOn {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--rule));
+}
+
+.stampOff {
+  color: var(--ink-soft);
+  border-color: var(--rule);
+}
+
+.sub {
+  margin: 0.9rem 0 0;
+  max-width: 62ch;
+  line-height: 1.6;
+}
+
+.note {
+  margin: 0.6rem 0 0;
+  max-width: 62ch;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.bound {
+  margin: 1rem 0 0;
+  max-width: 62ch;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.bound code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+.btn {
+  margin-top: 1rem;
+  min-height: 44px;
+  padding: 0.6rem 1.1rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--manila);
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* ── policy ──────────────────────────────────────────────────────────────── */
+
+.policy {
+  margin: 1.5rem 0 0;
+  border: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.legend {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: 0.35rem;
+}
+
+.option {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  /* A 44px row, so the whole line is the target rather than the 13px circle. */
+  min-height: 44px;
+  padding: 0.35rem 0;
+  cursor: pointer;
+  max-width: 62ch;
+}
+
+.option input {
+  margin-top: 0.25rem;
+  accent-color: var(--ink);
+  min-width: 1rem;
+  min-height: 1rem;
+}
+
+.option strong {
+  display: block;
+  font-weight: 600;
+}
+
+.optionDetail {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin-top: 0.1rem;
+}
+
+/* ── states ──────────────────────────────────────────────────────────────── */
+
+.warn,
+.error {
+  margin: 1rem 0 0;
+  max-width: 62ch;
+  padding-left: 0.8rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+/* The only loud thing here: this state refuses real approvals. */
+.warn {
+  border-left: 2px solid var(--warn);
+  color: var(--ink);
+}
+
+.error {
+  border-left: 2px solid var(--stop);
+  color: var(--stop);
+}
