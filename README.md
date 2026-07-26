@@ -39,7 +39,9 @@ The narration for the recorded walkthrough, beat by beat, is in
 
 ## Where each integration lives
 
-Exact lines, so nobody has to grep.
+Exact lines, so nobody has to grep. Each sponsor's section ends with a link to the feedback we
+wrote for them — written the same nights, with exact error strings, and collected in
+[`feedbacks/`](feedbacks/).
 
 ### Hedera — envelope, dual control, HSS, HCS
 
@@ -51,6 +53,8 @@ Exact lines, so nobody has to grep.
 | Sweep the remainder home | [`packages/chains/hedera.ts:230`](packages/chains/hedera.ts#L230) |
 | HCS audit trail — `TopicMessageSubmitTransaction` | [`packages/chains/hedera.ts:275`](packages/chains/hedera.ts#L275) |
 | Reference seller on the Hedera rail (**ours, and labelled**) | [`apps/web/app/api/reference-seller/[service]/route.ts`](apps/web/app/api/reference-seller/%5Bservice%5D/route.ts) |
+
+**Feedback:** [`feedbacks/hedera-feedback.md`](feedbacks/hedera-feedback.md).
 
 ### x402 — discovery, quoting, gated payment
 
@@ -78,6 +82,11 @@ Exact lines, so nobody has to grep.
 | World ID 4.0 — RP signature minted server-side | [`apps/web/lib/verify/world.ts:143`](apps/web/lib/verify/world.ts#L143) |
 | Proof forwarded to `/api/v4/verify/{rp_id}` | [`apps/web/lib/verify/world.ts:175`](apps/web/lib/verify/world.ts#L175) |
 | Step-up enforced server-side, not just in the UI | [`apps/web/app/p/[id]/actions.ts:91`](apps/web/app/p/%5Bid%5D/actions.ts#L91) |
+| Nullifier binding — the same human, not merely *a* human | [`apps/web/lib/human-policy.ts`](apps/web/lib/human-policy.ts) |
+| Whether a plan needs a proof, decided once for every surface | [`apps/web/lib/step-up.ts`](apps/web/lib/step-up.ts) |
+
+**Feedback:** [`feedbacks/world-developer-feedback.md`](feedbacks/world-developer-feedback.md)
+and [`feedbacks/world-user-feedback.md`](feedbacks/world-user-feedback.md).
 
 ### The Graph — verifying us against the chain
 
@@ -87,7 +96,10 @@ Exact lines, so nobody has to grep.
 | Claimed-vs-settled reconciliation | [`apps/web/lib/reconcile.ts:75`](apps/web/lib/reconcile.ts#L75) |
 | The rail the panel checks, named once so prose cannot drift from the query | [`apps/web/lib/claimed-vs-settled.ts:36`](apps/web/lib/claimed-vs-settled.ts#L36) |
 | Seller trust from settlement history | [`apps/web/app/api/mcp/seller-trust/route.ts`](apps/web/app/api/mcp/seller-trust/route.ts) |
+| Seller history the approver checks **before funding** | [`apps/web/app/p/[id]/trust-actions.ts`](apps/web/app/p/%5Bid%5D/trust-actions.ts) |
 | **Substreams indexing skill** (generic, installable) | [`plugin/skills/index-settlements/`](plugin/skills/index-settlements/) |
+
+**Feedback:** [`feedbacks/thegraph-feedback.md`](feedbacks/thegraph-feedback.md).
 
 ### The agent's own identity — remote MCP over OAuth
 
