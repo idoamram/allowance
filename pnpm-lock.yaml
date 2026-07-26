@@ -57,6 +57,9 @@ importers:
       '@planbound/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@planbound/mcp':
+        specifier: workspace:*
+        version: link:../../packages/mcp
       '@supabase/ssr':
         specifier: ^0.12.3
         version: 0.12.3(@supabase/supabase-js@2.110.8)
@@ -69,6 +72,9 @@ importers:
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1
+      jose:
+        specifier: ^6.2.4
+        version: 6.2.4
       next:
         specifier: ^16.2.11
         version: 16.2.11(@babel/core@7.29.7)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
