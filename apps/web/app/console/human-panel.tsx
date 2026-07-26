@@ -21,21 +21,21 @@ const PRESETS: Record<WorldPreset, (opts: { signal: string }) => Preset> = {
   deviceLegacy,
 }
 
-const POLICIES: { value: VerificationPolicy; label: string; detail: string }[] = [
+const policies = (threshold: string): { value: VerificationPolicy; label: string; detail: string }[] => [
   {
     value: 'off',
-    label: 'Never',
-    detail: 'The approval link alone approves. Right when an interruption costs more than it protects.',
+    label: 'Never ask',
+    detail: 'Anyone with the approval link can approve. Fastest, and the least protected.',
   },
   {
     value: 'threshold',
-    label: 'Above the step-up line',
-    detail: 'Only plans large enough that "whoever opened the link" stops being a good enough answer.',
+    label: `Ask for plans over ${threshold}`,
+    detail: `Small plans approve straight from the link. Anything above ${threshold} needs your World ID.`,
   },
   {
     value: 'always',
-    label: 'Every approval',
-    detail: 'Every plan, whatever the ceiling.',
+    label: 'Ask every time',
+    detail: 'Every plan needs your World ID, however small.',
   },
 ]
 
@@ -48,7 +48,7 @@ const POLICIES: { value: VerificationPolicy; label: string; detail: string }[] =
  * continuity, not identity. Saying "verify your identity" here would be a lie, and this is
  * exactly the screen where a person decides how much to trust the thing.
  */
-export function HumanPanel({ binding }: { binding: HumanBinding }) {
+export function HumanPanel({ binding, threshold }: { binding: HumanBinding; threshold: string }) {
   const [challenge, setChallenge] = useState<Challenge | null>(null)
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -58,6 +58,7 @@ export function HumanPanel({ binding }: { binding: HumanBinding }) {
 
   async function begin() {
     setBusy(true)
+    // A stale failure sitting under a fresh attempt reads as the new attempt failing.
     setError(null)
     const state = await startEnrolment()
     setBusy(false)
@@ -70,43 +71,52 @@ export function HumanPanel({ binding }: { binding: HumanBinding }) {
 
   return (
     <section className={styles.panel} id="human">
-      <div className={styles.head}>
-        <h2 className={styles.title}>Who may approve</h2>
-        <span className={enrolled ? styles.stampOn : styles.stampOff}>
-          {enrolled ? 'bound' : 'not bound'}
-        </span>
-      </div>
+      <p className={styles.eyebrow}>Identity</p>
+      <h2 className={styles.title}>Who may approve</h2>
+
+      <p className={styles.status}>
+        <span className={enrolled ? styles.dotOn : styles.dotOff} aria-hidden="true" />
+        {enrolled ? (
+          <>
+            <strong>Your World ID is connected.</strong> Approvals that need a human must come
+            from you.
+          </>
+        ) : (
+          <>
+            <strong>No World ID connected.</strong> Anyone holding an approval link can
+            approve.
+          </>
+        )}
+      </p>
 
       <p className={styles.sub}>
-        An agent holds the approval link for its own plan &mdash; it is handed one the moment
-        it submits. A World ID proof is the thing an agent cannot produce. Binding one to this
-        account goes further: it tells a later approval apart from{' '}
-        <em>the same person who enrolled</em> and <em>anyone else holding the link</em>.
+        When an agent submits a plan it is handed the approval link for that plan. Connecting
+        your World ID means an approval has to come from <em>you</em> &mdash; not the agent,
+        and not anyone else who ends up with the link.
       </p>
 
       <p className={styles.note}>
-        This is continuity, not identity. World returns a pseudonymous value that is stable
-        for one person and one app &mdash; we can tell you apart from someone else, and we
-        never learn who you are.
+        We learn nothing about who you are. World gives us one scrambled value that stays the
+        same for you and is different for everyone else &mdash; enough to recognise you again,
+        and nothing more.
       </p>
 
       {enrolled ? (
         <p className={styles.bound}>
-          Bound to a World ID
-          {binding.preset && <> via <code>{binding.preset}</code></>}
-          {binding.boundAt && <> on {binding.boundAt.slice(0, 10)}</>}. Re-verifying replaces it
-          &mdash; which is the way back in if you lose the device, and also means anyone who can
-          sign in here can re-point it.
+          Connected{binding.boundAt && <> on {binding.boundAt.slice(0, 10)}</>}
+          {binding.preset && <> using <code>{binding.preset}</code></>}. Connecting a different
+          World ID replaces this one &mdash; that is how you get back in if you lose the phone,
+          and it also means anyone who can sign in here could change it.
         </p>
       ) : (
         <button type="button" className={styles.btn} onClick={begin} disabled={busy}>
-          {busy ? 'Preparing…' : 'Bind a World ID'}
+          {busy ? 'Preparing…' : 'Connect your World ID'}
         </button>
       )}
 
       <fieldset className={styles.policy} disabled={pending}>
         <legend className={styles.legend}>Require the bound human</legend>
-        {POLICIES.map((p) => (
+        {policies(threshold).map((p) => (
           <label key={p.value} className={styles.option}>
             <input
               type="radio"
@@ -125,8 +135,8 @@ export function HumanPanel({ binding }: { binding: HumanBinding }) {
 
       {!enrolled && binding.policy !== 'off' && (
         <p className={styles.warn} role="alert">
-          Nothing is bound yet, so approvals that need a human will be refused rather than
-          waved through. Bind one above, or set this to <strong>Never</strong>.
+          No World ID is connected, so plans that need one are being turned away rather than
+          waved through. Connect one above, or choose <strong>Never ask</strong>.
         </p>
       )}
 
@@ -147,6 +157,7 @@ export function HumanPanel({ binding }: { binding: HumanBinding }) {
           environment={challenge.environment}
           preset={PRESETS[challenge.preset]({ signal: challenge.signal })}
           handleVerify={async (result) => {
+            setError(null)
             // The server decides. Throwing here puts the widget in its own error state
             // rather than reporting a success the account never recorded.
             const state = await enrolHuman(result)
