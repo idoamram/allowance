@@ -22,6 +22,14 @@ import type { SettlementLike } from './reconcile'
  */
 export const SETTLEMENT_NETWORK = 'eip155:8453'
 
+/**
+ * The human name for that rail, exported so no user-facing string spells a chain name a
+ * second time. Three separate places have now claimed Worldchain while this constant said
+ * Base — the console's prose, the reconciliation filter, and the seller-trust response —
+ * because each was edited in a different pull request and nothing tied them together.
+ */
+export const SETTLEMENT_CHAIN_NAME = SETTLEMENT_NETWORK === 'eip155:8453' ? 'Base' : 'Worldchain'
+
 /** @deprecated kept so an older import keeps compiling; points at the indexed rail. */
 export const WORLDCHAIN_NETWORK = SETTLEMENT_NETWORK
 

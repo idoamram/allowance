@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server'
 import demoSellers from '@planbound/chains/demo-sellers.json'
 import { agentFromRequest } from '@/lib/auth'
-import { SETTLEMENT_NETWORK, indexWindow, sellerTrust, subgraphUrl } from '@/lib/subgraph'
+import {
+  SETTLEMENT_CHAIN_NAME,
+  SETTLEMENT_NETWORK,
+  indexWindow,
+  sellerTrust,
+  subgraphUrl,
+} from '@/lib/subgraph'
 
 export const dynamic = 'force-dynamic'
 
@@ -130,9 +136,9 @@ export async function GET(req: Request) {
     if (!payTo) {
       return NextResponse.json(
         {
-          error: 'no_worldchain_offer',
+          error: 'no_indexed_rail_offer',
           detail:
-            'seller did not answer a 402 offering Worldchain USDC — it may be down, or it may settle on another rail',
+            `seller did not answer a 402 offering ${SETTLEMENT_CHAIN_NAME} USDC — it may be down, or it may settle on another rail`,
           network: SETTLEMENT_NETWORK,
         },
         { status: 502 },
@@ -165,7 +171,7 @@ export async function GET(req: Request) {
           timestamp: Number(window.firstIndexedTimestamp),
         }
       : null,
-    source: 'the-graph:worldchain-usdc',
-    note: 'Counts are USDC settlements on Worldchain since this subgraph was deployed — not lifetime history.',
+    source: `the-graph:${SETTLEMENT_CHAIN_NAME.toLowerCase()}-usdc`,
+    note: `Counts are USDC settlements on ${SETTLEMENT_CHAIN_NAME} since this subgraph was deployed — not lifetime history.`,
   })
 }
