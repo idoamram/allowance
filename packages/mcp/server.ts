@@ -145,7 +145,8 @@ server.registerTool(
     title: 'Read the plan envelope',
     description:
       'The funded single-use account behind an approved plan: ceiling, what is left, and its ' +
-      'on-chain identifiers. Answers not_implemented until envelope minting lands (T7).',
+      'on-chain identifiers — the Hedera account, its scheduled sweep, and the HCS topic the ' +
+      'receipts are written to.',
     inputSchema: { planId: z.string() },
   },
   async (args) => run(() => getEnvelope(args)),
@@ -157,8 +158,9 @@ server.registerTool(
     title: 'Pay a step and call the service',
     description:
       'Re-probe the seller for its live ask, run the policy gate against the approved quote ' +
-      'and the remaining envelope, then pay and return the data. Answers not_implemented until ' +
-      'the gated payment path lands (T9) — no payment is simulated in the meantime.',
+      'and the remaining envelope, then pay from the envelope over x402 and return the ' +
+      "seller's response. A step asking more than its approved tolerance comes back blocked " +
+      'with the drift priced, not paid — call report_drift to put that decision to the human.',
     inputSchema: {
       planId: z.string(),
       stepIdx: z.number().int().min(0),
@@ -190,7 +192,9 @@ server.registerTool(
   {
     title: 'Close the plan and sweep',
     description:
-      'Settle the plan and sweep unspent funds back. Answers not_implemented until sweep lands (T11).',
+      'Settle the plan: sweep the unspent remainder out of the envelope and back to the ' +
+      'treasury, and record the close on the plan HCS topic. Safe to call when steps remain ' +
+      'unpaid — the remainder simply comes back larger.',
     inputSchema: { planId: z.string() },
   },
   async (args) => run(() => closePlan(args)),
