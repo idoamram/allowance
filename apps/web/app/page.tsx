@@ -62,36 +62,18 @@ const PLAN = {
 
 /* ── The loop ───────────────────────────────────────────────────────────────
    Six moments. `human` marks the only one that interrupts anybody; `bound`
-   marks the span that runs inside the ceiling with nobody watching. */
+   marks the span that runs inside the ceiling with nobody watching.
+
+   One line each, because the names carry the sequence and the exhibits below
+   carry the argument. This list used to explain them too, and a reader met the
+   same claim three times before reaching the evidence for it. */
 const LOOP = [
-  {
-    name: 'Shop',
-    sub: 'x402 Bazaar discovery, then a live 402 probe of every candidate. A listing is a claim; the probe is the fact.',
-  },
-  {
-    name: 'Plan',
-    sub: 'One priced table — service, rail, price, and a one-line why each step earns it.',
-  },
-  {
-    name: 'Approve',
-    sub: 'The only human moment: one decision, with the whole task priced in front of you.',
-    human: true,
-  },
-  {
-    name: 'Fund',
-    sub: 'A single-use account is minted holding exactly the approved ceiling.',
-    bound: true,
-  },
-  {
-    name: 'Pay',
-    sub: 'The agent buys from sellers out of that same account, co-signed step by step.',
-    bound: true,
-  },
-  {
-    name: 'Close',
-    sub: 'Unspent funds sweep back to the treasury; the receipts land on a public HCS topic.',
-    bound: true,
-  },
+  { name: 'Shop', sub: 'Bazaar discovery, then a live 402 probe of every candidate.' },
+  { name: 'Plan', sub: 'One priced table, with a line of why per step.' },
+  { name: 'Approve', sub: 'The only human moment. One decision, whole task priced.', human: true },
+  { name: 'Fund', sub: 'A single-use account minted holding exactly the ceiling.', bound: true },
+  { name: 'Pay', sub: 'The agent buys out of that account, co-signed step by step.', bound: true },
+  { name: 'Close', sub: 'The remainder sweeps back; receipts land on HCS.', bound: true },
 ]
 
 /* ── The key on the envelope account ────────────────────────────────────────
@@ -113,9 +95,9 @@ const DRIFT = {
 }
 
 const EXITS = [
-  { name: 'Finish', body: 'Approve the new price. Top up the exact shortfall and the run completes.' },
-  { name: 'Re-plan', body: 'Re-price the remaining steps. Everything already delivered is kept.' },
-  { name: 'Abort', body: 'Stop here. The sweep returns the remainder, and you keep what was bought.' },
+  { name: 'Finish', body: 'Top up the exact shortfall. The run completes.' },
+  { name: 'Re-plan', body: 'Re-price what remains. What was delivered is kept.' },
+  { name: 'Abort', body: 'Stop here. The remainder sweeps back.' },
 ]
 
 /* ── The close ──────────────────────────────────────────────────────────────
@@ -159,8 +141,13 @@ const CLOSE = [
  *
  * Bullets rather than prose because this is a checklist a judge scans, not an argument.
  * Every line names a thing that exists and can be opened.
+ *
+ * `logo` is optional and deliberately only set for the three whose files are in
+ * `public/logos/`. x402 and MCP carried paths to SVGs that were never added, so both cards
+ * rendered a broken image — an audit of the page's own claims found it. A name set in the
+ * card's own type is not a downgrade; a broken image is.
  */
-const BUILT_ON = [
+const BUILT_ON: { name: string; logo?: string; points: string[] }[] = [
   {
     name: 'Hedera',
     logo: '/logos/hedera.svg',
@@ -173,7 +160,6 @@ const BUILT_ON = [
   },
   {
     name: 'x402',
-    logo: '/logos/x402.svg',
     points: [
       'Sellers discovered live through the Bazaar, never a hardcoded list',
       'Prices are real HTTP 402 quotes, badged live or estimate and never blurred',
@@ -195,14 +181,13 @@ const BUILT_ON = [
     name: 'The Graph',
     logo: '/logos/thegraph.svg',
     points: [
-      'Subgraph deployed and syncing, no indexing errors',
+      'The approver checks a seller’s settlement history before funding it',
       'Claimed-against-settled reconciled against consensus, not our own database',
       'A Substreams skill anyone can install — no Rust, reaches chains Studio dropped',
     ],
   },
   {
     name: 'MCP',
-    logo: '/logos/mcp.svg',
     points: [
       'Seven tools, two transports, one implementation',
       'Remote server protected by OAuth 2.1 with our own consent screen',
@@ -238,11 +223,10 @@ export default function Home() {
                 Your agent asks for a plan, not a payment.
               </h1>
               <p className={`${styles.heroLede} ${styles.rise} ${styles.rise3}`}>
-                It shops the task first — discovers real sellers, collects live quotes — and comes
-                back with one priced, reasoned plan.{' '}
-                <strong>A single approval funds a single-use envelope</strong> holding exactly the
-                ceiling you approved. The agent then runs unattended inside it and cannot exceed it,
-                because the money is not there to exceed.
+                It shops the task first — real sellers, live quotes — and comes back with one
+                priced, reasoned plan. <strong>One approval funds a single-use envelope</strong>{' '}
+                holding exactly that ceiling. The agent runs unattended inside it and cannot
+                exceed it, because the money is not there to exceed.
               </p>
               <div className={`${styles.ctas} ${styles.rise} ${styles.rise4}`}>
                 <a className={styles.btn} href="/console">
@@ -320,8 +304,7 @@ export default function Home() {
                   Approve {PLAN.ceiling} envelope
                 </span>
                 <p className={styles.sheetNote}>
-                  Approving mints a single-use account holding exactly this ceiling. It is not
-                  consent to a transaction — it is the creation of the budget.
+                  Not consent to a transaction — the creation of the budget.
                 </p>
               </div>
             </div>
@@ -345,8 +328,7 @@ export default function Home() {
                 <span className={styles.datumValue}>93%</span>
                 <p className={styles.datumBody}>
                   of Claude Code permission prompts are approved. The popup arrives without the
-                  context to judge it, so it gets rubber-stamped. Consent that always says yes
-                  isn&rsquo;t consent.
+                  context to judge it, so it gets rubber-stamped.
                 </p>
                 <p className={styles.source}>
                   Anthropic&rsquo;s own data, cited in{' '}
@@ -360,7 +342,7 @@ export default function Home() {
                 <span className={styles.datumValue}>24.7%</span>
                 <p className={styles.datumBody}>
                   of x402 endpoints publish a price at all. No total for a task exists before it
-                  runs — the plan is the first moment anyone, human or agent, knows what it costs.
+                  runs — the plan is the first moment anyone knows what it costs.
                 </p>
                 <p className={styles.source}>
                   <a href="https://theaicareerlab.com/blog/x402-pricing-report-2026">
@@ -379,8 +361,8 @@ export default function Home() {
             <p className={styles.eyebrow}>The mechanism</p>
             <h2 className={styles.h2}>One decision, then a boundary that holds itself.</h2>
             <p className={styles.lede}>
-              Six moments. Exactly one of them is yours, and everything after it happens inside a
-              ceiling that cannot be renegotiated by the thing spending against it.
+              Six moments. Exactly one is yours; the rest happen inside a ceiling the thing
+              spending against it cannot renegotiate.
             </p>
           </div>
 
@@ -403,9 +385,8 @@ export default function Home() {
           </ol>
 
           <p className={styles.flowLegend}>
-            The shaded span runs unattended. <b>No further approval, and no way to exceed the
-            ceiling</b> — the agent holds no funds of its own, so there is nothing to exceed it
-            with. The filled marker is the only interruption in the loop.
+            The shaded span runs unattended, with <b>no further approval and no way to exceed the
+            ceiling</b> — the agent holds no funds of its own.
           </p>
 
           <div className={styles.exhibits}>
@@ -417,9 +398,9 @@ export default function Home() {
                   The cap is a balance, not a row in a database.
                 </h3>
                 <p className={styles.exhibitBody}>
-                  Approval mints an account and funds it with exactly the ceiling. There is no
-                  service in the middle that could fail open, because there is no service in the
-                  middle — the ceiling is <em>how much money exists</em>.
+                  Approval mints an account funded with exactly the ceiling. No service in the
+                  middle can fail open, because there is none — the ceiling is{' '}
+                  <em>how much money exists</em>.
                 </p>
               </div>
               <div className={styles.plate}>
@@ -462,14 +443,13 @@ export default function Home() {
                     <li className={styles.keyNode}>
                       <span className={styles.keyName}>treasury</span>
                       <span className={styles.keyRole}>
-                        Reclaims the remainder at expiry. It funds the envelope; it never spends
-                        from it on the agent&rsquo;s behalf.
+                        Funds the envelope and reclaims the remainder at expiry. Never spends on
+                        the agent&rsquo;s behalf.
                       </span>
                     </li>
                   </ul>
                   <p className={styles.keyNote}>
-                    The agent can propose a payment. It cannot complete one alone, and the policy
-                    signer only joins if the live ask still matches the plan the human approved.
+                    The agent can propose a payment, never complete one alone.
                   </p>
                 </div>
               </div>
@@ -485,9 +465,8 @@ export default function Home() {
                 <p className={styles.exhibitBody}>
                   A step quoted at {DRIFT.quoted} met a real seller asking {DRIFT.asked}. The gate
                   blocked it <em>even though the envelope held enough to pay</em>, because the plan
-                  the human approved was not the plan the agent found. What reaches you is a diff:
-                  what already settled, what changed and by how much, and the price of every way
-                  out.
+                  the human approved was not the plan the agent found. What reaches you is a diff,
+                  with a price on every way out.
                 </p>
               </div>
               <div className={styles.plate}>
@@ -538,9 +517,8 @@ export default function Home() {
                 <span className={styles.exhibitTag}>Close</span>
                 <h3 className={styles.exhibitTitle}>Every cent of the ceiling, accounted for.</h3>
                 <p className={styles.exhibitBody}>
-                  One loop end to end on Hedera testnet: two services quoted, a human approved on
-                  their phone, an envelope minted holding exactly the ceiling, and the agent bought
-                  from the seller paying out of that same account. Quoted equals paid; the
+                  One loop end to end on Hedera testnet: quoted, approved on a phone, an envelope
+                  minted, and the seller paid out of that same account. Quoted equals paid; the
                   remainder came back.
                 </p>
               </div>
@@ -582,23 +560,18 @@ export default function Home() {
           <div className={styles.honesty}>
             <p className={styles.plateTitle}>Stated plainly</p>
             <ul className={styles.honestyList}>
+              <li>Hedera testnet, faucet funds. Mainnet purchases stay off until you turn them on.</li>
               <li>
-                Hedera testnet, faucet funds. Mainnet purchases stay impossible until you turn them
-                on yourself.
+                The Hedera-rail seller is <em>ours</em> — no Hedera x402 market exists yet. Every
+                other seller is a stranger found through the Bazaar.
               </li>
               <li>
-                The reference seller on the Hedera rail is <em>ours</em>, and the code says so — no
-                Hedera x402 seller market exists yet. Every other seller is a stranger discovered
-                through the Bazaar.
+                Policy logic runs off-chain. The 2-of-2 key is what makes bypassing it impossible,
+                not the chain.
               </li>
               <li>
-                Per-service policy logic runs off-chain. The 2-of-2 key is what makes bypassing it
-                impossible, not the chain.
-              </li>
-              <li>
-                The drift above is our own conservative estimate meeting a real seller&rsquo;s real
-                ask. The rest of what is and isn&rsquo;t proven is in the{' '}
-                <a href={`${REPO}#honesty-box`}>honesty box</a>, in the README.
+                The drift above is our own estimate meeting a real ask. The rest of what is and
+                isn&rsquo;t proven is in the <a href={`${REPO}#honesty-box`}>honesty box</a>.
               </li>
             </ul>
           </div>
@@ -630,8 +603,10 @@ export default function Home() {
               {BUILT_ON.map((r) => (
                 <div className={styles.rail} key={r.name}>
                   <div className={styles.railHead}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img className={styles.railLogo} src={r.logo} alt="" aria-hidden="true" />
+                    {r.logo && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img className={styles.railLogo} src={r.logo} alt="" aria-hidden="true" />
+                    )}
                     <span className={styles.railName}>{r.name}</span>
                   </div>
                   <ul className={styles.railPoints}>
@@ -656,10 +631,9 @@ export default function Home() {
               <p className={styles.eyebrow}>Connect it</p>
               <h2 className={styles.h2}>Point your agent at it.</h2>
               <p className={styles.lede}>
-                Seven tools over the Model Context Protocol. Add the remote server and Claude
-                Code registers itself, sends you to our consent screen, and comes back holding a
-                token scoped to one agent &mdash; no key to copy, and nothing that can spend
-                until you approve a plan.
+                Seven tools over the Model Context Protocol. Claude Code registers itself, sends
+                you to our consent screen, and comes back with a token scoped to one agent — no
+                key to copy, and nothing that can spend until you approve a plan.
               </p>
             </div>
             <div className={styles.rails}>
@@ -693,8 +667,7 @@ export default function Home() {
           <h2 className={styles.h2}>See a plan, priced and reasoned.</h2>
           <p className={styles.closingLede}>
             The console lists real plans with their receipts, and diffs what we claim against what
-            settled on-chain. The agent side is an MCP server and a Claude Code plugin — seven
-            tools, and your key never leaves your machine.
+            actually settled on-chain.
           </p>
           <div className={styles.ctas}>
             <a className={styles.btn} href="/console">
