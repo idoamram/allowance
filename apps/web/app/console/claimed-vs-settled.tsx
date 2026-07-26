@@ -1,4 +1,4 @@
-import { loadClaimedVsSettled } from '@/lib/claimed-vs-settled'
+import { INDEXED_RAIL, loadClaimedVsSettled } from '@/lib/claimed-vs-settled'
 import { supabaseServer } from '@/lib/supabase/server'
 import type { ReconRow } from '@/lib/reconcile'
 import { usd } from '@/lib/format'
@@ -9,14 +9,23 @@ import styles from './claimed.module.css'
  *
  * Every other number in this console comes from our own database — which is exactly why
  * none of them prove anything. This panel puts our claims next to what The Graph indexed
- * from Worldchain consensus, so an approver can check the control plane against the chain
- * without taking our word for either side.
+ * from consensus, so an approver can check the control plane against the chain without
+ * taking our word for either side.
  *
  * Two disagreements matter, and they point in opposite directions:
  *   unsettled — we recorded a payment consensus never saw.
  *   unclaimed — money left a plan wallet and we recorded nothing. Our database cannot
  *               surface this one at all; only an address-keyed index of the chain can.
+ *
+ * The chain is named from `INDEXED_RAIL` rather than written into the prose. Every one of
+ * these sentences said "Worldchain" while the query read Base, because the copy and the
+ * filter were edited in different pull requests and nothing tied them together. On a panel
+ * whose entire claim is "you do not have to trust us", naming the wrong chain is not a
+ * typo — it is the panel lying about what it checked.
  */
+
+/** Display name for the chain the subgraph indexes. One source, so the prose cannot drift. */
+const CHAIN = INDEXED_RAIL === 'base' ? 'Base' : 'Worldchain'
 
 const LABEL: Record<ReconRow['status'], string> = {
   matched: 'matched',
@@ -70,7 +79,7 @@ export default async function ClaimedVsSettled() {
       case 'no_wallets':
         return (
           <p className={styles.state}>
-            No plan wallet has been minted yet, so there is nothing on Worldchain to compare
+            No plan wallet has been minted yet, so there is nothing on {CHAIN} to compare
             against. Rows appear here the first time an approved plan spends on that rail.
           </p>
         )
@@ -79,7 +88,7 @@ export default async function ClaimedVsSettled() {
           return (
             <p className={styles.state}>
               {state.walletCount} plan wallet{state.walletCount === 1 ? '' : 's'} indexed, and
-              neither we nor the chain records a single Worldchain payment. Agreement on zero
+              neither we nor the chain records a single {CHAIN} payment. Agreement on zero
               is still agreement.
             </p>
           )
@@ -156,13 +165,13 @@ export default async function ClaimedVsSettled() {
         )}
       </div>
       <p className={styles.sub}>
-        What this control plane says it paid, against what The Graph indexed from Worldchain
+        What this control plane says it paid, against what The Graph indexed from {CHAIN}
         consensus. If the two ever disagree, the disagreement is the row you are looking at
         &mdash; you do not have to trust us to see it.
       </p>
       {body()}
       <p className={styles.note}>
-        Worldchain USDC only. Hedera-rail steps settle on a chain The Graph does not index,
+        {CHAIN} USDC only. Hedera-rail steps settle on a chain The Graph does not index,
         so they are left out rather than counted as unsettled. Counts cover the period since
         this subgraph was deployed, never lifetime history.
       </p>
