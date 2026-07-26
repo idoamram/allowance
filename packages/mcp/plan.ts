@@ -37,7 +37,17 @@ const RAIL_BY_NETWORK: Record<string, Rail> = {
 }
 
 /** Worldchain first (the sponsor rail with a real seller market), Base as the fallback. */
-export const DEFAULT_NETWORKS = ['eip155:480', 'eip155:8453']
+const HEDERA_TESTNET = 'hedera:testnet'
+
+/**
+ * Hedera first, then Worldchain, then Base.
+ *
+ * Hedera leads because it is the only rail a plan can actually settle on under the
+ * testnet-first rule — the other two carry real Bazaar sellers on mainnet, which
+ * `MAINNET_PAY=false` correctly refuses to pay. A plan that can be approved but never
+ * bought is half a demo.
+ */
+export const DEFAULT_NETWORKS = [HEDERA_TESTNET, 'eip155:480', 'eip155:8453']
 const MAX_SELF_CHECK_TURNS = 3
 const CANDIDATES_PER_CATEGORY = 6
 
@@ -154,6 +164,54 @@ export const categoriesFor = (goal: string): CategorySpec[] =>
   PLAYBOOKS.find((p) => p.match.test(goal))?.categories ?? genericCategories(goal)
 
 /**
+ * Our own reference seller on the Hedera rail, offered when the Bazaar has nothing there.
+ *
+ * There is no Hedera x402 seller market and no directory that could surface one, so the
+ * honest move was to become the first working seller on that rail rather than pretend a
+ * market exists — the README says so and every step it produces is labelled.
+ *
+ * Without this, discovery and payment could never meet in one plan. The Bazaar's sellers
+ * are on Base and Worldchain mainnet, `MAINNET_PAY` is false by design, and the only rail
+ * a plan can actually settle on was unreachable from `quote_task`. Every Hedera run before
+ * this was a hand-built plan; the "agent shops the task" half and the "agent pays" half had
+ * never met in a plan that discovery produced.
+ *
+ * The URL resolves from `APP_URL`, so a cloner gets their own deployment's seller and not
+ * ours.
+ */
+const REFERENCE_SELLERS: Record<string, { path: string; name: string; buys: string }> = {
+  market: {
+    path: 'network-fees',
+    name: 'Network fee schedule (PlanBound reference seller)',
+    buys: 'current Hedera fee schedule and network conditions',
+  },
+  age: {
+    path: 'account-age',
+    name: 'Network supply (PlanBound reference seller)',
+    buys: 'Hedera network supply and account age reference data',
+  },
+}
+
+const referenceCandidates = (key: string | null): Candidate[] => {
+  const base = process.env.APP_URL?.replace(/\/$/, '')
+  if (!base) return []
+
+  // A named category — wallet risk, sanctions, net worth — is a question strangers on the
+  // Bazaar answer better than we do, and offering our own endpoint there would be passing
+  // our data off as a market. Only the generic category, where the goal is its own query
+  // and no playbook claimed it, falls through to what we can genuinely serve.
+  const sellers = key === null ? Object.values(REFERENCE_SELLERS) : []
+  return sellers.map((seller) => ({
+    url: `${base}/api/reference-seller/${seller.path}`,
+    name: seller.name,
+    priceUsd: null,
+    network: HEDERA_TESTNET,
+    // Said out loud in the plan, because a seller we run is not a stranger we found.
+    description: `${seller.buys} — our own reference seller on the Hedera rail`,
+  }))
+}
+
+/**
  * Pinned sellers carry their probe network inside the `source` note (S3 recorded it
  * there). Reading it back beats hardcoding a rail per category — the note is evidence.
  */
@@ -214,11 +272,16 @@ async function shop(
   deps: QuoteDeps,
 ): Promise<Pool> {
   for (const network of opts.networks) {
-    const candidates = await deps.discover(spec.query, {
+    let candidates = await deps.discover(spec.query, {
       limit: CANDIDATES_PER_CATEGORY,
       maxUsdPrice: opts.maxUsdPerStep,
       network,
     })
+    // The Bazaar lists nobody on Hedera. Rather than skip the one rail that can settle,
+    // offer our own labelled seller there — and re-quote it live like any stranger.
+    if (candidates.length === 0 && network.startsWith('hedera:')) {
+      candidates = referenceCandidates(spec.pinned)
+    }
     if (candidates.length === 0) continue
     const quoted = (await deps.quoteSteps(candidates)).filter((s) => isRelevant(s, spec))
     if (quoted.length > 0) return { spec, options: quoted }
