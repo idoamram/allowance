@@ -1,5 +1,6 @@
-import { db } from '@/lib/db'
+import Link from 'next/link'
 import { usd } from '@/lib/format'
+import { requireUser, supabaseServer } from '@/lib/supabase/server'
 import ClaimedVsSettled from './claimed-vs-settled'
 import styles from './console.module.css'
 
@@ -25,15 +26,22 @@ const STATUS_CLASS: Record<string, string> = {
 }
 
 /**
- * The operator's view: every plan this control plane has ever been asked to approve.
+ * The operator's view: every plan submitted by an agent this human owns.
  *
- * Approval keys are never selected here — the console tells you a plan exists and what
- * it costs; it does not hand out the authority to approve it. The claimed-vs-settled diff
- * below reads the chain instead, so none of this table has to be taken on trust; T11 adds
- * receipts.
+ * Read through the cookie-bound client rather than the service-role one, so the row
+ * filtering is the RLS policy from migration 0004 and not a `where` clause somebody has to
+ * remember to write. Getting this query wrong now returns nothing; getting it wrong under
+ * the service-role client would have returned everyone's plans.
+ *
+ * Approval keys are never selected here — the console tells you a plan exists and what it
+ * costs; it does not hand out the authority to approve it. The claimed-vs-settled diff
+ * below reads the chain instead, so none of this table has to be taken on trust.
  */
 export default async function ConsolePage() {
-  const { data } = await db()
+  const user = await requireUser()
+  const supabase = await supabaseServer()
+
+  const { data } = await supabase
     .from('plans')
     .select('id, goal, status, total_usd, ceiling_usd, created_at')
     .order('created_at', { ascending: false })
@@ -43,12 +51,15 @@ export default async function ConsolePage() {
   return (
     <main className={styles.page}>
       <h1 className={styles.title}>Console</h1>
-      <p className={styles.sub}>Every plan submitted, and what each one was allowed to cost.</p>
+      <p className={styles.sub}>
+        Every plan your agents submitted, and what each one was allowed to cost.
+      </p>
 
       {plans.length === 0 ? (
         <p className={styles.empty}>
-          No plans yet. An agent creates one with <code>submit_plan</code>; it appears here the
-          moment it is submitted, long before anyone approves it.
+          No plans yet. Create an agent on <Link href="/account">your account page</Link>, then
+          have it call <code>submit_plan</code> — a plan appears here the moment it is submitted,
+          long before anyone approves it.
         </p>
       ) : (
         <table className={styles.table}>
@@ -87,8 +98,8 @@ export default async function ConsolePage() {
       <ClaimedVsSettled />
 
       <p className={styles.note}>
-        This console is not yet behind a login &mdash; magic-link auth lands with the operator
-        surface. Do not deploy it to a public URL with real plans in the table until it is.
+        Signed in as {user.email} &mdash; this table shows only plans submitted by agents you
+        own. <Link href="/account">Manage agents and tokens</Link>.
       </p>
     </main>
   )

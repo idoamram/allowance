@@ -31,7 +31,7 @@ files it may not touch, the frozen contract, and its stop conditions. Sessions t
 conditions reported blockers instead of improvising around them — which is why several
 findings below exist at all.
 
-The **code** is agent-written and human-reviewed at the PR boundary; the PR trail (#11–#34)
+The **code** is agent-written and human-reviewed at the PR boundary; the PR trail (from #11)
 is the review record. Architecture decisions were human: the envelope primitive, plan-level
 rather than transaction-level approval, typed rejections as the learning signal, and every
 rail change.
@@ -47,6 +47,16 @@ These are the decisions AI did not make, and would have got wrong alone:
   lane were set because a submission deadline makes an unbounded stretch task dangerous.
 - **Testnet-first.** "Every flow must run end to end on testnets before any mainnet variant"
   was a human rule. It is the reason the demo needs no funded wallet.
+- **The account model, chosen against the agent's advice.** With the submission deadline
+  inside eight hours, the console still had no auth and listed every plan. The agent
+  recommended the cheap fix — a 20-minute gate on `/console` — and flagged that a full account
+  model this late was the kind of scope that eats a submission. Ido chose the full model
+  anyway: Supabase magic link, agents owned by a user, per-agent tokens issued and rotatable
+  by their owner, console scoping enforced by Postgres RLS rather than by application code.
+  The agent said plainly that it disagreed and that it thought the deadline risk was real,
+  then built what was asked. Recorded here because a disclosure file in which the agent is
+  never overruled is not a disclosure file, and because the scope call and the risk call were
+  made by different parties — which is the point of having both.
 
 ## Where AI caught AI
 
