@@ -97,3 +97,8 @@ temp/
 
 # Private SDK feedback drafts — shared with sponsor teams directly, not published
 .feedbacks/
+
+# Agent worktrees and local tool settings. `worktrees/` holds full checkouts created by
+# parallel agent sessions — committing one would put a copy of the repo inside the repo.
+.claude/worktrees/
+.claude/settings.local.json
